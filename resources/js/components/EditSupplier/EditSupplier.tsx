@@ -11,19 +11,21 @@ import Grid from "@material-ui/core/Grid";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
 import Checkbox from "@material-ui/core/Checkbox";
 import moment from "moment";
-import { MuiPickersUtilsProvider, TimePicker, DatePicker } from 'material-ui-pickers';
+import { MuiPickersUtilsProvider, DatePicker } from '@material-ui/pickers';
 import FormControl from "@material-ui/core/FormControl";
 import DateFnsUtils from "@date-io/date-fns";
-import format from "date-fns/format";
-import fr from "date-fns/locale/fr";
+import { format } from "date-fns/format";
+import { fr } from "date-fns/locale/fr";
+
 class LocalizedUtils extends DateFnsUtils {
   getDatePickerHeaderText(date:any) {
     return format(date, "d MMM yyyy", { locale: this.locale });
   }
 }
+
 const styles = (theme: Theme) => ({
   margin: {
-    margin: theme.spacing.unit
+    margin: theme.spacing(1)
   }
 });
 
@@ -158,7 +160,7 @@ class EditSupplier extends Component<IProvidedProps & IProps, IState> {
       >
         <DialogTitle id="form-dialog-title">Éditer un fournisseur</DialogTitle>
         <DialogContent>
-          <Grid container spacing={16}>
+          <Grid container spacing={2}>
             <Grid item xs>
               <TextField
                 className={classes.margin}
@@ -213,7 +215,7 @@ class EditSupplier extends Component<IProvidedProps & IProps, IState> {
               />
             </Grid>
           </Grid>
-          <Grid container spacing={16}>
+          <Grid container spacing={2}>
           <MuiPickersUtilsProvider utils={LocalizedUtils} locale={locale}>
 
             <Grid item xs >

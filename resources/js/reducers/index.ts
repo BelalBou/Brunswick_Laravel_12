@@ -1,5 +1,4 @@
 import { combineReducers } from "redux";
-import { routerReducer } from "react-router-redux";
 
 import add from "./add";
 import allergy from "./allergy";
@@ -40,8 +39,7 @@ const Reducers = combineReducers({
   server_time,
   setting,
   supplier,
-  user,
-  routing: routerReducer
+  user
 });
 
 export default Reducers;
