@@ -92,12 +92,12 @@ const styles = (theme: Theme) =>
     body2: {
       position: "fixed",
       bottom: 0,
-      marginLeft: theme.spacing.unit * 7
+      marginLeft: theme.spacing(7)
     },
     img: {
       width: "160px",
-      marginTop: theme.spacing.unit * 3,
-      marginLeft: theme.spacing.unit * 5
+      marginTop: theme.spacing(3),
+      marginLeft: theme.spacing(5)
     },
     list: {
       width: "100%",
@@ -131,11 +131,12 @@ interface IProps {
   onChangeSelected: (selected: number) => void;
   checkDictionnary: (tag: string) => string;
   onSearch?: (search: string) => void;
+  children?: React.ReactNode;
 }
 
 interface IState {
   mobileOpen: boolean;
-  anchorElProfile: React.ReactNode;
+  anchorElProfile: HTMLElement | null;
 }
 
 class MenuBar extends Component<IProvidedProps & IProps, IState> {
@@ -151,7 +152,7 @@ class MenuBar extends Component<IProvidedProps & IProps, IState> {
     anchorElProfile: null
   };
 
-  handleProfileMenuOpen = (event: React.MouseEvent<HTMLInputElement>) => {
+  handleProfileMenuOpen = (event: React.MouseEvent<HTMLButtonElement>) => {
     this.setState({ anchorElProfile: event.currentTarget });
   };
 
@@ -253,22 +254,20 @@ class MenuBar extends Component<IProvidedProps & IProps, IState> {
           button
           onClick={() => this.handleAccount()}
           selected={selected === 0}
-          component={({ innerRef, ...props }) => (
-            <Link {...props} to="/account" />
-          )}
         >
-          {this.props.checkDictionnary("_MON_COMPTE")}
+          <Link to="/account" style={{ textDecoration: 'none', color: 'inherit' }}>
+            {this.props.checkDictionnary("_MON_COMPTE")}
+          </Link>
         </MenuItem>
         <MenuItem
           button
           onClick={this.props.onLogout}
-          component={({ innerRef, ...props }) => (
-            <Link {...props} to="/login" />
-          )}
         >
-          {isLoginSuccess
-            ? this.props.checkDictionnary("_SE_DECONNECTER")
-            : this.props.checkDictionnary("_SE_CONNECTER")}
+          <Link to="/login" style={{ textDecoration: 'none', color: 'inherit' }}>
+            {isLoginSuccess
+              ? this.props.checkDictionnary("_SE_DECONNECTER")
+              : this.props.checkDictionnary("_SE_CONNECTER")}
+          </Link>
         </MenuItem>
       </Menu>
     );
@@ -562,7 +561,7 @@ class MenuBar extends Component<IProvidedProps & IProps, IState> {
             </Toolbar>
           </AppBar>
           <nav className={classes.drawer}>
-            <Hidden smUp implementation="css">
+            <Hidden implementation="css" mdUp>
               <Drawer
                 variant="temporary"
                 anchor={theme.direction === "rtl" ? "right" : "left"}
@@ -575,7 +574,7 @@ class MenuBar extends Component<IProvidedProps & IProps, IState> {
                 {this.renderDrawer()}
               </Drawer>
             </Hidden>
-            <Hidden xsDown implementation="css">
+            <Hidden implementation="css" smDown>
               <Drawer
                 classes={{
                   paper: classes.drawerPaper

@@ -18,7 +18,8 @@
         "baseUrl": ".",
         "paths": {
             "@/*": ["resources/js/*"]
-        }
+        },
+        "types": ["node", "classnames", "@material-ui/core"]
     },
     "include": ["resources/js/**/*.ts", "resources/js/**/*.tsx"],
     "references": [{ "path": "./tsconfig.node.json" }]

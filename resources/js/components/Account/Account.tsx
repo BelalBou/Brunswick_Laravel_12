@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { Redirect } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import classNames from "classnames";
 import Typography from "@material-ui/core/Typography";
 import { withStyles, Theme, createStyles } from "@material-ui/core/styles";
@@ -128,7 +128,7 @@ class Account extends Component<IProvidedProps & IProps, IState> {
       classes
     } = this.props;
     if (!isLoginSuccess) {
-      return <Redirect to="/login" />;
+      return <Navigate to="/login" replace />;
     }
     return (
       <MenuBar
