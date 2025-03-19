@@ -1,95 +1,66 @@
-import { combineReducers } from "redux";
-import { LoginState, LoginAction } from "../actions/login";
-import { UserState, UserAction } from "../actions/user";
-import { CartState, CartAction } from "../actions/cart";
-import { PageState, PageAction } from "../actions/page";
+import { combineReducers, Reducer } from "@reduxjs/toolkit";
+import loginReducer from "../actions/login";
+import userReducer from "../actions/user";
+import cartReducer from "../actions/cart";
+import pageReducer from "../actions/page";
+import addReducer from "../actions/add";
+import allergyReducer from "../actions/allergy";
+import categoryReducer from "../actions/category";
+import dailyMailReducer from "../actions/daily_mail";
+import deleteReducer from "../actions/delete";
+import dictionaryReducer from "../actions/dictionnary";
+import editReducer from "../actions/edit";
+import extraReducer from "../actions/extra";
+import listReducer from "../actions/list";
+import menuReducer from "../actions/menu";
+import menuSizeReducer from "../actions/menu_size";
+import orderReducer from "../actions/order";
+import serverTimeReducer from "../actions/server_time";
+import settingReducer from "../actions/setting";
+import supplierReducer from "../actions/supplier";
 
 export interface RootState {
-  login: LoginState;
-  user: UserState;
-  cart: CartState;
-  page: PageState;
+  login: ReturnType<typeof loginReducer>;
+  user: ReturnType<typeof userReducer>;
+  cart: ReturnType<typeof cartReducer>;
+  page: ReturnType<typeof pageReducer>;
+  add: ReturnType<typeof addReducer>;
+  allergy: ReturnType<typeof allergyReducer>;
+  category: ReturnType<typeof categoryReducer>;
+  dailyMail: ReturnType<typeof dailyMailReducer>;
+  delete: ReturnType<typeof deleteReducer>;
+  dictionary: ReturnType<typeof dictionaryReducer>;
+  edit: ReturnType<typeof editReducer>;
+  extra: ReturnType<typeof extraReducer>;
+  list: ReturnType<typeof listReducer>;
+  menu: ReturnType<typeof menuReducer>;
+  menuSize: ReturnType<typeof menuSizeReducer>;
+  order: ReturnType<typeof orderReducer>;
+  serverTime: ReturnType<typeof serverTimeReducer>;
+  setting: ReturnType<typeof settingReducer>;
+  supplier: ReturnType<typeof supplierReducer>;
 }
 
-export type RootAction = LoginAction | UserAction | CartAction | PageAction;
-
-const loginReducer = (state: LoginState = {
-  isLoginPending: false,
-  isLoginSuccess: false,
-  loginError: ""
-}, action: LoginAction): LoginState => {
-  switch (action.type) {
-    case "SET_LOGIN_PENDING":
-      return { ...state, isLoginPending: action.payload };
-    case "SET_LOGIN_SUCCESS":
-      return { ...state, isLoginSuccess: action.payload };
-    case "SET_LOGIN_ERROR":
-      return { ...state, loginError: action.payload };
-    default:
-      return state;
-  }
-};
-
-const userReducer = (state: UserState = {
-  id: 0,
-  firstName: "",
-  lastName: "",
-  language: "",
-  type: "",
-  supplierId: 0,
-  emailAddress: "",
-  password: "",
-  token: ""
-}, action: UserAction): UserState => {
-  switch (action.type) {
-    case "SET_USER_ID":
-      return { ...state, id: action.payload };
-    case "SET_USER_FIRST_NAME":
-      return { ...state, firstName: action.payload };
-    case "SET_USER_LAST_NAME":
-      return { ...state, lastName: action.payload };
-    case "SET_USER_LANGUAGE":
-      return { ...state, language: action.payload };
-    case "SET_USER_TYPE":
-      return { ...state, type: action.payload };
-    case "SET_USER_SUPPLIER_ID":
-      return { ...state, supplierId: action.payload };
-    case "SET_USER_EMAIL_ADDRESS":
-      return { ...state, emailAddress: action.payload };
-    case "SET_USER_PASSWORD":
-      return { ...state, password: action.payload };
-    case "SET_USER_TOKEN":
-      return { ...state, token: action.payload };
-    default:
-      return state;
-  }
-};
-
-const cartReducer = (state: CartState = {
-  list: []
-}, action: CartAction): CartState => {
-  switch (action.type) {
-    case "SET_CART_LIST":
-      return { ...state, list: action.payload };
-    default:
-      return state;
-  }
-};
-
-const pageReducer = (state: PageState = {
-  selected: 0
-}, action: PageAction): PageState => {
-  switch (action.type) {
-    case "SET_SELECTED":
-      return { ...state, selected: action.payload };
-    default:
-      return state;
-  }
-};
-
-export default combineReducers<RootState>({
+const rootReducer = combineReducers({
   login: loginReducer,
   user: userReducer,
   cart: cartReducer,
-  page: pageReducer
+  page: pageReducer,
+  add: addReducer,
+  allergy: allergyReducer,
+  category: categoryReducer,
+  dailyMail: dailyMailReducer,
+  delete: deleteReducer,
+  dictionary: dictionaryReducer,
+  edit: editReducer,
+  extra: extraReducer,
+  list: listReducer,
+  menu: menuReducer,
+  menuSize: menuSizeReducer,
+  order: orderReducer,
+  serverTime: serverTimeReducer,
+  setting: settingReducer,
+  supplier: supplierReducer
 });
+
+export default rootReducer;
