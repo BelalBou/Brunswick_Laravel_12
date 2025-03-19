@@ -1,263 +1,234 @@
-import React, { Component } from "react";
+import React, { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
-import classNames from "classnames";
-import Typography from "@material-ui/core/Typography";
-import { withStyles, Theme, createStyles } from "@material-ui/core/styles";
-import List from "@material-ui/core/List";
-import ListItem from "@material-ui/core/ListItem";
-import ListItemText from "@material-ui/core/ListItemText";
-import Select from "@material-ui/core/Select";
-import MenuItem from "@material-ui/core/MenuItem";
-import Grid from "@material-ui/core/Grid";
-import Divider from "@material-ui/core/Divider";
+import Typography from "@mui/material/Typography";
+import { styled } from "@mui/material/styles";
+import List from "@mui/material/List";
+import ListItem from "@mui/material/ListItem";
+import ListItemText from "@mui/material/ListItemText";
+import Select, { SelectChangeEvent } from "@mui/material/Select";
+import MenuItem from "@mui/material/MenuItem";
+import Grid from "@mui/material/Grid";
+import Divider from "@mui/material/Divider";
+import { useDispatch } from "react-redux";
 import MenuBar from "../MenuBar/MenuBar";
 import Footer from "../Footer/Footer";
 import checkDictionnary from "../../utils/CheckDictionnary/CheckDictionnary";
 import userTypes from "../../utils/UserTypes/UserTypes";
+import { getDictionaries } from "../../actions/dictionnary";
+import { logout } from "../../actions/login";
+import { setUserLanguage } from "../../actions/user";
+import { setSelected } from "../../actions/page";
+import { AppDispatch } from "../../types/redux";
 
-const styles = (theme: Theme) =>
-  createStyles({
-    heroUnit: {
-      backgroundColor: theme.palette.background.paper,
-      borderRadius: ".625rem"
-    },
-    layout: {
-      width: "auto",
-      margin: "0 auto"
-    },
-    gridContainer: {
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center"
-    },
-    gridItem: {
-      display: "flex",
-      flexDirection: "column",
-      justifyContent: "center",
-      padding: theme.spacing.unit * 2
-    },
-    cardGrid: {
-      padding: 0,
-      [theme.breakpoints.up("md")]: {
-        padding: theme.spacing.unit * 4
-      }
-    },
-    main: {
-      flex: 1
-    },
-    list: {
-      [theme.breakpoints.up("md")]: {
-        minWidth: "450px"
-      }
-    }
-  });
+const HeroUnit = styled('div')(({ theme }) => ({
+  backgroundColor: theme.palette.background.paper,
+  borderRadius: ".625rem"
+}));
 
-interface IProvidedProps {
-  classes: any;
-}
+const Layout = styled('div')(({ theme }) => ({
+  width: "auto",
+  margin: "0 auto",
+  padding: 0,
+  [theme.breakpoints.up("md")]: {
+    padding: theme.spacing(4)
+  }
+}));
+
+const ListContainer = styled(List)(({ theme }) => ({
+  [theme.breakpoints.up("md")]: {
+    minWidth: "450px"
+  }
+}));
 
 interface IProps {
   isLoginSuccess: boolean;
   isListPending: boolean;
+  userId: number;
   userFirstName: string;
   userLastName: string;
   userEmailAddress: string;
   userType: string;
+  userToken: string;
   userLanguage: string;
   selected: number;
   dictionnaryList: any[];
-  actions: any;
 }
 
-interface IState {
-  userLanguage: string;
-}
+const Account: React.FC<IProps> = ({
+  isLoginSuccess,
+  isListPending,
+  userFirstName,
+  userLastName,
+  userEmailAddress,
+  userType,
+  userLanguage,
+  selected,
+  dictionnaryList
+}) => {
+  const dispatch = useDispatch<AppDispatch>();
+  const [localUserLanguage, setLocalUserLanguage] = useState(userLanguage);
 
-class Account extends Component<IProvidedProps & IProps, IState> {
-  constructor(props: IProvidedProps & IProps) {
-    super(props);
-    this.state = {
-      userLanguage: props.userLanguage
-    };
-  }
+  useEffect(() => {
+    refresh();
+  }, []);
 
-  componentDidMount() {
-    this.refresh();
-  }
-
-  refresh = () => {
-    this.props.actions.getDictionnaries();
+  const refresh = () => {
+    dispatch(getDictionaries());
   };
 
-  handleLogout = () => {
-    this.props.actions.logout();
+  const handleLogout = () => {
+    dispatch(logout());
   };
 
-  handleChangeUserLanguage = (event: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleChangeUserLanguage = (event: SelectChangeEvent<string>) => {
     const { value } = event.target;
-    this.props.actions.editUserLanguage(value);
+    dispatch(setUserLanguage(value));
     const user = localStorage.getItem("user");
     if (user) {
       const userObj = JSON.parse(user);
       userObj.language = value;
       localStorage.setItem("user", JSON.stringify(userObj));
     }
-    this.setState({ userLanguage: value });
+    setLocalUserLanguage(value);
   };
 
-  handleChangeSelected = (selected: number) => {
-    this.props.actions.setSelected(selected);
+  const handleChangeSelected = (selected: number) => {
+    dispatch(setSelected(selected));
     localStorage.setItem("selected", selected.toString());
   };
 
-  checkDictionnary = (define: string) => {
-    const { dictionnaryList, userLanguage } = this.props;
+  const checkDictionnaryValue = (define: string) => {
     return checkDictionnary(define, dictionnaryList, userLanguage);
   };
 
-  render() {
-    const {
-      isLoginSuccess,
-      isListPending,
-      userFirstName,
-      userLastName,
-      userEmailAddress,
-      userLanguage,
-      userType,
-      selected,
-      classes
-    } = this.props;
-    if (!isLoginSuccess) {
-      return <Navigate to="/login" replace />;
-    }
-    return (
-      <MenuBar
-        isLoginSuccess={isLoginSuccess}
-        isListPending={isListPending}
-        userType={userType}
-        selected={selected}
-        title={this.checkDictionnary("_MON_COMPTE")}
-        onLogout={this.handleLogout}
-        onChangeSelected={this.handleChangeSelected}
-        checkDictionnary={this.checkDictionnary}
-      >
-        <main className={classes.main}>
-          <div className={classNames(classes.layout, classes.cardGrid)}>
-            <div className={classes.heroUnit}>
-              <Grid container className={classes.gridContainer}>
-                <Grid item className={classes.gridItem}>
-                  <Typography
-                    variant="h4"
-                    align="center"
-                    color="textSecondary"
-                    gutterBottom
-                  >
-                    {this.checkDictionnary("_DONNEES_PERSONNELLES")}
-                  </Typography>
-                  <List className={classes.list}>
-                    <ListItem>
-                      <ListItemText
-                        primary={this.checkDictionnary("_NOM")}
-                        secondary={
-                          <Typography
-                            variant="subtitle1"
-                            color="textSecondary"
-                            className="centered-text"
-                          >
-                            {userLastName.toUpperCase()}
-                          </Typography>
-                        }
-                        classes={{
-                          primary: "centered-text"
-                        }}
-                      />
-                    </ListItem>
-                    <Divider light />
-                    <ListItem>
-                      <ListItemText
-                        primary={this.checkDictionnary("_PRENOM")}
-                        secondary={
-                          <Typography
-                            variant="subtitle1"
-                            color="textSecondary"
-                            className="centered-text"
-                          >
-                            {userFirstName}
-                          </Typography>
-                        }
-                        classes={{
-                          primary: "centered-text"
-                        }}
-                      />
-                    </ListItem>
-                    <Divider light />
-                    <ListItem>
-                      <ListItemText
-                        primary={this.checkDictionnary("_ADRESSE_EMAIL")}
-                        secondary={
-                          <Typography
-                            variant="subtitle1"
-                            color="textSecondary"
-                            className="centered-text"
-                          >
-                            {userEmailAddress}
-                          </Typography>
-                        }
-                        classes={{
-                          primary: "centered-text"
-                        }}
-                      />
-                    </ListItem>
-                    <Divider light />
-                    <ListItem>
-                      <ListItemText
-                        primary={this.checkDictionnary("_TYPE_DE_COMPTE")}
-                        secondary={
-                          <Typography
-                            variant="subtitle1"
-                            color="textSecondary"
-                            className="centered-text"
-                          >
-                            {
-                              userTypes.filter(x => x.value === userType)[0]
-                                .label
-                            }
-                          </Typography>
-                        }
-                        classes={{
-                          primary: "centered-text"
-                        }}
-                      />
-                    </ListItem>
-                    <Divider light />
-                    <ListItem>
-                      <ListItemText
-                        primary={this.checkDictionnary("_LANGUE")}
-                        secondary={
-                          <Select
-                            value={userLanguage}
-                            onChange={this.handleChangeUserLanguage}
-                          >
-                            <MenuItem value="en">🇺🇸 English</MenuItem>
-                            <MenuItem value="fr">🇫🇷 Français</MenuItem>
-                          </Select>
-                        }
-                        classes={{
-                          primary: "centered-text",
-                          secondary: "centered-text"
-                        }}
-                      />
-                    </ListItem>
-                  </List>
-                </Grid>
-              </Grid>
-            </div>
-          </div>
-        </main>
-        <Footer />
-      </MenuBar>
-    );
+  if (!isLoginSuccess) {
+    return <Navigate to="/login" replace />;
   }
-}
 
-export default withStyles(styles)(Account);
+  return (
+    <MenuBar
+      isLoginSuccess={isLoginSuccess}
+      isListPending={isListPending}
+      userType={userType}
+      selected={selected}
+      title={checkDictionnaryValue("_MON_COMPTE")}
+      onLogout={handleLogout}
+      onChangeSelected={handleChangeSelected}
+      checkDictionnary={checkDictionnaryValue}
+    >
+      <main style={{ flex: 1 }}>
+        <Layout>
+          <HeroUnit>
+            <Grid container spacing={2} alignItems="center" justifyContent="center">
+              <Grid item xs={12} md={6}>
+                <Typography
+                  variant="h4"
+                  align="center"
+                  color="textSecondary"
+                  gutterBottom
+                >
+                  {checkDictionnaryValue("_DONNEES_PERSONNELLES")}
+                </Typography>
+                <ListContainer>
+                  <ListItem>
+                    <ListItemText
+                      primary={checkDictionnaryValue("_NOM")}
+                      secondary={
+                        <Typography
+                          variant="subtitle1"
+                          color="textSecondary"
+                          className="centered-text"
+                        >
+                          {userLastName.toUpperCase()}
+                        </Typography>
+                      }
+                      classes={{
+                        primary: "centered-text"
+                      }}
+                    />
+                  </ListItem>
+                  <Divider light />
+                  <ListItem>
+                    <ListItemText
+                      primary={checkDictionnaryValue("_PRENOM")}
+                      secondary={
+                        <Typography
+                          variant="subtitle1"
+                          color="textSecondary"
+                          className="centered-text"
+                        >
+                          {userFirstName}
+                        </Typography>
+                      }
+                      classes={{
+                        primary: "centered-text"
+                      }}
+                    />
+                  </ListItem>
+                  <Divider light />
+                  <ListItem>
+                    <ListItemText
+                      primary={checkDictionnaryValue("_ADRESSE_EMAIL")}
+                      secondary={
+                        <Typography
+                          variant="subtitle1"
+                          color="textSecondary"
+                          className="centered-text"
+                        >
+                          {userEmailAddress}
+                        </Typography>
+                      }
+                      classes={{
+                        primary: "centered-text"
+                      }}
+                    />
+                  </ListItem>
+                  <Divider light />
+                  <ListItem>
+                    <ListItemText
+                      primary={checkDictionnaryValue("_TYPE_DE_COMPTE")}
+                      secondary={
+                        <Typography
+                          variant="subtitle1"
+                          color="textSecondary"
+                          className="centered-text"
+                        >
+                          {userTypes.filter(x => x.value === userType)[0].label}
+                        </Typography>
+                      }
+                      classes={{
+                        primary: "centered-text"
+                      }}
+                    />
+                  </ListItem>
+                  <Divider light />
+                  <ListItem>
+                    <ListItemText
+                      primary={checkDictionnaryValue("_LANGUE")}
+                      secondary={
+                        <Select
+                          value={localUserLanguage}
+                          onChange={handleChangeUserLanguage}
+                        >
+                          <MenuItem value="en">🇺🇸 English</MenuItem>
+                          <MenuItem value="fr">🇫🇷 Français</MenuItem>
+                        </Select>
+                      }
+                      classes={{
+                        primary: "centered-text",
+                        secondary: "centered-text"
+                      }}
+                    />
+                  </ListItem>
+                </ListContainer>
+              </Grid>
+            </Grid>
+          </HeroUnit>
+        </Layout>
+      </main>
+      <Footer />
+    </MenuBar>
+  );
+};
+
+export default Account;
