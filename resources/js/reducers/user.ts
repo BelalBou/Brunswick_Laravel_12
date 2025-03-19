@@ -1,4 +1,6 @@
 import {
+  UserState,
+  UserAction,
   SET_USER_ID,
   SET_USER_FIRST_NAME,
   SET_USER_LAST_NAME,
@@ -8,89 +10,76 @@ import {
   SET_USER_EMAIL_ADDRESS,
   SET_USER_PASSWORD,
   SET_USER_TOKEN,
-  SET_USER_LIST,
-  SET_USER_VALIDITY,
-  UserAction
+  SET_USER_VALIDITY
 } from "../actions/user";
 import IUser from "../interfaces/IUser";
 
-const initialState = {
-  userId: -1,
-  userFirstName: "",
-  userLastName: "",
-  userLanguage: "fr",
-  userType: "",
-  userSupplierId: -1,
-  userEmailAddress: "",
-  userPassword: "",
-  userToken: "",
-  userList: [],
-  userValidity: ""
+const initialState: UserState = {
+  id: -1,
+  firstName: "",
+  lastName: "",
+  language: "fr",
+  type: "",
+  supplierId: -1,
+  emailAddress: "",
+  password: "",
+  token: "",
+  validity: "valid"
 };
 
-type State = {
-  userId: number;
-  userFirstName: string;
-  userLastName: string;
-  userLanguage: string;
-  userType: string;
-  userSupplierId: number;
-  userEmailAddress: string;
-  userPassword: string;
-  userToken: string;
-  userList: IUser[];
-  userValidity: string;
-};
-
-const user = (state: State = initialState, action: UserAction) => {
+export default function user(state = initialState, action: UserAction): UserState {
   switch (action.type) {
     case SET_USER_ID:
-      return Object.assign({}, state, {
-        userId: action.payload
-      });
+      return {
+        ...state,
+        id: action.id
+      };
     case SET_USER_FIRST_NAME:
-      return Object.assign({}, state, {
-        userFirstName: action.payload
-      });
+      return {
+        ...state,
+        firstName: action.firstName
+      };
     case SET_USER_LAST_NAME:
-      return Object.assign({}, state, {
-        userLastName: action.payload
-      });
+      return {
+        ...state,
+        lastName: action.lastName
+      };
     case SET_USER_LANGUAGE:
-      return Object.assign({}, state, {
-        userLanguage: action.payload
-      });
+      return {
+        ...state,
+        language: action.language
+      };
     case SET_USER_TYPE:
-      return Object.assign({}, state, {
-        userType: action.payload
-      });
+      return {
+        ...state,
+        type: action.userType
+      };
     case SET_USER_SUPPLIER_ID:
-      return Object.assign({}, state, {
-        userSupplierId: action.payload
-      });
+      return {
+        ...state,
+        supplierId: action.supplierId
+      };
     case SET_USER_EMAIL_ADDRESS:
-      return Object.assign({}, state, {
-        userEmailAddress: action.payload
-      });
+      return {
+        ...state,
+        emailAddress: action.emailAddress
+      };
     case SET_USER_PASSWORD:
-      return Object.assign({}, state, {
-        userPassword: action.payload
-      });
+      return {
+        ...state,
+        password: action.password
+      };
     case SET_USER_TOKEN:
-      return Object.assign({}, state, {
-        userToken: action.payload
-      });
-    case SET_USER_LIST:
-      return Object.assign({}, state, {
-        userList: action.payload.data
-      });
+      return {
+        ...state,
+        token: action.token
+      };
     case SET_USER_VALIDITY:
-      return Object.assign({}, state, {
-        userValidity: action.payload.data
-      });
+      return {
+        ...state,
+        validity: action.validity
+      };
     default:
       return state;
   }
-};
-
-export default user;
+}

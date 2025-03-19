@@ -1,15 +1,16 @@
-import React from "react";
-import ReactDOM from "react-dom";
+import * as React from "react";
+import * as ReactDOM from "react-dom";
 import { Provider } from "react-redux";
-import { applyMiddleware, createStore } from "redux";
+import { BrowserRouter } from "react-router-dom";
+import { configureStore, Middleware } from "@reduxjs/toolkit";
 import thunk from "redux-thunk";
 import promise from "redux-promise";
 import ICart from "./interfaces/ICart";
-import Routes from "./routes";
+import AppRoutes from "./routes";
 import reducers from "./reducers";
 import "./css/index.css";
 import * as serviceWorker from "./serviceWorker";
-
+import { RootAction, RootState } from "./types/redux";
 
 import { setLoginSuccess } from "./actions/login";
 import {
@@ -31,7 +32,12 @@ if (process.env.NODE_ENV !== "production") {
   const createLogger = require("redux-logger").createLogger();
   middlewares = [...middlewares, createLogger];
 }
-export const store = createStore(reducers, applyMiddleware(...middlewares));
+
+export const store = configureStore({
+  reducer: reducers,
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware().concat(middlewares as Middleware[])
+});
 
 const user = localStorage.getItem("user");
 if (user) {
@@ -63,25 +69,6 @@ if (cartList) {
   store.dispatch(setCartList(JSON.parse(cartList)));
 }
 
-// const cartList = localStorage.getItem("cartList");
-// let cartNewList:ICart[] = [];
-
-// if (cartList) {
-  
-//     JSON.parse(cartList).forEach((el)=>{
-//       let dateStart = new Date(el.menu.Supplier.away_start);
-//       let dateEnd = new Date(el.menu.Supplier.away_end);
-//       let dateDuJour = new Date();
-     
-//       if(dateDuJour < dateStart || dateDuJour > dateEnd)
-//         cartNewList.push(el);
-//     }) 
-    
-//     localStorage.removeItem('cartList');
-//     store.dispatch(setCartList(cartNewList)); 
-//     localStorage.setItem("cartList", JSON.stringify(cartNewList));    
-// }
-
 const selected = localStorage.getItem("selected");
 if (selected) {
   store.dispatch(setSelected(parseInt(selected)));
@@ -89,10 +76,17 @@ if (selected) {
 
 const root = document.getElementById("root");
 if (root !== null) {
+  // Add loaded class to prevent FOUC
+  root.classList.add('loaded');
+  
   ReactDOM.render(
-    <Provider store={store}>
-      <Routes />
-    </Provider>,
+    <React.StrictMode>
+      <Provider store={store}>
+        <BrowserRouter>
+          <AppRoutes />
+        </BrowserRouter>
+      </Provider>
+    </React.StrictMode>,
     root
   );
 }

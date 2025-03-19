@@ -1,5 +1,5 @@
 import React, {Component} from "react";
-import {Redirect} from "react-router-dom";
+import {Navigate} from "react-router-dom";
 import classNames from "classnames";
 import moment from "moment";
 import "moment/locale/en-gb";
@@ -33,7 +33,7 @@ const styles = (theme: Theme) =>
         cardGrid: {
             padding: 0,
             [theme.breakpoints.up("md")]: {
-                padding: theme.spacing.unit * 4
+                padding: theme.spacing(4)
             }
         },
         sectionDesktop: {
@@ -443,10 +443,10 @@ class Cart extends Component<IProvidedProps & IProps, IState> {
             serverTime
         } = this.props;
         if (!isLoginSuccess) {
-            return <Redirect to="/login"/>;
+            return <Navigate to="/login" replace />;
         }
         if (redirectTo) {
-            return <Redirect to={redirectTo}/>;
+            return <Navigate to={redirectTo} replace />;
         }
         return (
             <MenuBar

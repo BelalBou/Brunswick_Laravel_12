@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { Redirect } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import classNames from "classnames";
 import { withStyles, Theme } from "@material-ui/core/styles";
 import Tooltip from "@material-ui/core/Tooltip";
@@ -32,7 +32,7 @@ const styles = (theme: Theme) => ({
     margin: "0 auto"
   },
   cardGrid: {
-    padding: theme.spacing.unit * 4
+    padding: theme.spacing(4)
   },
   main: {
     flex: 1
@@ -365,8 +365,8 @@ class ManageExtras extends Component<IProvidedProps & IProps, IState> {
       classes,
       theme
     } = this.props;
-    if (!isLoginSuccess || userType !== "administrator") {
-      return <Redirect to="/login" />;
+    if (!isLoginSuccess) {
+      return <Navigate to="/login" replace />;
     }
     return (
       <MenuBar
@@ -421,7 +421,7 @@ class ManageExtras extends Component<IProvidedProps & IProps, IState> {
         {openDelete && (
           <DeleteStuff
             title="Supprimer un supplément"
-            description={`Le supplément « ${deleteTitle} » sera définitivement perdu !`}
+            description={`Le supplément « ${deleteTitle} » sera définitivement perdu !`}
             onClose={this.handleCloseDelete}
             onDelete={this.handleDelete}
             checkDictionnary={this.checkDictionnary}

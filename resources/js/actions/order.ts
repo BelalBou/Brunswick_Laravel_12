@@ -1,10 +1,13 @@
-import axios from "axios";
+import axios, { AxiosResponse } from "axios";
 import moment from "moment";
 import { setAddPending, setAddSuccess, setAddError } from "./add";
 import { setEditPending, setEditSuccess, setEditError } from "./edit";
 import { setDeletePending, setDeleteSuccess, setDeleteError } from "./delete";
 import { setListPending, setListSuccess, setListError } from "./list";
 import { setCartList } from "./cart";
+import { AppDispatch } from "../types/redux";
+import IOrder from "../interfaces/IOrder";
+import IOrderExtra from "../interfaces/IOrderExtra";
 
 // authentication
 
@@ -16,22 +19,22 @@ axios.defaults.headers.common["authorization"] = `Bearer ${tokenLS}`;
 
 type OrderListAction = {
   type: "SET_ORDER_LIST";
-  payload: any;
+  payload: IOrder[];
 };
 
 type OrderListSpreadAction = {
   type: "SET_ORDER_LIST_SPREAD";
-  payload: any;
+  payload: IOrder[];
 };
 
 type OrderExtraListAction = {
   type: "SET_ORDER_EXTRA_LIST";
-  payload: any;
+  payload: IOrderExtra[];
 };
 
 type OrderListTotalCount = {
   type: "SET_ORDER_LIST_TOTAL_COUNT";
-  payload: any;
+  payload: number;
 };
 
 export type OrderAction =
@@ -43,25 +46,25 @@ export type OrderAction =
 // types definition
 
 export const SET_ORDER_LIST = "SET_ORDER_LIST";
-export const setOrderList = (orderList: any) => ({
+export const setOrderList = (orderList: IOrder[]) => ({
   type: SET_ORDER_LIST,
   payload: orderList
 });
 
 export const SET_ORDER_LIST_SPREAD = "SET_ORDER_LIST_SPREAD";
-export const setOrderListSpread = (orderList: any) => ({
+export const setOrderListSpread = (orderList: IOrder[]) => ({
   type: SET_ORDER_LIST_SPREAD,
   payload: orderList
 });
 
 export const SET_ORDER_EXTRA_LIST = "SET_ORDER_EXTRA_LIST";
-export const setOrderExtraList = (orderExtraList: any) => ({
+export const setOrderExtraList = (orderExtraList: IOrderExtra[]) => ({
   type: SET_ORDER_EXTRA_LIST,
   payload: orderExtraList
 });
 
 export const SET_ORDER_LIST_TOTAL_COUNT = "SET_ORDER_LIST_TOTAL_COUNT";
-export const setOrderListTotalCount = (orderListTotalCount: any) => ({
+export const setOrderListTotalCount = (orderListTotalCount: number) => ({
   type: SET_ORDER_LIST_TOTAL_COUNT,
   payload: orderListTotalCount
 });
@@ -69,7 +72,7 @@ export const setOrderListTotalCount = (orderListTotalCount: any) => ({
 // order
 
 function addOrderDispatch(res: any) {
-  return (dispatch: Function) => {
+  return (dispatch: AppDispatch) => {
     dispatch(setAddSuccess(!!res.data));
     if (!res.data) {
       dispatch(setAddError("Add order failed!"));
@@ -81,7 +84,7 @@ function addOrderDispatch(res: any) {
 }
 
 export const addOrder = (userId: number, menus: Object[], date: string) => (
-  dispatch: Function
+  dispatch: AppDispatch
 ) => {
   dispatch(setAddPending(true));
   dispatch(setAddSuccess(false));
@@ -107,7 +110,7 @@ function deleteOrdersDispatch(
   selectedSupplierIds: number[],
   selectedCustomerIds: number[]
 ) {
-  return (dispatch: Function) => {
+  return (dispatch: AppDispatch) => {
     dispatch(setDeleteSuccess(!!res.data));
     if (!res.data) {
       dispatch(setDeleteError("Delete order failed!"));
@@ -139,7 +142,7 @@ export const deleteOrders = (
   selectedDate: moment.Moment,
   selectedSupplierIds: number[],
   selectedCustomerIds: number[]
-) => (dispatch: Function) => {
+) => (dispatch: AppDispatch) => {
   dispatch(setDeletePending(true));
   dispatch(setDeleteSuccess(false));
   dispatch(setDeleteError(""));
@@ -173,7 +176,7 @@ function editOrderDispatch(
   selectedSupplierIds: number[],
   selectedCustomerIds: number[]
 ) {
-  return (dispatch: Function) => {
+  return (dispatch: AppDispatch) => {
     dispatch(setEditSuccess(!!res.data));
     if (!res.data) {
       dispatch(setEditError("Edit order failed!"));
@@ -208,7 +211,7 @@ export const editOrder = (
   selectedDate: moment.Moment,
   selectedSupplierIds: number[],
   selectedCustomerIds: number[]
-) => (dispatch: Function) => {
+) => (dispatch: AppDispatch) => {
   dispatch(setEditPending(true));
   dispatch(setEditSuccess(false));
   dispatch(setEditError(""));
@@ -238,7 +241,7 @@ export const editOrder = (
 };
 
 function editArticleCarriedAwayDispatch(res: any, selectedDate: string) {
-  return (dispatch: Function) => {
+  return (dispatch: AppDispatch) => {
     dispatch(setEditSuccess(!!res.data));
     if (!res.data) {
       dispatch(setEditError("Edit article carried away failed!"));
@@ -253,7 +256,7 @@ export const editArticleCarriedAway = (
   menuId: number,
   checked: boolean,
   selectedDate: string
-) => (dispatch: Function) => {
+) => (dispatch: AppDispatch) => {
   dispatch(setEditPending(true));
   dispatch(setEditSuccess(false));
   dispatch(setEditError(""));
@@ -278,7 +281,7 @@ function deleteOrderDispatch(
   selectedSupplierIds: number[],
   selectedCustomerIds: number[]
 ) {
-  return (dispatch: Function) => {
+  return (dispatch: AppDispatch) => {
     dispatch(setDeleteSuccess(!!res.data));
     if (!res.data) {
       dispatch(setDeleteError("Delete menu from order failed!"));
@@ -311,7 +314,7 @@ export const deleteOrder = (
   selectedDate: moment.Moment,
   selectedSupplierIds: number[],
   selectedCustomerIds: number[]
-) => (dispatch: Function) => {
+) => (dispatch: AppDispatch) => {
   dispatch(setDeletePending(true));
   dispatch(setDeleteSuccess(false));
   dispatch(setDeleteError(""));
@@ -338,113 +341,136 @@ export const deleteOrder = (
     .then(() => dispatch(setDeletePending(false)));
 };
 
-function getOrdersDispatch(res: any) {
-  return (dispatch: Function) => {
-    dispatch(setListSuccess(!!res.payload.data));
-    if (!res.payload.data) {
-      dispatch(setListError("List order failed!"));
+function getOrdersDispatch(res: AxiosResponse<{ data: IOrder[]; total: number }>) {
+  return (dispatch: AppDispatch) => {
+    dispatch(setListSuccess(!!res.data.data));
+    if (!res.data.data) {
+      dispatch(setListError("Get orders failed!"));
+    } else {
+      dispatch(setOrderList(res.data.data));
+      dispatch(setOrderListTotalCount(res.data.total));
     }
   };
 }
 
 export const getOrders = (
-  todayOnly: boolean = false,
+  forCustomer: boolean = false,
   limit: number = 0,
   offset: number = 0
-) => (dispatch: Function) => {
+) => (dispatch: AppDispatch) => {
   dispatch(setListPending(true));
   dispatch(setListSuccess(false));
   dispatch(setListError(""));
-  const orderList = axios.post(`/api/orders/list/`, {
-    todayOnly,
-    limit,
-    offset
-  });
-  dispatch(setOrderListTotalCount(orderList));
-  dispatch(setOrderList(orderList))
-    .then((res: any) => dispatch(getOrdersDispatch(res)))
+  axios
+    .get(`/api/orders/list/`, {
+      params: {
+        forCustomer,
+        limit,
+        offset
+      }
+    })
+    .then(res => dispatch(getOrdersDispatch(res)))
     .catch((err: string) => dispatch(setListError(err)))
     .then(() => dispatch(setListPending(false)));
 };
 
-function getOrdersForCustomerDispatch(res: any) {
-  return (dispatch: Function) => {
-    dispatch(setListSuccess(!!res.payload.data));
-    if (!res.payload.data) {
-      dispatch(setListError("List order for customer failed!"));
+function getOrdersForCustomerDispatch(res: AxiosResponse<{ data: IOrder[]; total: number }>) {
+  return (dispatch: AppDispatch) => {
+    dispatch(setListSuccess(!!res.data.data));
+    if (!res.data.data) {
+      dispatch(setListError("Get orders for customer failed!"));
+    } else {
+      dispatch(setOrderList(res.data.data));
+      dispatch(setOrderListTotalCount(res.data.total));
     }
   };
 }
 
 export const getOrdersForCustomer = (limit: number = 0, offset: number = 0) => (
-  dispatch: Function
+  dispatch: AppDispatch
 ) => {
   dispatch(setListPending(true));
   dispatch(setListSuccess(false));
   dispatch(setListError(""));
-  const orderList = axios.post(`/api/orders/list_customer`, { limit, offset });
-  dispatch(setOrderListTotalCount(orderList));
-  dispatch(setOrderList(orderList))
-    .then((res: any) => dispatch(getOrdersForCustomerDispatch(res)))
+  axios
+    .get(`/api/orders/list/customer/`, {
+      params: {
+        limit,
+        offset
+      }
+    })
+    .then(res => dispatch(getOrdersForCustomerDispatch(res)))
     .catch((err: string) => dispatch(setListError(err)))
     .then(() => dispatch(setListPending(false)));
 };
 
-function getOrdersForCustomerSpreadDispatch(res: any) {
-  return (dispatch: Function) => {
-    dispatch(setListSuccess(!!res.payload.data));
-    if (!res.payload.data) {
-      dispatch(setListError("List order for customer spread failed!"));
+function getOrdersForCustomerSpreadDispatch(res: AxiosResponse<{ data: IOrder[]; total: number }>) {
+  return (dispatch: AppDispatch) => {
+    dispatch(setListSuccess(!!res.data.data));
+    if (!res.data.data) {
+      dispatch(setListError("Get orders for customer spread failed!"));
+    } else {
+      dispatch(setOrderListSpread(res.data.data));
+      dispatch(setOrderListTotalCount(res.data.total));
     }
   };
 }
 
-export const getOrdersForCustomerSpread = (
-  limit: number = 0,
-  offset: number = 0
-) => (dispatch: Function) => {
+export const getOrdersForCustomerSpread = (limit: number = 0, offset: number = 0) => (
+  dispatch: AppDispatch
+) => {
   dispatch(setListPending(true));
   dispatch(setListSuccess(false));
   dispatch(setListError(""));
-  const orderList = axios.post(`/api/orders/list_customer`, {
-    limit,
-    offset
-  });
-  dispatch(setOrderListTotalCount(orderList));
-  dispatch(setOrderListSpread(orderList))
-    .then((res: any) => dispatch(getOrdersForCustomerSpreadDispatch(res)))
+  axios
+    .get(`/api/orders/list/customer/spread/`, {
+      params: {
+        limit,
+        offset
+      }
+    })
+    .then(res => dispatch(getOrdersForCustomerSpreadDispatch(res)))
     .catch((err: string) => dispatch(setListError(err)))
     .then(() => dispatch(setListPending(false)));
 };
 
-function getOrdersTotalCountForCustomerDispatch(res: any) {
-  return (dispatch: Function) => {
-    dispatch(setListSuccess(!!res.payload.data));
-    if (!res.payload.data) {
-      dispatch(setListError("List order total count for customer failed!"));
+function getOrdersTotalCountForCustomerDispatch(res: AxiosResponse<{ total: number }>) {
+  return (dispatch: AppDispatch) => {
+    dispatch(setListSuccess(!!res.data.total));
+    if (!res.data.total) {
+      dispatch(setListError("Get orders total count for customer failed!"));
+    } else {
+      dispatch(setOrderListTotalCount(res.data.total));
     }
   };
 }
 
-export const getOrdersTotalCountForCustomer = (
-  limit: number = 0,
-  offset: number = 0
-) => (dispatch: Function) => {
+export const getOrdersTotalCountForCustomer = (limit: number = 0, offset: number = 0) => (
+  dispatch: AppDispatch
+) => {
   dispatch(setListPending(true));
   dispatch(setListSuccess(false));
   dispatch(setListError(""));
-  const orderList = axios.post(`/api/orders/list_customer`, { limit, offset });
-  dispatch(setOrderListTotalCount(orderList))
-    .then((res: any) => dispatch(getOrdersTotalCountForCustomerDispatch(res)))
+  axios
+    .get(`/api/orders/list/customer/total/`, {
+      params: {
+        limit,
+        offset
+      }
+    })
+    .then(res => dispatch(getOrdersTotalCountForCustomerDispatch(res)))
     .catch((err: string) => dispatch(setListError(err)))
     .then(() => dispatch(setListPending(false)));
 };
 
-function getOrdersForSupplierDispatch(res: any) {
-  return (dispatch: Function) => {
-    dispatch(setListSuccess(!!res.payload.data));
-    if (!res.payload.data) {
-      dispatch(setListError("List order failed!"));
+function getOrdersForSupplierDispatch(res: AxiosResponse<{ data: IOrder[]; total: number }>) {
+  return (dispatch: AppDispatch) => {
+    dispatch(setListSuccess(!!res.data.data));
+    if (!res.data.data) {
+      dispatch(setListError("Get orders for supplier failed!"));
+    } else {
+      dispatch(setOrderList(res.data.data));
+      dispatch(setOrderListTotalCount(res.data.total));
     }
   };
 }
@@ -454,125 +480,133 @@ export const getOrdersForSupplier = (
   todayOnly: boolean = false,
   limit: number = 0,
   offset: number = 0
-) => (dispatch: Function) => {
+) => (dispatch: AppDispatch) => {
   dispatch(setListPending(true));
   dispatch(setListSuccess(false));
   dispatch(setListError(""));
-  const orderList = axios.post(`/api/orders/list_supplier/${supplierId}`, {
-    todayOnly,
-    limit,
-    offset
-  });
-  dispatch(setOrderListTotalCount(orderList));
-  dispatch(setOrderList(orderList))
-    .then((res: any) => dispatch(getOrdersForSupplierDispatch(res)))
+  axios
+    .get(`/api/orders/list/supplier/${supplierId}`, {
+      params: {
+        todayOnly,
+        limit,
+        offset
+      }
+    })
+    .then(res => dispatch(getOrdersForSupplierDispatch(res)))
     .catch((err: string) => dispatch(setListError(err)))
     .then(() => dispatch(setListPending(false)));
 };
 
-function getOrdersForSuppliersDispatch(res: any) {
-  return (dispatch: Function) => {
-    dispatch(setListSuccess(!!res.payload.data));
-    if (!res.payload.data) {
-      dispatch(setListError("List orders failed!"));
+function getOrdersForSuppliersDispatch(res: AxiosResponse<{ data: IOrder[]; total: number }>) {
+  return (dispatch: AppDispatch) => {
+    dispatch(setListSuccess(!!res.data.data));
+    if (!res.data.data) {
+      dispatch(setListError("Get orders for suppliers failed!"));
+    } else {
+      dispatch(setOrderList(res.data.data));
+      dispatch(setOrderListTotalCount(res.data.total));
     }
   };
 }
 
-export const getOrdersForSuppliers = (
-  supplierIds: Array<number>,
-  limit: number = 0,
-  offset: number = 0
-) => (dispatch: Function) => {
+export const getOrdersForSuppliers = (supplierIds: number[], limit: number = 0, offset: number = 0) => (
+  dispatch: AppDispatch
+) => {
   dispatch(setListPending(true));
   dispatch(setListSuccess(false));
   dispatch(setListError(""));
-  const orderList = axios.post(`/api/orders/list_suppliers/`, {
-    ids: supplierIds,
-    limit,
-    offset
-  });
-  dispatch(setOrderListTotalCount(orderList));
-  dispatch(setOrderList(orderList))
-    .then((res: any) => dispatch(getOrdersForSuppliersDispatch(res)))
+  axios
+    .get(`/api/orders/list/suppliers/`, {
+      params: {
+        supplierIds,
+        limit,
+        offset
+      }
+    })
+    .then(res => dispatch(getOrdersForSuppliersDispatch(res)))
     .catch((err: string) => dispatch(setListError(err)))
     .then(() => dispatch(setListPending(false)));
 };
 
-function getOrdersForCustomersDispatch(res: any) {
-  return (dispatch: Function) => {
-    dispatch(setListSuccess(!!res.payload.data));
-    if (!res.payload.data) {
-      dispatch(setListError("List order for customers failed!"));
+function getOrdersForCustomersDispatch(res: AxiosResponse<{ data: IOrder[]; total: number }>) {
+  return (dispatch: AppDispatch) => {
+    dispatch(setListSuccess(!!res.data.data));
+    if (!res.data.data) {
+      dispatch(setListError("Get orders for customers failed!"));
+    } else {
+      dispatch(setOrderList(res.data.data));
+      dispatch(setOrderListTotalCount(res.data.total));
     }
   };
 }
 
-export const getOrdersForCustomers = (
-  customerIds: number[],
-  limit: number = 0,
-  offset: number = 0
-) => (dispatch: Function) => {
+export const getOrdersForCustomers = (customerIds: number[], limit: number = 0, offset: number = 0) => (
+  dispatch: AppDispatch
+) => {
   dispatch(setListPending(true));
   dispatch(setListSuccess(false));
   dispatch(setListError(""));
-  const orderList = axios.post(`/api/orders/list_customers`, {
-    ids: customerIds,
-    limit,
-    offset
-  });
-  dispatch(setOrderListTotalCount(orderList));
-  dispatch(setOrderList(orderList))
-    .then((res: any) => dispatch(getOrdersForCustomersDispatch(res)))
+  axios
+    .get(`/api/orders/list/customers/`, {
+      params: {
+        customerIds,
+        limit,
+        offset
+      }
+    })
+    .then(res => dispatch(getOrdersForCustomersDispatch(res)))
     .catch((err: string) => dispatch(setListError(err)))
     .then(() => dispatch(setListPending(false)));
 };
 
-function getOrdersForDateDispatch(res: any) {
-  return (dispatch: Function) => {
-    dispatch(setListSuccess(!!res.payload.data));
-    if (!res.payload.data) {
-      dispatch(setListError("List order for date failed!"));
+function getOrdersForDateDispatch(res: AxiosResponse<{ data: IOrder[]; total: number }>) {
+  return (dispatch: AppDispatch) => {
+    dispatch(setListSuccess(!!res.data.data));
+    if (!res.data.data) {
+      dispatch(setListError("Get orders for date failed!"));
+    } else {
+      dispatch(setOrderList(res.data.data));
+      dispatch(setOrderListTotalCount(res.data.total));
     }
   };
 }
 
-export const getOrdersForDate = (
-  date: string,
-  limit: number = 0,
-  offset: number = 0
-) => (dispatch: Function) => {
+export const getOrdersForDate = (date: string, limit: number = 0, offset: number = 0) => (
+  dispatch: AppDispatch
+) => {
   dispatch(setListPending(true));
   dispatch(setListSuccess(false));
   dispatch(setListError(""));
-  const orderList = axios.post(`/api/orders/list_date`, {
-    date,
-    limit,
-    offset
-  });
-  dispatch(setOrderListTotalCount(orderList));
-  dispatch(setOrderList(orderList))
-    .then((res: any) => dispatch(getOrdersForDateDispatch(res)))
+  axios
+    .get(`/api/orders/list/date/${date}`, {
+      params: {
+        limit,
+        offset
+      }
+    })
+    .then(res => dispatch(getOrdersForDateDispatch(res)))
     .catch((err: string) => dispatch(setListError(err)))
     .then(() => dispatch(setListPending(false)));
 };
 
-function getOrdersExtraDispatch(res: any) {
-  return (dispatch: Function) => {
-    dispatch(setListSuccess(!!res.payload.data));
-    if (!res.payload.data) {
-      dispatch(setListError("List orders extra failed!"));
+function getOrdersExtraDispatch(res: AxiosResponse<{ data: IOrderExtra[] }>) {
+  return (dispatch: AppDispatch) => {
+    dispatch(setListSuccess(!!res.data.data));
+    if (!res.data.data) {
+      dispatch(setListError("Get orders extra failed!"));
+    } else {
+      dispatch(setOrderExtraList(res.data.data));
     }
   };
 }
 
-export const getOrdersExtra = () => (dispatch: Function) => {
+export const getOrdersExtra = () => (dispatch: AppDispatch) => {
   dispatch(setListPending(true));
   dispatch(setListSuccess(false));
   dispatch(setListError(""));
-  const orderExtraList = axios.get(`/api/orders/list_extra/`);
-  dispatch(setOrderExtraList(orderExtraList))
-    .then((res: any) => dispatch(getOrdersExtraDispatch(res)))
+  axios
+    .get(`/api/orders/list/extra/`)
+    .then(res => dispatch(getOrdersExtraDispatch(res)))
     .catch((err: string) => dispatch(setListError(err)))
     .then(() => dispatch(setListPending(false)));
 };
@@ -585,7 +619,7 @@ function filterOrdersDispatch(
   selectedSupplierIds: number[],
   selectedCustomerIds: number[]
 ) {
-  return (dispatch: Function) => {
+  return (dispatch: AppDispatch) => {
     switch (selectedFilter) {
       case "date":
         dispatch(

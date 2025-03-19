@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { Redirect } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import classNames from "classnames";
 import { withStyles, Theme } from "@material-ui/core/styles";
 import Tooltip from "@material-ui/core/Tooltip";
@@ -372,8 +372,8 @@ class ManageUsers extends Component<IProvidedProps & IProps, IState> {
       supplierList,
       classes
     } = this.props;
-    if (!isLoginSuccess || userType !== "administrator") {
-      return <Redirect to="/login" />;
+    if (!isLoginSuccess) {
+      return <Navigate to="/login" replace />;
     }
     return (
       <MenuBar
@@ -430,7 +430,7 @@ class ManageUsers extends Component<IProvidedProps & IProps, IState> {
         {openDelete && (
           <DeleteStuff
             title="Supprimer un utilisateur"
-            description={`L'utilisateur « ${deleteLastName.toUpperCase()} ${deleteFirstName} » sera définitivement perdu !`}
+            description={`L'utilisateur « ${deleteLastName.toUpperCase()} ${deleteFirstName} » sera définitivement perdu !`}
             onClose={this.handleCloseDelete}
             onDelete={this.handleDelete}
             checkDictionnary={this.checkDictionnary}

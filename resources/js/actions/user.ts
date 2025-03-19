@@ -3,6 +3,7 @@ import { setAddPending, setAddSuccess, setAddError } from "./add";
 import { setEditPending, setEditSuccess, setEditError } from "./edit";
 import { setDeletePending, setDeleteSuccess, setDeleteError } from "./delete";
 import { setListPending, setListSuccess, setListError } from "./list";
+import { Dispatch } from "redux";
 
 // authentication
 
@@ -12,60 +13,68 @@ axios.defaults.headers.common["authorization"] = `Bearer ${tokenLS}`;
 
 // types declaration
 
-type UserIdAction = {
-  type: "SET_USER_ID";
-  payload: number;
-};
+export interface UserState {
+  id: number;
+  firstName: string;
+  lastName: string;
+  language: string;
+  type: string;
+  supplierId: number;
+  emailAddress: string;
+  password: string;
+  token: string;
+  validity: string;
+}
 
-type UserFirstNameAction = {
-  type: "SET_USER_FIRST_NAME";
-  payload: string;
-};
+export interface UserIdAction {
+  type: typeof SET_USER_ID;
+  id: number;
+}
 
-type UserLastNameAction = {
-  type: "SET_USER_LAST_NAME";
-  payload: string;
-};
+export interface UserFirstNameAction {
+  type: typeof SET_USER_FIRST_NAME;
+  firstName: string;
+}
 
-type UserLanguageAction = {
-  type: "SET_USER_LANGUAGE";
-  payload: string;
-};
+export interface UserLastNameAction {
+  type: typeof SET_USER_LAST_NAME;
+  lastName: string;
+}
 
-type UserTypeAction = {
-  type: "SET_USER_TYPE";
-  payload: string;
-};
+export interface UserLanguageAction {
+  type: typeof SET_USER_LANGUAGE;
+  language: string;
+}
 
-type UserSupplierIdAction = {
-  type: "SET_USER_SUPPLIER_ID";
-  payload: number;
-};
+export interface UserTypeAction {
+  type: typeof SET_USER_TYPE;
+  userType: string;
+}
 
-type UserEmailAddressAction = {
-  type: "SET_USER_EMAIL_ADDRESS";
-  payload: string;
-};
+export interface UserSupplierIdAction {
+  type: typeof SET_USER_SUPPLIER_ID;
+  supplierId: number;
+}
 
-type UserPasswordAction = {
-  type: "SET_USER_PASSWORD";
-  payload: string;
-};
+export interface UserEmailAddressAction {
+  type: typeof SET_USER_EMAIL_ADDRESS;
+  emailAddress: string;
+}
 
-type UserTokenAction = {
-  type: "SET_USER_TOKEN";
-  payload: string;
-};
+export interface UserPasswordAction {
+  type: typeof SET_USER_PASSWORD;
+  password: string;
+}
 
-type UserListAction = {
-  type: "SET_USER_LIST";
-  payload: any;
-};
+export interface UserTokenAction {
+  type: typeof SET_USER_TOKEN;
+  token: string;
+}
 
-type UserValidityAction = {
-  type: "SET_USER_VALIDITY";
-  payload: any;
-};
+export interface UserValidityAction {
+  type: typeof SET_USER_VALIDITY;
+  validity: string;
+}
 
 export type UserAction =
   | UserIdAction
@@ -77,63 +86,69 @@ export type UserAction =
   | UserEmailAddressAction
   | UserPasswordAction
   | UserTokenAction
-  | UserListAction
   | UserValidityAction;
 
 // types definition
 
 export const SET_USER_ID = "SET_USER_ID";
-export const setUserId = (userId: number) => ({
-  type: SET_USER_ID,
-  payload: userId
-});
-
 export const SET_USER_FIRST_NAME = "SET_USER_FIRST_NAME";
-export const setUserFirstName = (userFirstName: string) => ({
-  type: SET_USER_FIRST_NAME,
-  payload: userFirstName
-});
-
 export const SET_USER_LAST_NAME = "SET_USER_LAST_NAME";
-export const setUserLastName = (userLastName: string) => ({
-  type: SET_USER_LAST_NAME,
-  payload: userLastName
-});
-
 export const SET_USER_LANGUAGE = "SET_USER_LANGUAGE";
-export const setUserLanguage = (userLanguage: string) => ({
-  type: SET_USER_LANGUAGE,
-  payload: userLanguage
-});
-
 export const SET_USER_TYPE = "SET_USER_TYPE";
-export const setUserType = (userType: string) => ({
-  type: SET_USER_TYPE,
-  payload: userType
-});
-
 export const SET_USER_SUPPLIER_ID = "SET_USER_SUPPLIER_ID";
-export const setUserSupplierId = (supplierId: number) => ({
-  type: SET_USER_SUPPLIER_ID,
-  payload: supplierId
-});
-
 export const SET_USER_EMAIL_ADDRESS = "SET_USER_EMAIL_ADDRESS";
-export const setUserEmailAddress = (userEmailAddress: string) => ({
-  type: SET_USER_EMAIL_ADDRESS,
-  payload: userEmailAddress
-});
-
 export const SET_USER_PASSWORD = "SET_USER_PASSWORD";
-export const setUserPassword = (userPassword: string) => ({
-  type: SET_USER_PASSWORD,
-  payload: userPassword
+export const SET_USER_TOKEN = "SET_USER_TOKEN";
+export const SET_USER_VALIDITY = "SET_USER_VALIDITY";
+
+export const setUserId = (id: number): UserIdAction => ({
+  type: SET_USER_ID,
+  id
 });
 
-export const SET_USER_TOKEN = "SET_USER_TOKEN";
-export const setUserToken = (userToken: string) => ({
+export const setUserFirstName = (firstName: string): UserFirstNameAction => ({
+  type: SET_USER_FIRST_NAME,
+  firstName
+});
+
+export const setUserLastName = (lastName: string): UserLastNameAction => ({
+  type: SET_USER_LAST_NAME,
+  lastName
+});
+
+export const setUserLanguage = (language: string): UserLanguageAction => ({
+  type: SET_USER_LANGUAGE,
+  language
+});
+
+export const setUserType = (userType: string): UserTypeAction => ({
+  type: SET_USER_TYPE,
+  userType
+});
+
+export const setUserSupplierId = (supplierId: number): UserSupplierIdAction => ({
+  type: SET_USER_SUPPLIER_ID,
+  supplierId
+});
+
+export const setUserEmailAddress = (emailAddress: string): UserEmailAddressAction => ({
+  type: SET_USER_EMAIL_ADDRESS,
+  emailAddress
+});
+
+export const setUserPassword = (password: string): UserPasswordAction => ({
+  type: SET_USER_PASSWORD,
+  password
+});
+
+export const setUserToken = (token: string): UserTokenAction => ({
   type: SET_USER_TOKEN,
-  payload: userToken
+  token
+});
+
+export const setUserValidity = (validity: string): UserValidityAction => ({
+  type: SET_USER_VALIDITY,
+  validity
 });
 
 export const SET_USER_LIST = "SET_USER_LIST";
@@ -142,47 +157,37 @@ export const setUserList = (userList: any) => ({
   payload: userList
 });
 
-export const SET_USER_VALIDITY = "SET_USER_VALIDITY";
-export const setUserValidity = (userValidity: any) => ({
-  type: SET_USER_VALIDITY,
-  payload: userValidity
-});
-
 // user
 
-export function userDispatch(
-  user: any,
-  userToken: string,
-  emailAddress: string,
-  password: string
-) {
-  return (dispatch: Function) => {
-    dispatch(setUserId(user.id));
-    dispatch(setUserFirstName(user.first_name));
-    dispatch(setUserLastName(user.last_name));
-    dispatch(setUserLanguage(user.language));
-    dispatch(setUserType(user.type));
-    dispatch(setUserSupplierId(user.supplier_id));
+export const userDispatch = (userData: any, userToken: string, emailAddress: string, password: string) => {
+  return (dispatch: any) => {
+    dispatch(setUserId(userData.id));
+    dispatch(setUserFirstName(userData.first_name));
+    dispatch(setUserLastName(userData.last_name));
+    dispatch(setUserLanguage(userData.language));
+    dispatch(setUserType(userData.type));
+    dispatch(setUserSupplierId(userData.supplier_id));
     dispatch(setUserEmailAddress(emailAddress));
     dispatch(setUserPassword(password));
-    localStorage.setItem(
-      "user",
-      JSON.stringify({
-        id: user.id,
-        firstName: user.first_name,
-        lastName: user.last_name,
-        language: user.language,
-        type: user.type,
-        supplierId: user.supplier_id,
-        emailAddress,
-        password,
-        token: userToken
-      })
-    );
-    axios.defaults.headers.common["authorization"] = `Bearer ${userToken}`;
     dispatch(setUserToken(userToken));
+    dispatch(setUserValidity("valid"));
+
+    const user = {
+      id: userData.id,
+      firstName: userData.first_name,
+      lastName: userData.last_name,
+      language: userData.language,
+      type: userData.type,
+      supplierId: userData.supplier_id,
+      emailAddress,
+      password,
+      token: userToken,
+      validity: "valid"
+    };
+
+    localStorage.setItem("user", JSON.stringify(user));
   };
-}
+};
 
 function addUserDispatch(res: any) {
   return (dispatch: Function) => {
@@ -395,18 +400,17 @@ export const getCustomers = () => (dispatch: Function) => {
     .then(() => dispatch(setListPending(false)));
 };
 
-function checkUserValidityDispatch(res: any) {
-  return (dispatch: Function) => {
-    if (!res.payload.data) {
-      dispatch(setListError("Check user validity failed!"));
+export const checkUserValidity = () => {
+  return async (dispatch: any) => {
+    try {
+      const response = await axios({
+        method: "get",
+        url: "/api/users/check_validity",
+        withCredentials: true
+      });
+      dispatch(setUserValidity(response.data));
+    } catch (error) {
+      dispatch(setUserValidity("not valid"));
     }
   };
-}
-
-export const checkUserValidity = () => (dispatch: Function) => {
-  dispatch(setListError(""));
-  const userValidity = axios.get(`/api/users/check_validity/`, {});
-  dispatch(setUserValidity(userValidity))
-    .then((res: any) => dispatch(checkUserValidityDispatch(res)))
-    .catch((err: string) => dispatch(setListError(err)));
 };

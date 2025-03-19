@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { Redirect } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import classNames from "classnames";
 import moment from "moment";
 import "moment/locale/fr";
@@ -24,15 +24,20 @@ const styles = (theme: Theme) => ({
     backgroundColor: theme.palette.background.paper,
     borderRadius: ".625rem"
   },
+  heroContent: {
+    maxWidth: 600,
+    margin: "0 auto",
+    padding: `${theme.spacing(8)}px 0 ${theme.spacing(6)}px`
+  },
   layout: {
     width: "auto",
     margin: "0 auto"
   },
   cardGrid: {
-    padding: theme.spacing.unit * 4
+    padding: theme.spacing(4)
   },
   h5: {
-    paddingTop: theme.spacing.unit * 5
+    paddingTop: theme.spacing(5)
   },
   main: {
     flex: 1
@@ -272,8 +277,8 @@ class ManageSettings extends Component<IProvidedProps & IProps, IState> {
       dailyMailList,
       classes
     } = this.props;
-    if (!isLoginSuccess || userType !== "administrator") {
-      return <Redirect to="/login" />;
+    if (!isLoginSuccess) {
+      return <Navigate to="/login" replace />;
     }
     let lastDailyMail = "N/A";
     if (dailyMailList && dailyMailList.length > 0) {

@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { Redirect } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import classNames from "classnames";
 import { withStyles, Theme } from "@material-ui/core/styles";
 import Tooltip from "@material-ui/core/Tooltip";
@@ -26,7 +26,7 @@ const styles = (theme: Theme) => ({
     margin: "0 auto"
   },
   cardGrid: {
-    padding: theme.spacing.unit * 4
+    padding: theme.spacing(4)
   },
   main: {
     flex: 1
@@ -290,8 +290,8 @@ class ManageAllergies extends Component<IProvidedProps & IProps, IState> {
       selected,
       classes
     } = this.props;
-    if (!isLoginSuccess || userType !== "administrator") {
-      return <Redirect to="/login" />;
+    if (!isLoginSuccess) {
+      return <Navigate to="/login" replace />;
     }
     return (
       <MenuBar
@@ -339,7 +339,7 @@ class ManageAllergies extends Component<IProvidedProps & IProps, IState> {
         {openDelete && (
           <DeleteStuff
             title="Supprimer un allergène"
-            description={`L'allergène « ${deleteDescription} » sera définitivement perdu !`}
+            description={`L'allergène « ${deleteDescription} » sera définitivement perdu !`}
             onClose={this.handleCloseDelete}
             onDelete={this.handleDelete}
             checkDictionnary={this.checkDictionnary}

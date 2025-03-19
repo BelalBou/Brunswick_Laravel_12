@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { Redirect } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import classNames from "classnames";
 import { withStyles, Theme } from "@material-ui/core/styles";
 import Tooltip from "@material-ui/core/Tooltip";
@@ -25,14 +25,14 @@ const styles = (theme: Theme) => ({
   heroContent: {
     maxWidth: 600,
     margin: "0 auto",
-    padding: `${theme.spacing.unit * 8}px 0 ${theme.spacing.unit * 6}px`
+    padding: `${theme.spacing(8)}px 0 ${theme.spacing(6)}px`
   },
   layout: {
     width: "auto",
     margin: "0 auto"
   },
   cardGrid: {
-    padding: theme.spacing.unit * 4
+    padding: theme.spacing(4)
   },
   main: {
     flex: 1
@@ -300,8 +300,8 @@ class ManageMenuSizes extends Component<IProvidedProps & IProps, IState> {
       selected,
       classes
     } = this.props;
-    if (!isLoginSuccess || userType !== "administrator") {
-      return <Redirect to="/login" />;
+    if (!isLoginSuccess) {
+      return <Navigate to="/login" replace />;
     }
     return (
       <MenuBar
@@ -349,7 +349,7 @@ class ManageMenuSizes extends Component<IProvidedProps & IProps, IState> {
         {openDelete && (
           <DeleteStuff
             title="Supprimer une taille"
-            description={`La taille « ${deleteTitle} » sera définitivement perdue !`}
+            description={`La taille « ${deleteTitle} » sera définitivement perdue !`}
             onClose={this.handleCloseDelete}
             onDelete={this.handleDelete}
             checkDictionnary={this.checkDictionnary}

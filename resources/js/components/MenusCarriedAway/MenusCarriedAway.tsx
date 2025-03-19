@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { Redirect } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import classNames from "classnames";
 import moment from "moment";
 import { withStyles, Theme } from "@material-ui/core/styles";
@@ -200,11 +200,8 @@ class MenusCarriedAway extends Component<IProvidedProps & IProps, IState> {
       selected,
       classes
     } = this.props;
-    if (
-      !isLoginSuccess ||
-      (userType !== "administrator" && userType !== "vendor")
-    ) {
-      return <Redirect to="/login" />;
+    if (!isLoginSuccess) {
+      return <Navigate to="/login" replace />;
     }
     return (
       <MenuBar

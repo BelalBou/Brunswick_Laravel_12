@@ -1,18 +1,22 @@
+import { Dispatch } from "redux";
 import ICart from "../interfaces/ICart";
 
-// types declaration
+export interface CartState {
+  list: ICart[];
+}
 
-type CartListAction = {
+export interface CartListAction {
   type: "SET_CART_LIST";
   payload: ICart[];
-};
+}
 
 export type CartAction = CartListAction;
 
-// types definition
-
-export const SET_CART_LIST = "SET_CART_LIST";
-export const setCartList = (cartList: ICart[]) => ({
-  type: SET_CART_LIST,
-  payload: cartList
+export const setCartList = (list: ICart[]): CartListAction => ({
+  type: "SET_CART_LIST",
+  payload: list
 });
+
+export const cartDispatch = (cartData: CartState) => (dispatch: Dispatch<CartAction>) => {
+  dispatch(setCartList(cartData.list));
+};

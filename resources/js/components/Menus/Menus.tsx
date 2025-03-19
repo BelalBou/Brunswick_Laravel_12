@@ -1,5 +1,5 @@
 import React, { Component, Fragment } from "react";
-import { Redirect } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import { throttle } from "throttle-debounce";
 import classNames from "classnames";
 import { withStyles, Theme, createStyles } from "@material-ui/core/styles";
@@ -37,12 +37,12 @@ const styles = (theme: Theme) =>
     cardGrid: {
       padding: 0,
       [theme.breakpoints.up("md")]: {
-        padding: theme.spacing.unit * 4
+        padding: theme.spacing(4)
       }
     },
     listSubHeader: {
-      marginTop: theme.spacing.unit * 6,
-      marginBottom: theme.spacing.unit * 2
+      marginTop: theme.spacing(6),
+      marginBottom: theme.spacing(2)
     },
     h5: {
       fontWeight: 600
@@ -324,13 +324,13 @@ class Menus extends Component<IProvidedProps & IProps, IState> {
     );
 
     if (!isLoginSuccess) {
-      return <Redirect to="/login" />;
+      return <Navigate to="/login" replace />;
     }
     if (userType === "supplier") {
-      return <Redirect to="/orders" />;
+      return <Navigate to="/orders" replace />;
     }
     if (redirectTo) {
-      return <Redirect to={redirectTo} />;
+      return <Navigate to={redirectTo} replace />;
     }
     return (
       <MenuBar

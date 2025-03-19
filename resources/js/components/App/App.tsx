@@ -1,12 +1,34 @@
 import React from "react";
-import { Redirect } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { RootState } from "../../types/redux";
 
-interface IProps {
-  isLoginSuccess: boolean;
-}
+const App: React.FC = () => {
+  const location = useLocation();
+  const isLoginSuccess = useSelector((state: RootState) => state.login.isLoginSuccess);
+  const userType = useSelector((state: RootState) => state.user.type);
 
-const App = ({ isLoginSuccess }: IProps) => (
-  <Redirect to={isLoginSuccess ? "/menus" : "/login"} />
-);
+  // Redirection basée sur le type d'utilisateur
+  const getDefaultRoute = (): string => {
+    switch (userType) {
+      case "admin":
+        return "/settings";
+      case "supplier":
+        return "/menus";
+      case "customer":
+        return "/menus";
+      default:
+        return "/login";
+    }
+  };
+
+  return (
+    <Navigate 
+      to={isLoginSuccess ? getDefaultRoute() : "/login"} 
+      replace 
+      state={{ from: location }}
+    />
+  );
+};
 
 export default App;
