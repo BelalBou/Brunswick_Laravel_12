@@ -1,8 +1,7 @@
-import React from "react";
 import moment from "moment";
 import "moment/locale/fr";
+import { MuiPickersUtilsProvider, DatePicker } from '@material-ui/pickers';
 import MomentUtils from "@date-io/moment";
-import { DatePicker, MuiPickersUtilsProvider } from "material-ui-pickers";
 import { withStyles, Theme, createStyles } from "@material-ui/core/styles";
 import Grid from "@material-ui/core/Grid";
 
@@ -11,7 +10,7 @@ moment.locale("fr");
 const styles = (theme: Theme) =>
   createStyles({
     div: {
-      padding: theme.spacing.unit * 2
+      padding: theme.spacing(2)
     },
     gridItem: {
       textAlign: "center"
@@ -33,12 +32,11 @@ const MenusCarriedAwayFilter = ({
   onChangeSelectedDate
 }: IProvidedProps & IProps) => (
   <div className={classes.div}>
-    <Grid container spacing={16} alignItems="center">
+    <Grid container spacing={2} alignItems="center">
       <Grid item xs className={classes.gridItem}>
         <MuiPickersUtilsProvider
           utils={MomentUtils}
           locale={"fr"}
-          moment={moment}
         >
           <DatePicker
             label="Date de la commande :"
