@@ -2,14 +2,10 @@ import * as React from "react";
 import { createRoot } from "react-dom/client";
 import { Provider } from "react-redux";
 import { BrowserRouter } from "react-router-dom";
-import { configureStore, Middleware } from "@reduxjs/toolkit";
-import { thunk } from "redux-thunk";
-import { createLogger } from "redux-logger";
 import AppRoutes from "./routes";
-import reducers from "./reducers";
+import { store } from "./store";
 import "./css/index.css";
 import * as serviceWorker from "./serviceWorker";
-import { RootAction, RootState, AppDispatch } from "./types/redux";
 
 import { setLoginSuccess } from "./actions/login";
 import {
@@ -26,19 +22,6 @@ import {
 import { setCartList } from "./actions/cart";
 import { setSelected } from "./actions/page";
 
-// Configuration des middlewares
-const middlewares: Middleware[] = [thunk];
-if (process.env.NODE_ENV !== "production") {
-  middlewares.push(createLogger());
-}
-
-// Configuration du store Redux
-export const store = configureStore({
-  reducer: reducers,
-  middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(middlewares)
-});
-
 // Récupération et dispatch des données du localStorage
 const user = localStorage.getItem("user");
 if (user) {
@@ -54,26 +37,26 @@ if (user) {
     token
   } = JSON.parse(user);
   
-  (store.dispatch as AppDispatch)(setLoginSuccess(true));
-  (store.dispatch as AppDispatch)(setUserId(id));
-  (store.dispatch as AppDispatch)(setUserFirstName(firstName));
-  (store.dispatch as AppDispatch)(setUserLastName(lastName));
-  (store.dispatch as AppDispatch)(setUserLanguage(language));
-  (store.dispatch as AppDispatch)(setUserType(type));
-  (store.dispatch as AppDispatch)(setUserSupplierId(supplierId));
-  (store.dispatch as AppDispatch)(setUserEmailAddress(emailAddress));
-  (store.dispatch as AppDispatch)(setUserPassword(password));
-  (store.dispatch as AppDispatch)(setUserToken(token));
+  store.dispatch(setLoginSuccess(true));
+  store.dispatch(setUserId(id));
+  store.dispatch(setUserFirstName(firstName));
+  store.dispatch(setUserLastName(lastName));
+  store.dispatch(setUserLanguage(language));
+  store.dispatch(setUserType(type));
+  store.dispatch(setUserSupplierId(supplierId));
+  store.dispatch(setUserEmailAddress(emailAddress));
+  store.dispatch(setUserPassword(password));
+  store.dispatch(setUserToken(token));
 }
 
 const cartList = localStorage.getItem("cartList");
 if (cartList) {
-  (store.dispatch as AppDispatch)(setCartList(JSON.parse(cartList)));
+  store.dispatch(setCartList(JSON.parse(cartList)));
 }
 
 const selected = localStorage.getItem("selected");
 if (selected) {
-  (store.dispatch as AppDispatch)(setSelected(parseInt(selected)));
+  store.dispatch(setSelected(parseInt(selected)));
 }
 
 // Rendu de l'application
