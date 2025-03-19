@@ -1,6 +1,7 @@
 import axios from "axios";
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { AppDispatch } from '../types/redux';
+import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
+import IUser from "../interfaces/IUser";
+import { AppDispatch } from "../types/redux.d";
 
 // Configuration initiale d'axios
 const userLS = localStorage.getItem("user") || null;
@@ -8,177 +9,116 @@ const tokenLS = userLS ? JSON.parse(userLS).token : "";
 axios.defaults.headers.common["authorization"] = `Bearer ${tokenLS}`;
 
 export interface UserState {
-  id: string | number;
-  firstName: string;
-  lastName: string;
-  language: string;
-  type: string;
-  supplierId: string | number;
-  emailAddress: string;
-  password: string;
-  token: string;
-  validity: string;
+  currentUser: IUser | null;
+  isLoading: boolean;
+  error: string | null;
+  success: boolean;
 }
 
-type UserActionType = keyof UserState;
-type UserActionName = `setUser${Capitalize<UserActionType>}`;
-
 const initialState: UserState = {
-  id: '',
-  firstName: '',
-  lastName: '',
-  language: 'fr',
-  type: '',
-  supplierId: '',
-  emailAddress: '',
-  password: '',
-  token: '',
-  validity: 'invalid'
+  currentUser: null,
+  isLoading: false,
+  error: null,
+  success: false
 };
 
 const userSlice = createSlice({
   name: 'user',
   initialState,
   reducers: {
-    setUserId: (state, action: PayloadAction<string | number>) => {
-      state.id = action.payload;
+    setCurrentUser: (state, action: PayloadAction<IUser | null>) => {
+      state.currentUser = action.payload;
     },
-    setUserFirstName: (state, action: PayloadAction<string>) => {
-      state.firstName = action.payload;
+    setUserLoading: (state, action: PayloadAction<boolean>) => {
+      state.isLoading = action.payload;
     },
-    setUserLastName: (state, action: PayloadAction<string>) => {
-      state.lastName = action.payload;
+    setUserError: (state, action: PayloadAction<string | null>) => {
+      state.error = action.payload;
     },
-    setUserLanguage: (state, action: PayloadAction<string>) => {
-      state.language = action.payload;
+    setUserSuccess: (state, action: PayloadAction<boolean>) => {
+      state.success = action.payload;
     },
-    setUserType: (state, action: PayloadAction<string>) => {
-      state.type = action.payload;
-    },
-    setUserSupplierId: (state, action: PayloadAction<string | number>) => {
-      state.supplierId = action.payload;
-    },
-    setUserEmailAddress: (state, action: PayloadAction<string>) => {
-      state.emailAddress = action.payload;
-    },
-    setUserPassword: (state, action: PayloadAction<string>) => {
-      state.password = action.payload;
-    },
-    setUserToken: (state, action: PayloadAction<string>) => {
-      state.token = action.payload;
-    },
-    setUserValidity: (state, action: PayloadAction<string>) => {
-      state.validity = action.payload;
-    },
-    resetUser: (state) => {
+    resetUserState: (state) => {
       Object.assign(state, initialState);
     }
   }
 });
 
 export const {
-  setUserId,
-  setUserFirstName,
-  setUserLastName,
-  setUserLanguage,
-  setUserType,
-  setUserSupplierId,
-  setUserEmailAddress,
-  setUserPassword,
-  setUserToken,
-  setUserValidity,
-  resetUser
+  setCurrentUser,
+  setUserLoading,
+  setUserError,
+  setUserSuccess,
+  resetUserState
 } = userSlice.actions;
 
-// Action thunk pour mettre à jour les informations utilisateur
-export const updateUser = (userData: Partial<UserState>) => async (dispatch: AppDispatch) => {
-  try {
-    const response = await fetch('/api/user/update', {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(userData),
-    });
+// Action thunk pour récupérer l'utilisateur courant
+export const getCurrentUser = createAsyncThunk(
+  'user/getCurrentUser',
+  async (_, { dispatch }) => {
+    try {
+      dispatch(setUserLoading(true));
+      dispatch(setUserError(null));
 
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.message || 'Erreur lors de la mise à jour');
-    }
-
-    // Mise à jour du localStorage
-    const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-    localStorage.setItem('user', JSON.stringify({ ...currentUser, ...data }));
-
-    // Dispatch des actions de mise à jour
-    Object.entries(data).forEach(([key, value]) => {
-      const stateKey = key as UserActionType;
-      switch (stateKey) {
-        case 'id':
-        case 'supplierId':
-          dispatch(setUserId(value as string | number));
-          break;
-        case 'firstName':
-          dispatch(setUserFirstName(value as string));
-          break;
-        case 'lastName':
-          dispatch(setUserLastName(value as string));
-          break;
-        case 'language':
-          dispatch(setUserLanguage(value as string));
-          break;
-        case 'type':
-          dispatch(setUserType(value as string));
-          break;
-        case 'emailAddress':
-          dispatch(setUserEmailAddress(value as string));
-          break;
-        case 'password':
-          dispatch(setUserPassword(value as string));
-          break;
-        case 'token':
-          dispatch(setUserToken(value as string));
-          break;
-        case 'validity':
-          dispatch(setUserValidity(value as string));
-          break;
+      const response = await axios.get('/api/user/current');
+      
+      if (response.data) {
+        dispatch(setCurrentUser(response.data));
+        dispatch(setUserSuccess(true));
+        return response.data;
+      } else {
+        dispatch(setUserError('Failed to get current user'));
+        return null;
       }
-    });
-
-    return data;
-  } catch (error) {
-    throw error;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'An error occurred while getting current user';
+      dispatch(setUserError(errorMessage));
+      return null;
+    } finally {
+      dispatch(setUserLoading(false));
+    }
   }
-};
+);
+
+// Action thunk pour mettre à jour l'utilisateur
+export const updateUser = createAsyncThunk(
+  'user/updateUser',
+  async (userData: Partial<IUser>, { dispatch }) => {
+    try {
+      dispatch(setUserLoading(true));
+      dispatch(setUserError(null));
+      dispatch(setUserSuccess(false));
+
+      const response = await axios.put('/api/user/update', userData);
+      
+      if (response.data) {
+        dispatch(setCurrentUser(response.data));
+        dispatch(setUserSuccess(true));
+        return response.data;
+      } else {
+        dispatch(setUserError('Failed to update user'));
+        return null;
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'An error occurred while updating user';
+      dispatch(setUserError(errorMessage));
+      return null;
+    } finally {
+      dispatch(setUserLoading(false));
+    }
+  }
+);
 
 // Action thunk pour la connexion utilisateur
-export const userDispatch = (userData: any, userToken: string, emailAddress: string, password: string) => {
+export const userDispatch = (userData: IUser, userToken: string) => {
   return (dispatch: AppDispatch) => {
-    dispatch(setUserId(userData.id));
-    dispatch(setUserFirstName(userData.first_name));
-    dispatch(setUserLastName(userData.last_name));
-    dispatch(setUserLanguage(userData.language));
-    dispatch(setUserType(userData.type));
-    dispatch(setUserSupplierId(userData.supplier_id));
-    dispatch(setUserEmailAddress(emailAddress));
-    dispatch(setUserPassword(password));
-    dispatch(setUserToken(userToken));
-    dispatch(setUserValidity('valid'));
+    dispatch(setCurrentUser(userData));
+    dispatch(setUserSuccess(true));
 
     const user = {
-      id: userData.id,
-      firstName: userData.first_name,
-      lastName: userData.last_name,
-      language: userData.language,
-      type: userData.type,
-      supplierId: userData.supplier_id,
-      emailAddress,
-      password,
-      token: userToken,
-      validity: 'valid'
+      ...userData,
+      token: userToken
     };
-
     localStorage.setItem('user', JSON.stringify(user));
   };
 };

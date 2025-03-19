@@ -18,6 +18,7 @@ import { ServerTimeAction, ServerTimeState } from "../actions/server_time";
 import { SettingAction, SettingState } from "../actions/setting";
 import { SupplierAction, SupplierState } from "../actions/supplier";
 import { store } from "../store";
+import { ThunkDispatch, AnyAction } from '@reduxjs/toolkit';
 
 // Types pour les actions de login
 export type SetLoginPendingAction = {
@@ -93,7 +94,7 @@ export type SetSelectedAction = {
 
 // Types du store
 export type RootState = ReturnType<typeof store.getState>;
-export type AppDispatch = typeof store.dispatch;
+export type AppDispatch = ThunkDispatch<RootState, unknown, AnyAction>;
 
 // Types des actions
 export type RootAction =

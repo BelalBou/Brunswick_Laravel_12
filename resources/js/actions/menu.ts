@@ -1,6 +1,5 @@
 import axios, { AxiosResponse } from "axios";
 import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
-import { AppDispatch } from "../types/redux";
 import IMenu from "../interfaces/IMenu";
 import IMenuSize from "../interfaces/IMenuSize";
 import IExtra from "../interfaces/IExtra";

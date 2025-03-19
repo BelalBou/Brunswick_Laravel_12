@@ -1,7 +1,6 @@
-import axios, { AxiosResponse } from "axios";
+import axios from "axios";
 import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
-import { AppDispatch } from "../types/redux";
-import moment from "moment";
+import { AppDispatch } from "../types/redux.d";
 
 // Configuration initiale d'axios
 const userLS = localStorage.getItem("user") || null;
@@ -9,7 +8,7 @@ const tokenLS = userLS ? JSON.parse(userLS).token : "";
 axios.defaults.headers.common["authorization"] = `Bearer ${tokenLS}`;
 
 export interface ServerTimeState {
-  currentTime: moment.Moment | null;
+  currentTime: string | null;
   isLoading: boolean;
   error: string | null;
   success: boolean;
@@ -26,7 +25,7 @@ const serverTimeSlice = createSlice({
   name: 'serverTime',
   initialState,
   reducers: {
-    setServerTime: (state, action: PayloadAction<moment.Moment>) => {
+    setServerTime: (state, action: PayloadAction<string>) => {
       state.currentTime = action.payload;
     },
     setServerTimeLoading: (state, action: PayloadAction<boolean>) => {
@@ -59,16 +58,22 @@ export const getServerTime = createAsyncThunk(
     try {
       dispatch(setServerTimeLoading(true));
       dispatch(setServerTimeError(null));
+      dispatch(setServerTimeSuccess(false));
 
-      const response = await axios.get(`/api/server_time/`);
+      const response = await axios.get('/api/server/time');
+      
       if (response.data) {
-        dispatch(setServerTime(moment(response.data)));
+        dispatch(setServerTime(response.data.currentTime));
         dispatch(setServerTimeSuccess(true));
+        return response.data;
       } else {
-        dispatch(setServerTimeError("Get server time failed!"));
+        dispatch(setServerTimeError('Failed to get server time'));
+        return null;
       }
     } catch (error) {
-      dispatch(setServerTimeError(error instanceof Error ? error.message : "An error occurred"));
+      const errorMessage = error instanceof Error ? error.message : 'An error occurred while getting server time';
+      dispatch(setServerTimeError(errorMessage));
+      return null;
     } finally {
       dispatch(setServerTimeLoading(false));
     }

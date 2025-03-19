@@ -1,5 +1,5 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { AppDispatch } from '../types/redux';
+import axios from "axios";
+import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
 import ICart from "../interfaces/ICart";
 
 export interface CartState {
@@ -65,24 +65,61 @@ export const {
   clearCart
 } = cartSlice.actions;
 
-// Action thunk pour mettre à jour le panier
-export const cartDispatch = (cartData: CartState) => (dispatch: AppDispatch) => {
-  dispatch(setCartList(cartData.list));
-};
+// Action thunk pour valider le panier
+export const validateCart = createAsyncThunk(
+  'cart/validateCart',
+  async (cartData: ICart[], { dispatch }) => {
+    try {
+      dispatch(setCartLoading(true));
+      dispatch(setCartError(null));
+      dispatch(setCartSuccess(false));
 
-// Action thunk pour ajouter un article au panier
-export const addItemToCart = (item: ICart) => (dispatch: AppDispatch) => {
-  dispatch(addToCart(item));
-};
+      const response = await axios.post('/api/cart/validate', { items: cartData });
+      
+      if (response.data) {
+        dispatch(setCartSuccess(true));
+        dispatch(clearCart());
+        return response.data;
+      } else {
+        dispatch(setCartError('Cart validation failed'));
+        return null;
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'An error occurred during cart validation';
+      dispatch(setCartError(errorMessage));
+      return null;
+    } finally {
+      dispatch(setCartLoading(false));
+    }
+  }
+);
 
-// Action thunk pour supprimer un article du panier
-export const removeItemFromCart = (index: number) => (dispatch: AppDispatch) => {
-  dispatch(removeFromCart(index));
-};
+// Action thunk pour sauvegarder le panier
+export const saveCart = createAsyncThunk(
+  'cart/saveCart',
+  async (cartData: ICart[], { dispatch }) => {
+    try {
+      dispatch(setCartLoading(true));
+      dispatch(setCartError(null));
+      dispatch(setCartSuccess(false));
 
-// Action thunk pour mettre à jour un article du panier
-export const updateItemInCart = (index: number, item: ICart) => (dispatch: AppDispatch) => {
-  dispatch(updateCartItem({ index, item }));
-};
+      const response = await axios.post('/api/cart/save', { items: cartData });
+      
+      if (response.data) {
+        dispatch(setCartSuccess(true));
+        return response.data;
+      } else {
+        dispatch(setCartError('Cart save failed'));
+        return null;
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'An error occurred while saving cart';
+      dispatch(setCartError(errorMessage));
+      return null;
+    } finally {
+      dispatch(setCartLoading(false));
+    }
+  }
+);
 
 export default cartSlice.reducer;

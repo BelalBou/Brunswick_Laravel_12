@@ -1,6 +1,5 @@
 import axios, { AxiosResponse } from "axios";
 import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
-import { AppDispatch } from "../types/redux";
 import ISetting from "../interfaces/ISetting";
 
 // Configuration initiale d'axios

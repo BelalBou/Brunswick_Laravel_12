@@ -1,6 +1,5 @@
 import React from "react";
 import { useSelector } from "react-redux";
-import { RootState } from "../types/redux";
 import Account from "../components/Account/Account";
 
 const AccountContainer: React.FC = () => {

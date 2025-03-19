@@ -1,5 +1,7 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { AppDispatch } from '../types/redux';
+import axios from "axios";
+import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
+import { AppDispatch } from "../types/redux.d";
+
 
 interface LoginState {
   isLoginPending: boolean;
@@ -25,43 +27,42 @@ const loginSlice = createSlice({
     },
     setLoginError: (state, action: PayloadAction<string>) => {
       state.loginError = action.payload;
+    },
+    resetLoginState: (state) => {
+      Object.assign(state, initialState);
     }
   }
 });
 
-export const { setLoginPending, setLoginSuccess, setLoginError } = loginSlice.actions;
+export const { setLoginPending, setLoginSuccess, setLoginError, resetLoginState } = loginSlice.actions;
 
 // Action thunk pour la connexion
-export const login = (email: string, password: string) => async (dispatch: AppDispatch) => {
-  try {
-    dispatch(setLoginPending(true));
-    
-    const response = await fetch('/api/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email, password }),
-    });
+export const login = createAsyncThunk(
+  'login/login',
+  async (credentials: { email: string; password: string }, { dispatch }) => {
+    try {
+      dispatch(setLoginPending(true));
+      dispatch(setLoginError(''));
 
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.message || 'Erreur de connexion');
+      const response = await axios.post('/api/auth/login', credentials);
+      
+      if (response.data) {
+        localStorage.setItem('user', JSON.stringify(response.data));
+        dispatch(setLoginSuccess(true));
+        return response.data;
+      } else {
+        dispatch(setLoginError('Login failed'));
+        return null;
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'An error occurred during login';
+      dispatch(setLoginError(errorMessage));
+      return null;
+    } finally {
+      dispatch(setLoginPending(false));
     }
-
-    // Stockage des données utilisateur dans le localStorage
-    localStorage.setItem('user', JSON.stringify(data.user));
-    
-    dispatch(setLoginSuccess(true));
-    return data;
-  } catch (error) {
-    dispatch(setLoginError(error instanceof Error ? error.message : 'Une erreur est survenue'));
-    throw error;
-  } finally {
-    dispatch(setLoginPending(false));
   }
-};
+);
 
 // Action thunk pour la déconnexion
 export const logout = () => (dispatch: AppDispatch) => {
