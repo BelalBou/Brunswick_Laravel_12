@@ -1,145 +1,181 @@
-import axios from "axios";
-import { setAddPending, setAddSuccess, setAddError } from "./add";
-import { setEditPending, setEditSuccess, setEditError } from "./edit";
-import { setDeletePending, setDeleteSuccess, setDeleteError } from "./delete";
-import { setListPending, setListSuccess, setListError } from "./list";
+import axios, { AxiosResponse } from "axios";
+import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
+import { AppDispatch } from "../types/redux";
+import IExtra from "../interfaces/IExtra";
 
-// authentication
-
+// Configuration initiale d'axios
 const userLS = localStorage.getItem("user") || null;
 const tokenLS = userLS ? JSON.parse(userLS).token : "";
 axios.defaults.headers.common["authorization"] = `Bearer ${tokenLS}`;
 
-// types declaration
+export interface ExtraState {
+  list: IExtra[];
+  totalCount: number;
+  isLoading: boolean;
+  error: string | null;
+  success: boolean;
+}
 
-type ExtraListAction = {
-  type: "SET_EXTRA_LIST";
-  payload: any;
+const initialState: ExtraState = {
+  list: [],
+  totalCount: 0,
+  isLoading: false,
+  error: null,
+  success: false
 };
 
-export type ExtraAction = ExtraListAction;
-
-// types definition
-
-export const SET_EXTRA_LIST = "SET_EXTRA_LIST";
-export const setExtraList = (extraList: any) => ({
-  type: SET_EXTRA_LIST,
-  payload: extraList
+const extraSlice = createSlice({
+  name: 'extra',
+  initialState,
+  reducers: {
+    setExtraList: (state, action: PayloadAction<IExtra[]>) => {
+      state.list = action.payload;
+    },
+    setExtraListTotalCount: (state, action: PayloadAction<number>) => {
+      state.totalCount = action.payload;
+    },
+    setExtraLoading: (state, action: PayloadAction<boolean>) => {
+      state.isLoading = action.payload;
+    },
+    setExtraError: (state, action: PayloadAction<string | null>) => {
+      state.error = action.payload;
+    },
+    setExtraSuccess: (state, action: PayloadAction<boolean>) => {
+      state.success = action.payload;
+    },
+    resetExtraState: (state) => {
+      Object.assign(state, initialState);
+    }
+  }
 });
 
-// extra
+export const {
+  setExtraList,
+  setExtraListTotalCount,
+  setExtraLoading,
+  setExtraError,
+  setExtraSuccess,
+  resetExtraState
+} = extraSlice.actions;
 
-function addExtraDispatch(res: any, supplierId: number) {
-  return (dispatch: Function) => {
-    dispatch(setAddSuccess(!!res.data));
-    if (!res.data) {
-      dispatch(setAddError("Add extra failed!"));
-    } else {
-      dispatch(getExtrasSupplier(supplierId));
+// Action thunk pour récupérer la liste des extras
+export const getExtraList = createAsyncThunk(
+  'extra/getExtraList',
+  async (_, { dispatch }) => {
+    try {
+      dispatch(setExtraLoading(true));
+      dispatch(setExtraError(null));
+
+      const response = await axios.get(`/api/extras/list/`);
+      if (response.data.data) {
+        dispatch(setExtraList(response.data.data));
+        dispatch(setExtraListTotalCount(response.data.total));
+      } else {
+        dispatch(setExtraError("Get extra list failed!"));
+      }
+    } catch (error) {
+      dispatch(setExtraError(error instanceof Error ? error.message : "An error occurred"));
+    } finally {
+      dispatch(setExtraLoading(false));
     }
-  };
-}
+  }
+);
 
-export const addExtra = (
-  title: string,
-  titleEn: string,
-  pricing: number,
-  supplierId: number,
-  menuSizeId: number
-) => (dispatch: Function) => {
-  dispatch(setAddPending(true));
-  dispatch(setAddSuccess(false));
-  dispatch(setAddError(""));
-  axios
-    .post(`/api/extras/add/`, {
-      title,
-      titleEn,
-      pricing,
-      supplierId,
-      menuSizeId
-    })
-    .then(res => dispatch(addExtraDispatch(res, supplierId)))
-    .catch((err: string) => dispatch(setAddError(err)))
-    .then(() => dispatch(setAddPending(false)));
-};
+// Action thunk pour récupérer la liste des extras avec pagination
+export const getExtraListWithPagination = createAsyncThunk(
+  'extra/getExtraListWithPagination',
+  async ({ limit, offset }: { limit: number; offset: number }, { dispatch }) => {
+    try {
+      dispatch(setExtraLoading(true));
+      dispatch(setExtraError(null));
 
-function editExtraDispatch(res: any, supplierId: number) {
-  return (dispatch: Function) => {
-    dispatch(setEditSuccess(!!res.data));
-    if (!res.data) {
-      dispatch(setEditError("Edit extra failed!"));
-    } else {
-      dispatch(getExtrasSupplier(supplierId));
+      const response = await axios.get(`/api/extras/list/`, {
+        params: { limit, offset }
+      });
+      if (response.data.data) {
+        dispatch(setExtraList(response.data.data));
+        dispatch(setExtraListTotalCount(response.data.total));
+      } else {
+        dispatch(setExtraError("Get extra list with pagination failed!"));
+      }
+    } catch (error) {
+      dispatch(setExtraError(error instanceof Error ? error.message : "An error occurred"));
+    } finally {
+      dispatch(setExtraLoading(false));
     }
-  };
-}
+  }
+);
 
-export const editExtra = (
-  id: number,
-  title: string,
-  titleEn: string,
-  pricing: number,
-  supplierId: number,
-  menuSizeId: number
-) => (dispatch: Function) => {
-  dispatch(setEditPending(true));
-  dispatch(setEditSuccess(false));
-  dispatch(setEditError(""));
-  axios
-    .put(`/api/extras/edit/${id}`, {
-      title,
-      titleEn,
-      pricing,
-      supplierId,
-      menuSizeId
-    })
-    .then(res => dispatch(editExtraDispatch(res, supplierId)))
-    .catch((err: string) => dispatch(setEditError(err)))
-    .then(() => dispatch(setEditPending(false)));
-};
+// Action thunk pour ajouter un extra
+export const addExtra = createAsyncThunk(
+  'extra/addExtra',
+  async (extraData: Partial<IExtra>, { dispatch }) => {
+    try {
+      dispatch(setExtraLoading(true));
+      dispatch(setExtraSuccess(false));
+      dispatch(setExtraError(null));
 
-function deleteExtraDispatch(res: any, supplierId: number) {
-  return (dispatch: Function) => {
-    dispatch(setDeleteSuccess(!!res.data));
-    if (!res.data) {
-      dispatch(setDeleteError("Delete extra failed!"));
-    } else {
-      dispatch(getExtrasSupplier(supplierId));
+      const response = await axios.post(`/api/extras/add/`, extraData);
+      if (response.data) {
+        dispatch(setExtraSuccess(true));
+        dispatch(getExtraList());
+      } else {
+        dispatch(setExtraError("Add extra failed!"));
+      }
+    } catch (error) {
+      dispatch(setExtraError(error instanceof Error ? error.message : "An error occurred"));
+    } finally {
+      dispatch(setExtraLoading(false));
     }
-  };
-}
+  }
+);
 
-export const deleteExtra = (id: number, supplierId: number) => (
-  dispatch: Function
-) => {
-  dispatch(setDeletePending(true));
-  dispatch(setDeleteSuccess(false));
-  dispatch(setDeleteError(""));
-  axios
-    .delete(`/api/extras/delete/${id}`, {})
-    .then(res => dispatch(deleteExtraDispatch(res, supplierId)))
-    .catch((err: string) => dispatch(setDeleteError(err)))
-    .then(() => dispatch(setDeletePending(false)));
-};
+// Action thunk pour supprimer un extra
+export const deleteExtra = createAsyncThunk(
+  'extra/deleteExtra',
+  async (extraId: number, { dispatch }) => {
+    try {
+      dispatch(setExtraLoading(true));
+      dispatch(setExtraSuccess(false));
+      dispatch(setExtraError(null));
 
-function getExtrasSupplierDispatch(res: any) {
-  return (dispatch: Function) => {
-    dispatch(setListSuccess(!!res.payload.data));
-    if (!res.payload.data) {
-      dispatch(setListError("List extras supplier failed!"));
+      const response = await axios.delete(`/api/extras/delete/${extraId}`);
+      if (response.data) {
+        dispatch(setExtraSuccess(true));
+        dispatch(getExtraList());
+      } else {
+        dispatch(setExtraError("Delete extra failed!"));
+      }
+    } catch (error) {
+      dispatch(setExtraError(error instanceof Error ? error.message : "An error occurred"));
+    } finally {
+      dispatch(setExtraLoading(false));
     }
-  };
-}
+  }
+);
 
-export const getExtrasSupplier = (supplierId: number) => (
-  dispatch: Function
-) => {
-  dispatch(setListPending(true));
-  dispatch(setListSuccess(false));
-  dispatch(setListError(""));
-  const extraList = axios.get(`/api/extras/list_supplier/${supplierId}`, {});
-  dispatch(setExtraList(extraList))
-    .then((res: any) => dispatch(getExtrasSupplierDispatch(res)))
-    .catch((err: string) => dispatch(setListError(err)))
-    .then(() => dispatch(setListPending(false)));
-};
+// Action thunk pour modifier un extra
+export const editExtra = createAsyncThunk(
+  'extra/editExtra',
+  async ({ extraId, extraData }: { extraId: number; extraData: Partial<IExtra> }, { dispatch }) => {
+    try {
+      dispatch(setExtraLoading(true));
+      dispatch(setExtraSuccess(false));
+      dispatch(setExtraError(null));
+
+      const response = await axios.put(`/api/extras/edit/${extraId}`, extraData);
+      if (response.data) {
+        dispatch(setExtraSuccess(true));
+        dispatch(getExtraList());
+      } else {
+        dispatch(setExtraError("Edit extra failed!"));
+      }
+    } catch (error) {
+      dispatch(setExtraError(error instanceof Error ? error.message : "An error occurred"));
+    } finally {
+      dispatch(setExtraLoading(false));
+    }
+  }
+);
+
+export default extraSlice.reducer;

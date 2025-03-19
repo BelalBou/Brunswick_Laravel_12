@@ -1,16 +1,15 @@
 import * as React from "react";
-import * as ReactDOM from "react-dom";
+import { createRoot } from "react-dom/client";
 import { Provider } from "react-redux";
 import { BrowserRouter } from "react-router-dom";
 import { configureStore, Middleware } from "@reduxjs/toolkit";
-import thunk from "redux-thunk";
-import promise from "redux-promise";
-import ICart from "./interfaces/ICart";
+import { thunk } from "redux-thunk";
+import { createLogger } from "redux-logger";
 import AppRoutes from "./routes";
 import reducers from "./reducers";
 import "./css/index.css";
 import * as serviceWorker from "./serviceWorker";
-import { RootAction, RootState } from "./types/redux";
+import { RootAction, RootState, AppDispatch } from "./types/redux";
 
 import { setLoginSuccess } from "./actions/login";
 import {
@@ -27,18 +26,20 @@ import {
 import { setCartList } from "./actions/cart";
 import { setSelected } from "./actions/page";
 
-let middlewares = [thunk, promise];
+// Configuration des middlewares
+const middlewares: Middleware[] = [thunk];
 if (process.env.NODE_ENV !== "production") {
-  const createLogger = require("redux-logger").createLogger();
-  middlewares = [...middlewares, createLogger];
+  middlewares.push(createLogger());
 }
 
+// Configuration du store Redux
 export const store = configureStore({
   reducer: reducers,
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(middlewares as Middleware[])
+    getDefaultMiddleware().concat(middlewares)
 });
 
+// Récupération et dispatch des données du localStorage
 const user = localStorage.getItem("user");
 if (user) {
   const {
@@ -52,42 +53,44 @@ if (user) {
     password,
     token
   } = JSON.parse(user);
-  store.dispatch(setLoginSuccess(true));
-  store.dispatch(setUserId(id));
-  store.dispatch(setUserFirstName(firstName));
-  store.dispatch(setUserLastName(lastName));
-  store.dispatch(setUserLanguage(language));
-  store.dispatch(setUserType(type));
-  store.dispatch(setUserSupplierId(supplierId));
-  store.dispatch(setUserEmailAddress(emailAddress));
-  store.dispatch(setUserPassword(password));
-  store.dispatch(setUserToken(token));
+  
+  (store.dispatch as AppDispatch)(setLoginSuccess(true));
+  (store.dispatch as AppDispatch)(setUserId(id));
+  (store.dispatch as AppDispatch)(setUserFirstName(firstName));
+  (store.dispatch as AppDispatch)(setUserLastName(lastName));
+  (store.dispatch as AppDispatch)(setUserLanguage(language));
+  (store.dispatch as AppDispatch)(setUserType(type));
+  (store.dispatch as AppDispatch)(setUserSupplierId(supplierId));
+  (store.dispatch as AppDispatch)(setUserEmailAddress(emailAddress));
+  (store.dispatch as AppDispatch)(setUserPassword(password));
+  (store.dispatch as AppDispatch)(setUserToken(token));
 }
 
 const cartList = localStorage.getItem("cartList");
 if (cartList) {
-  store.dispatch(setCartList(JSON.parse(cartList)));
+  (store.dispatch as AppDispatch)(setCartList(JSON.parse(cartList)));
 }
 
 const selected = localStorage.getItem("selected");
 if (selected) {
-  store.dispatch(setSelected(parseInt(selected)));
+  (store.dispatch as AppDispatch)(setSelected(parseInt(selected)));
 }
 
-const root = document.getElementById("root");
-if (root !== null) {
+// Rendu de l'application
+const rootElement = document.getElementById("root");
+if (rootElement !== null) {
   // Add loaded class to prevent FOUC
-  root.classList.add('loaded');
+  rootElement.classList.add('loaded');
   
-  ReactDOM.render(
+  const root = createRoot(rootElement);
+  root.render(
     <React.StrictMode>
       <Provider store={store}>
         <BrowserRouter>
           <AppRoutes />
         </BrowserRouter>
       </Provider>
-    </React.StrictMode>,
-    root
+    </React.StrictMode>
   );
 }
 

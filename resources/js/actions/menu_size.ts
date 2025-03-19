@@ -1,121 +1,181 @@
-import axios from "axios";
-import { setAddPending, setAddSuccess, setAddError } from "./add";
-import { setEditPending, setEditSuccess, setEditError } from "./edit";
-import { setDeletePending, setDeleteSuccess, setDeleteError } from "./delete";
-import { setListPending, setListSuccess, setListError } from "./list";
+import axios, { AxiosResponse } from "axios";
+import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
+import { AppDispatch } from "../types/redux";
+import IMenuSize from "../interfaces/IMenuSize";
 
-// types declaration
+// Configuration initiale d'axios
+const userLS = localStorage.getItem("user") || null;
+const tokenLS = userLS ? JSON.parse(userLS).token : "";
+axios.defaults.headers.common["authorization"] = `Bearer ${tokenLS}`;
 
-type MenuSizeListAction = {
-  type: "SET_MENU_SIZE_LIST";
-  payload: any;
+export interface MenuSizeState {
+  list: IMenuSize[];
+  totalCount: number;
+  isLoading: boolean;
+  error: string | null;
+  success: boolean;
+}
+
+const initialState: MenuSizeState = {
+  list: [],
+  totalCount: 0,
+  isLoading: false,
+  error: null,
+  success: false
 };
 
-export type MenuSizeAction = MenuSizeListAction;
-
-// types definition
-
-export const SET_MENU_SIZE_LIST = "SET_MENU_SIZE_LIST";
-export const setMenuSizeList = (menuSizeList: any) => ({
-  type: SET_MENU_SIZE_LIST,
-  payload: menuSizeList
+const menuSizeSlice = createSlice({
+  name: 'menuSize',
+  initialState,
+  reducers: {
+    setMenuSizeList: (state, action: PayloadAction<IMenuSize[]>) => {
+      state.list = action.payload;
+    },
+    setMenuSizeListTotalCount: (state, action: PayloadAction<number>) => {
+      state.totalCount = action.payload;
+    },
+    setMenuSizeLoading: (state, action: PayloadAction<boolean>) => {
+      state.isLoading = action.payload;
+    },
+    setMenuSizeError: (state, action: PayloadAction<string | null>) => {
+      state.error = action.payload;
+    },
+    setMenuSizeSuccess: (state, action: PayloadAction<boolean>) => {
+      state.success = action.payload;
+    },
+    resetMenuSizeState: (state) => {
+      Object.assign(state, initialState);
+    }
+  }
 });
 
-// menuSize
+export const {
+  setMenuSizeList,
+  setMenuSizeListTotalCount,
+  setMenuSizeLoading,
+  setMenuSizeError,
+  setMenuSizeSuccess,
+  resetMenuSizeState
+} = menuSizeSlice.actions;
 
-function addMenuSizeDispatch(res: any) {
-  return (dispatch: Function) => {
-    dispatch(setAddSuccess(!!res.data));
-    if (!res.data) {
-      dispatch(setAddError("Add menu size failed!"));
-    } else {
-      dispatch(getMenuSizes());
+// Action thunk pour récupérer la liste des tailles de menu
+export const getMenuSizeList = createAsyncThunk(
+  'menuSize/getMenuSizeList',
+  async (_, { dispatch }) => {
+    try {
+      dispatch(setMenuSizeLoading(true));
+      dispatch(setMenuSizeError(null));
+
+      const response = await axios.get(`/api/menu_sizes/list/`);
+      if (response.data.data) {
+        dispatch(setMenuSizeList(response.data.data));
+        dispatch(setMenuSizeListTotalCount(response.data.total));
+      } else {
+        dispatch(setMenuSizeError("Get menu size list failed!"));
+      }
+    } catch (error) {
+      dispatch(setMenuSizeError(error instanceof Error ? error.message : "An error occurred"));
+    } finally {
+      dispatch(setMenuSizeLoading(false));
     }
-  };
-}
+  }
+);
 
-export const addMenuSize = (title: string, titleEn: string) => (
-  dispatch: Function
-) => {
-  dispatch(setAddPending(true));
-  dispatch(setAddSuccess(false));
-  dispatch(setAddError(""));
-  axios
-    .post(`/api/menu_sizes/add/`, {
-      title,
-      titleEn
-    })
-    .then(res => dispatch(addMenuSizeDispatch(res)))
-    .catch((err: string) => dispatch(setAddError(err)))
-    .then(() => dispatch(setAddPending(false)));
-};
+// Action thunk pour récupérer la liste des tailles de menu avec pagination
+export const getMenuSizeListWithPagination = createAsyncThunk(
+  'menuSize/getMenuSizeListWithPagination',
+  async ({ limit, offset }: { limit: number; offset: number }, { dispatch }) => {
+    try {
+      dispatch(setMenuSizeLoading(true));
+      dispatch(setMenuSizeError(null));
 
-function editMenuSizeDispatch(res: any) {
-  return (dispatch: Function) => {
-    dispatch(setEditSuccess(!!res.data));
-    if (!res.data) {
-      dispatch(setEditError("Edit menu size failed!"));
-    } else {
-      dispatch(getMenuSizes());
+      const response = await axios.get(`/api/menu_sizes/list/`, {
+        params: { limit, offset }
+      });
+      if (response.data.data) {
+        dispatch(setMenuSizeList(response.data.data));
+        dispatch(setMenuSizeListTotalCount(response.data.total));
+      } else {
+        dispatch(setMenuSizeError("Get menu size list with pagination failed!"));
+      }
+    } catch (error) {
+      dispatch(setMenuSizeError(error instanceof Error ? error.message : "An error occurred"));
+    } finally {
+      dispatch(setMenuSizeLoading(false));
     }
-  };
-}
+  }
+);
 
-export const editMenuSize = (id: number, title: string, titleEn: string) => (
-  dispatch: Function
-) => {
-  dispatch(setEditPending(true));
-  dispatch(setEditSuccess(false));
-  dispatch(setEditError(""));
-  axios
-    .put(`/api/menu_sizes/edit/${id}`, {
-      name,
-      title,
-      titleEn
-    })
-    .then(res => dispatch(editMenuSizeDispatch(res)))
-    .catch((err: string) => dispatch(setEditError(err)))
-    .then(() => dispatch(setEditPending(false)));
-};
+// Action thunk pour ajouter une taille de menu
+export const addMenuSize = createAsyncThunk(
+  'menuSize/addMenuSize',
+  async (menuSizeData: Partial<IMenuSize>, { dispatch }) => {
+    try {
+      dispatch(setMenuSizeLoading(true));
+      dispatch(setMenuSizeSuccess(false));
+      dispatch(setMenuSizeError(null));
 
-function deleteMenuSizeDispatch(res: any) {
-  return (dispatch: Function) => {
-    dispatch(setDeleteSuccess(!!res.data));
-    if (!res.data) {
-      dispatch(setDeleteError("Delete menu size failed!"));
-    } else {
-      dispatch(getMenuSizes());
+      const response = await axios.post(`/api/menu_sizes/add/`, menuSizeData);
+      if (response.data) {
+        dispatch(setMenuSizeSuccess(true));
+        dispatch(getMenuSizeList());
+      } else {
+        dispatch(setMenuSizeError("Add menu size failed!"));
+      }
+    } catch (error) {
+      dispatch(setMenuSizeError(error instanceof Error ? error.message : "An error occurred"));
+    } finally {
+      dispatch(setMenuSizeLoading(false));
     }
-  };
-}
+  }
+);
 
-export const deleteMenuSize = (id: number) => (dispatch: Function) => {
-  dispatch(setDeletePending(true));
-  dispatch(setDeleteSuccess(false));
-  dispatch(setDeleteError(""));
-  axios
-    .delete(`/api/menu_sizes/delete/${id}`, {})
-    .then(res => dispatch(deleteMenuSizeDispatch(res)))
-    .catch((err: string) => dispatch(setDeleteError(err)))
-    .then(() => dispatch(setDeletePending(false)));
-};
+// Action thunk pour supprimer une taille de menu
+export const deleteMenuSize = createAsyncThunk(
+  'menuSize/deleteMenuSize',
+  async (menuSizeId: number, { dispatch }) => {
+    try {
+      dispatch(setMenuSizeLoading(true));
+      dispatch(setMenuSizeSuccess(false));
+      dispatch(setMenuSizeError(null));
 
-function getMenuSizesDispatch(res: any) {
-  return (dispatch: Function) => {
-    dispatch(setListSuccess(!!res.payload.data));
-    if (!res.payload.data) {
-      dispatch(setListError("List menu sizes failed!"));
+      const response = await axios.delete(`/api/menu_sizes/delete/${menuSizeId}`);
+      if (response.data) {
+        dispatch(setMenuSizeSuccess(true));
+        dispatch(getMenuSizeList());
+      } else {
+        dispatch(setMenuSizeError("Delete menu size failed!"));
+      }
+    } catch (error) {
+      dispatch(setMenuSizeError(error instanceof Error ? error.message : "An error occurred"));
+    } finally {
+      dispatch(setMenuSizeLoading(false));
     }
-  };
-}
+  }
+);
 
-export const getMenuSizes = () => (dispatch: Function) => {
-  dispatch(setListPending(true));
-  dispatch(setListSuccess(false));
-  dispatch(setListError(""));
-  const menuSizeList = axios.get(`/api/menu_sizes/list/`, {});
-  dispatch(setMenuSizeList(menuSizeList))
-    .then((res: any) => dispatch(getMenuSizesDispatch(res)))
-    .catch((err: string) => dispatch(setListError(err)))
-    .then(() => dispatch(setListPending(false)));
-};
+// Action thunk pour modifier une taille de menu
+export const editMenuSize = createAsyncThunk(
+  'menuSize/editMenuSize',
+  async ({ menuSizeId, menuSizeData }: { menuSizeId: number; menuSizeData: Partial<IMenuSize> }, { dispatch }) => {
+    try {
+      dispatch(setMenuSizeLoading(true));
+      dispatch(setMenuSizeSuccess(false));
+      dispatch(setMenuSizeError(null));
+
+      const response = await axios.put(`/api/menu_sizes/edit/${menuSizeId}`, menuSizeData);
+      if (response.data) {
+        dispatch(setMenuSizeSuccess(true));
+        dispatch(getMenuSizeList());
+      } else {
+        dispatch(setMenuSizeError("Edit menu size failed!"));
+      }
+    } catch (error) {
+      dispatch(setMenuSizeError(error instanceof Error ? error.message : "An error occurred"));
+    } finally {
+      dispatch(setMenuSizeLoading(false));
+    }
+  }
+);
+
+export default menuSizeSlice.reducer;

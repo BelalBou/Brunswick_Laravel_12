@@ -1,38 +1,41 @@
-// types declaration
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-interface AddPendingAction {
-  type: "SET_ADD_PENDING";
-  payload: boolean;
+export interface AddState {
+  isPending: boolean;
+  isSuccess: boolean;
+  error: string | null;
 }
 
-interface AddSuccessAction {
-  type: "SET_ADD_SUCCESS";
-  payload: boolean;
-}
+const initialState: AddState = {
+  isPending: false,
+  isSuccess: false,
+  error: null
+};
 
-interface AddErrorAction {
-  type: "SET_ADD_ERROR";
-  payload: string;
-}
-
-export type AddAction = AddPendingAction | AddSuccessAction | AddErrorAction;
-
-// types definition
-
-export const SET_ADD_PENDING = "SET_ADD_PENDING";
-export const setAddPending = (isAddPending: boolean) => ({
-  type: SET_ADD_PENDING,
-  payload: isAddPending
+const addSlice = createSlice({
+  name: 'add',
+  initialState,
+  reducers: {
+    setAddPending: (state, action: PayloadAction<boolean>) => {
+      state.isPending = action.payload;
+    },
+    setAddSuccess: (state, action: PayloadAction<boolean>) => {
+      state.isSuccess = action.payload;
+    },
+    setAddError: (state, action: PayloadAction<string | null>) => {
+      state.error = action.payload;
+    },
+    resetAddState: (state) => {
+      Object.assign(state, initialState);
+    }
+  }
 });
 
-export const SET_ADD_SUCCESS = "SET_ADD_SUCCESS";
-export const setAddSuccess = (isAddSuccess: boolean) => ({
-  type: SET_ADD_SUCCESS,
-  payload: isAddSuccess
-});
+export const {
+  setAddPending,
+  setAddSuccess,
+  setAddError,
+  resetAddState
+} = addSlice.actions;
 
-export const SET_ADD_ERROR = "SET_ADD_ERROR";
-export const setAddError = (addError: string) => ({
-  type: SET_ADD_ERROR,
-  payload: addError
-});
+export default addSlice.reducer;

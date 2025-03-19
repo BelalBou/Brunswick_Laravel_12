@@ -1,166 +1,160 @@
 import axios from "axios";
-import { setAddPending, setAddSuccess, setAddError } from "./add";
-import { setEditPending, setEditSuccess, setEditError } from "./edit";
-import { setDeletePending, setDeleteSuccess, setDeleteError } from "./delete";
-import { setListPending, setListSuccess, setListError } from "./list";
-import { Dispatch } from "redux";
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { AppDispatch } from '../types/redux';
 
-// authentication
-
+// Configuration initiale d'axios
 const userLS = localStorage.getItem("user") || null;
 const tokenLS = userLS ? JSON.parse(userLS).token : "";
 axios.defaults.headers.common["authorization"] = `Bearer ${tokenLS}`;
 
-// types declaration
-
 export interface UserState {
-  id: number;
+  id: string | number;
   firstName: string;
   lastName: string;
   language: string;
   type: string;
-  supplierId: number;
+  supplierId: string | number;
   emailAddress: string;
   password: string;
   token: string;
   validity: string;
 }
 
-export interface UserIdAction {
-  type: typeof SET_USER_ID;
-  id: number;
-}
+type UserActionType = keyof UserState;
+type UserActionName = `setUser${Capitalize<UserActionType>}`;
 
-export interface UserFirstNameAction {
-  type: typeof SET_USER_FIRST_NAME;
-  firstName: string;
-}
+const initialState: UserState = {
+  id: '',
+  firstName: '',
+  lastName: '',
+  language: 'fr',
+  type: '',
+  supplierId: '',
+  emailAddress: '',
+  password: '',
+  token: '',
+  validity: 'invalid'
+};
 
-export interface UserLastNameAction {
-  type: typeof SET_USER_LAST_NAME;
-  lastName: string;
-}
-
-export interface UserLanguageAction {
-  type: typeof SET_USER_LANGUAGE;
-  language: string;
-}
-
-export interface UserTypeAction {
-  type: typeof SET_USER_TYPE;
-  userType: string;
-}
-
-export interface UserSupplierIdAction {
-  type: typeof SET_USER_SUPPLIER_ID;
-  supplierId: number;
-}
-
-export interface UserEmailAddressAction {
-  type: typeof SET_USER_EMAIL_ADDRESS;
-  emailAddress: string;
-}
-
-export interface UserPasswordAction {
-  type: typeof SET_USER_PASSWORD;
-  password: string;
-}
-
-export interface UserTokenAction {
-  type: typeof SET_USER_TOKEN;
-  token: string;
-}
-
-export interface UserValidityAction {
-  type: typeof SET_USER_VALIDITY;
-  validity: string;
-}
-
-export type UserAction =
-  | UserIdAction
-  | UserFirstNameAction
-  | UserLastNameAction
-  | UserLanguageAction
-  | UserTypeAction
-  | UserSupplierIdAction
-  | UserEmailAddressAction
-  | UserPasswordAction
-  | UserTokenAction
-  | UserValidityAction;
-
-// types definition
-
-export const SET_USER_ID = "SET_USER_ID";
-export const SET_USER_FIRST_NAME = "SET_USER_FIRST_NAME";
-export const SET_USER_LAST_NAME = "SET_USER_LAST_NAME";
-export const SET_USER_LANGUAGE = "SET_USER_LANGUAGE";
-export const SET_USER_TYPE = "SET_USER_TYPE";
-export const SET_USER_SUPPLIER_ID = "SET_USER_SUPPLIER_ID";
-export const SET_USER_EMAIL_ADDRESS = "SET_USER_EMAIL_ADDRESS";
-export const SET_USER_PASSWORD = "SET_USER_PASSWORD";
-export const SET_USER_TOKEN = "SET_USER_TOKEN";
-export const SET_USER_VALIDITY = "SET_USER_VALIDITY";
-
-export const setUserId = (id: number): UserIdAction => ({
-  type: SET_USER_ID,
-  id
+const userSlice = createSlice({
+  name: 'user',
+  initialState,
+  reducers: {
+    setUserId: (state, action: PayloadAction<string | number>) => {
+      state.id = action.payload;
+    },
+    setUserFirstName: (state, action: PayloadAction<string>) => {
+      state.firstName = action.payload;
+    },
+    setUserLastName: (state, action: PayloadAction<string>) => {
+      state.lastName = action.payload;
+    },
+    setUserLanguage: (state, action: PayloadAction<string>) => {
+      state.language = action.payload;
+    },
+    setUserType: (state, action: PayloadAction<string>) => {
+      state.type = action.payload;
+    },
+    setUserSupplierId: (state, action: PayloadAction<string | number>) => {
+      state.supplierId = action.payload;
+    },
+    setUserEmailAddress: (state, action: PayloadAction<string>) => {
+      state.emailAddress = action.payload;
+    },
+    setUserPassword: (state, action: PayloadAction<string>) => {
+      state.password = action.payload;
+    },
+    setUserToken: (state, action: PayloadAction<string>) => {
+      state.token = action.payload;
+    },
+    setUserValidity: (state, action: PayloadAction<string>) => {
+      state.validity = action.payload;
+    },
+    resetUser: (state) => {
+      Object.assign(state, initialState);
+    }
+  }
 });
 
-export const setUserFirstName = (firstName: string): UserFirstNameAction => ({
-  type: SET_USER_FIRST_NAME,
-  firstName
-});
+export const {
+  setUserId,
+  setUserFirstName,
+  setUserLastName,
+  setUserLanguage,
+  setUserType,
+  setUserSupplierId,
+  setUserEmailAddress,
+  setUserPassword,
+  setUserToken,
+  setUserValidity,
+  resetUser
+} = userSlice.actions;
 
-export const setUserLastName = (lastName: string): UserLastNameAction => ({
-  type: SET_USER_LAST_NAME,
-  lastName
-});
+// Action thunk pour mettre à jour les informations utilisateur
+export const updateUser = (userData: Partial<UserState>) => async (dispatch: AppDispatch) => {
+  try {
+    const response = await fetch('/api/user/update', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(userData),
+    });
 
-export const setUserLanguage = (language: string): UserLanguageAction => ({
-  type: SET_USER_LANGUAGE,
-  language
-});
+    const data = await response.json();
 
-export const setUserType = (userType: string): UserTypeAction => ({
-  type: SET_USER_TYPE,
-  userType
-});
+    if (!response.ok) {
+      throw new Error(data.message || 'Erreur lors de la mise à jour');
+    }
 
-export const setUserSupplierId = (supplierId: number): UserSupplierIdAction => ({
-  type: SET_USER_SUPPLIER_ID,
-  supplierId
-});
+    // Mise à jour du localStorage
+    const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+    localStorage.setItem('user', JSON.stringify({ ...currentUser, ...data }));
 
-export const setUserEmailAddress = (emailAddress: string): UserEmailAddressAction => ({
-  type: SET_USER_EMAIL_ADDRESS,
-  emailAddress
-});
+    // Dispatch des actions de mise à jour
+    Object.entries(data).forEach(([key, value]) => {
+      const stateKey = key as UserActionType;
+      switch (stateKey) {
+        case 'id':
+        case 'supplierId':
+          dispatch(setUserId(value as string | number));
+          break;
+        case 'firstName':
+          dispatch(setUserFirstName(value as string));
+          break;
+        case 'lastName':
+          dispatch(setUserLastName(value as string));
+          break;
+        case 'language':
+          dispatch(setUserLanguage(value as string));
+          break;
+        case 'type':
+          dispatch(setUserType(value as string));
+          break;
+        case 'emailAddress':
+          dispatch(setUserEmailAddress(value as string));
+          break;
+        case 'password':
+          dispatch(setUserPassword(value as string));
+          break;
+        case 'token':
+          dispatch(setUserToken(value as string));
+          break;
+        case 'validity':
+          dispatch(setUserValidity(value as string));
+          break;
+      }
+    });
 
-export const setUserPassword = (password: string): UserPasswordAction => ({
-  type: SET_USER_PASSWORD,
-  password
-});
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};
 
-export const setUserToken = (token: string): UserTokenAction => ({
-  type: SET_USER_TOKEN,
-  token
-});
-
-export const setUserValidity = (validity: string): UserValidityAction => ({
-  type: SET_USER_VALIDITY,
-  validity
-});
-
-export const SET_USER_LIST = "SET_USER_LIST";
-export const setUserList = (userList: any) => ({
-  type: SET_USER_LIST,
-  payload: userList
-});
-
-// user
-
+// Action thunk pour la connexion utilisateur
 export const userDispatch = (userData: any, userToken: string, emailAddress: string, password: string) => {
-  return (dispatch: any) => {
+  return (dispatch: AppDispatch) => {
     dispatch(setUserId(userData.id));
     dispatch(setUserFirstName(userData.first_name));
     dispatch(setUserLastName(userData.last_name));
@@ -170,7 +164,7 @@ export const userDispatch = (userData: any, userToken: string, emailAddress: str
     dispatch(setUserEmailAddress(emailAddress));
     dispatch(setUserPassword(password));
     dispatch(setUserToken(userToken));
-    dispatch(setUserValidity("valid"));
+    dispatch(setUserValidity('valid'));
 
     const user = {
       id: userData.id,
@@ -182,235 +176,20 @@ export const userDispatch = (userData: any, userToken: string, emailAddress: str
       emailAddress,
       password,
       token: userToken,
-      validity: "valid"
+      validity: 'valid'
     };
 
-    localStorage.setItem("user", JSON.stringify(user));
+    localStorage.setItem('user', JSON.stringify(user));
   };
 };
 
-function addUserDispatch(res: any) {
-  return (dispatch: Function) => {
-    dispatch(setAddSuccess(!!res.data));
-    if (!res.data) {
-      dispatch(setAddError("Add user failed!"));
-    } else {
-      dispatch(getUsers());
-    }
-  };
-}
-
-export const addUser = (
-  firstName: string,
-  lastName: string,
-  emailAddress: string,
-  type: string,
-  supplierId: number,
-  language: string
-) => (dispatch: Function) => {
-  dispatch(setAddPending(true));
-  dispatch(setAddSuccess(false));
-  dispatch(setAddError(""));
-  axios
-    .post(`/api/users/add/`, {
-      firstName,
-      lastName,
-      emailAddress,
-      type,
-      supplierId,
-      language
-    })
-    .then(res => dispatch(addUserDispatch(res)))
-    .catch((err: string) => dispatch(setAddError(err)))
-    .then(() => dispatch(setAddPending(false)));
-};
-
-function editUserDispatch(res: any) {
-  return (dispatch: Function) => {
-    dispatch(setEditSuccess(!!res.data));
-    if (!res.data) {
-      dispatch(setEditError("Edit user failed!"));
-    } else {
-      dispatch(getUsers());
-    }
-  };
-}
-
-export const editUser = (
-  id: number,
-  firstName: string,
-  lastName: string,
-  emailAddress: string,
-  type: string,
-  supplierId: number,
-  language: string,
-  resetPassword: boolean
-) => (dispatch: Function) => {
-  dispatch(setEditPending(true));
-  dispatch(setEditSuccess(false));
-  dispatch(setEditError(""));
-  axios
-    .put(`/api/users/edit/${id}`, {
-      firstName,
-      lastName,
-      emailAddress,
-      type,
-      supplierId,
-      language,
-      resetPassword
-    })
-    .then(res => dispatch(editUserDispatch(res)))
-    .catch((err: string) => dispatch(setEditError(err)))
-    .then(() => dispatch(setEditPending(false)));
-};
-
-function deleteUserDispatch(res: any) {
-  return (dispatch: Function) => {
-    dispatch(setDeleteSuccess(!!res.data));
-    if (!res.data) {
-      dispatch(setDeleteError("Delete user failed!"));
-    } else {
-      dispatch(getUsers());
-    }
-  };
-}
-
-export const deleteUser = (id: number) => (dispatch: Function) => {
-  dispatch(setDeletePending(true));
-  dispatch(setDeleteSuccess(false));
-  dispatch(setDeleteError(""));
-  axios
-    .delete(`/api/users/delete/${id}`, {})
-    .then((res: any) => dispatch(deleteUserDispatch(res)))
-    .catch((err: string) => dispatch(setDeleteError(err)))
-    .then(() => dispatch(setDeletePending(false)));
-};
-
-function editUserLanguageDispatch(res: any, language: string) {
-  return (dispatch: Function) => {
-    dispatch(setEditSuccess(!!res.data));
-    if (!res.data) {
-      dispatch(setListError("Edit user language failed!"));
-    } else {
-      dispatch(setUserLanguage(language));
-    }
-  };
-}
-
-export const editUserLanguage = (language: string) => (dispatch: Function) => {
-  dispatch(setEditPending(true));
-  dispatch(setEditSuccess(false));
-  dispatch(setEditError(""));
-  axios
-    .put(`/api/users/edit_language/`, { language })
-    .then((res: any) => dispatch(editUserLanguageDispatch(res, language)))
-    .catch((err: string) => dispatch(setEditError(err)))
-    .then(() => dispatch(setEditPending(false)));
-};
-
-function registerDispatch(res: any) {
-  return (dispatch: Function) => {
-    dispatch(setEditSuccess(!!res.data));
-    if (!res.data) {
-      dispatch(setListError("Register user failed!"));
-    }
-  };
-}
-
-export const register = (password: string, confirmPassword: string) => (
-  dispatch: Function
-) => {
-  dispatch(setEditPending(true));
-  dispatch(setEditSuccess(false));
-  dispatch(setEditError(""));
-  axios
-    .put(`/api/users/register/`, {
-      password,
-      confirmPassword
-    })
-    .then((res: any) => dispatch(registerDispatch(res)))
-    .catch((err: string) => dispatch(setEditError(err)))
-    .then(() => dispatch(setEditPending(false)));
-};
-
-function resetPasswordDispatch(res: any) {
-  return (dispatch: Function) => {
-    dispatch(setEditSuccess(!!res.data));
-    if (!res.data) {
-      dispatch(setListError("Reset password user failed!"));
-    }
-  };
-}
-
-export const resetPassword = (emailAddress: string) => (dispatch: Function) => {
-  dispatch(setEditPending(true));
-  dispatch(setEditSuccess(false));
-  dispatch(setEditError(""));
-  axios
-    .put(`/api/users/resetPassword/`, {
-      emailAddress
-    })
-    .then((res: any) => dispatch(resetPasswordDispatch(res)))
-    .catch((err: string) => dispatch(setEditError(err)))
-    .then(() => dispatch(setEditPending(false)));
-};
-
-export const editToken = (token: string) => (dispatch: Function) => {
-  axios.defaults.headers.common["authorization"] = `Bearer ${token}`;
-  dispatch(setUserToken(token));
-};
-
-function getUsersDispatch(res: any) {
-  return (dispatch: Function) => {
-    dispatch(setListSuccess(!!res.payload.data));
-    if (!res.payload.data) {
-      dispatch(setListError("List users failed!"));
-    }
-  };
-}
-
-export const getUsers = () => (dispatch: Function) => {
-  dispatch(setListPending(true));
-  dispatch(setListSuccess(false));
-  dispatch(setListError(""));
-  const userList = axios.get(`/api/users/list/`, {});
-  dispatch(setUserList(userList))
-    .then((res: any) => dispatch(getUsersDispatch(res)))
-    .catch((err: string) => dispatch(setListError(err)))
-    .then(() => dispatch(setListPending(false)));
-};
-
-function getCustomersDispatch(res: any) {
-  return (dispatch: Function) => {
-    dispatch(setListSuccess(!!res.payload.data));
-    if (!res.payload.data) {
-      dispatch(setListError("List customers failed!"));
-    }
-  };
-}
-
-export const getCustomers = () => (dispatch: Function) => {
-  dispatch(setListPending(true));
-  dispatch(setListSuccess(false));
-  dispatch(setListError(""));
-  const userList = axios.get(`/api/users/list_customers/`, {});
-  dispatch(setUserList(userList))
-    .then((res: any) => dispatch(getCustomersDispatch(res)))
-    .catch((err: string) => dispatch(setListError(err)))
-    .then(() => dispatch(setListPending(false)));
-};
-
+// Action thunk pour vérifier la validité de l'utilisateur
 export const checkUserValidity = () => {
-  return async (dispatch: any) => {
-    try {
-      const response = await axios({
-        method: "get",
-        url: "/api/users/check_validity",
-        withCredentials: true
-      });
-      dispatch(setUserValidity(response.data));
-    } catch (error) {
-      dispatch(setUserValidity("not valid"));
-    }
-  };
+  const user = localStorage.getItem('user');
+  if (!user) return false;
+
+  const userData = JSON.parse(user);
+  return userData.validity === 'valid';
 };
+
+export default userSlice.reducer;

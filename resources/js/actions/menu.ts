@@ -1,232 +1,258 @@
-import axios from "axios";
-import async from "async";
-import { setListPending, setListSuccess, setListError } from "./list";
-import { setAddPending, setAddSuccess, setAddError } from "./add";
-import { setEditPending, setEditSuccess, setEditError } from "./edit";
-import { setDeletePending, setDeleteSuccess, setDeleteError } from "./delete";
+import axios, { AxiosResponse } from "axios";
+import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
+import { AppDispatch } from "../types/redux";
+import IMenu from "../interfaces/IMenu";
+import IMenuSize from "../interfaces/IMenuSize";
+import IExtra from "../interfaces/IExtra";
+import IAllergy from "../interfaces/IAllergy";
 
-// authentication
-
+// Configuration initiale d'axios
 const userLS = localStorage.getItem("user") || null;
 const tokenLS = userLS ? JSON.parse(userLS).token : "";
 axios.defaults.headers.common["authorization"] = `Bearer ${tokenLS}`;
 
-// types declaration
+export interface MenuState {
+  list: IMenu[];
+  listSpread: IMenu[];
+  listSize: IMenuSize[];
+  listExtra: IExtra[];
+  listAllergy: IAllergy[];
+  totalCount: number;
+  isLoading: boolean;
+  error: string | null;
+  success: boolean;
+}
 
-type MenuListAction = {
-  type: "SET_MENU_LIST";
-  payload: any;
+const initialState: MenuState = {
+  list: [],
+  listSpread: [],
+  listSize: [],
+  listExtra: [],
+  listAllergy: [],
+  totalCount: 0,
+  isLoading: false,
+  error: null,
+  success: false
 };
 
-export type MenuAction = MenuListAction;
-
-// types definition
-
-export const SET_MENU_LIST = "SET_MENU_LIST";
-export const setMenuList = (menuList: any) => ({
-  type: SET_MENU_LIST,
-  payload: menuList
+const menuSlice = createSlice({
+  name: 'menu',
+  initialState,
+  reducers: {
+    setMenuList: (state, action: PayloadAction<IMenu[]>) => {
+      state.list = action.payload;
+    },
+    setMenuListSpread: (state, action: PayloadAction<IMenu[]>) => {
+      state.listSpread = action.payload;
+    },
+    setMenuListSize: (state, action: PayloadAction<IMenuSize[]>) => {
+      state.listSize = action.payload;
+    },
+    setMenuListExtra: (state, action: PayloadAction<IExtra[]>) => {
+      state.listExtra = action.payload;
+    },
+    setMenuListAllergy: (state, action: PayloadAction<IAllergy[]>) => {
+      state.listAllergy = action.payload;
+    },
+    setMenuListTotalCount: (state, action: PayloadAction<number>) => {
+      state.totalCount = action.payload;
+    },
+    setMenuLoading: (state, action: PayloadAction<boolean>) => {
+      state.isLoading = action.payload;
+    },
+    setMenuError: (state, action: PayloadAction<string | null>) => {
+      state.error = action.payload;
+    },
+    setMenuSuccess: (state, action: PayloadAction<boolean>) => {
+      state.success = action.payload;
+    },
+    resetMenuState: (state) => {
+      Object.assign(state, initialState);
+    }
+  }
 });
 
-// menu
+export const {
+  setMenuList,
+  setMenuListSpread,
+  setMenuListSize,
+  setMenuListExtra,
+  setMenuListAllergy,
+  setMenuListTotalCount,
+  setMenuLoading,
+  setMenuError,
+  setMenuSuccess,
+  resetMenuState
+} = menuSlice.actions;
 
-function addMenuDispatch(res: any, supplierId: number) {
-  return (dispatch: Function) => {
-    dispatch(setAddSuccess(!!res.data));
-    if (!res.data) {
-      dispatch(setAddError("Add menu failed!"));
-    } else {
-      dispatch(getMenusSupplier(supplierId));
-    }
-  };
-}
+// Action thunk pour récupérer la liste des menus
+export const getMenuList = createAsyncThunk(
+  'menu/getMenuList',
+  async (_, { dispatch }) => {
+    try {
+      dispatch(setMenuLoading(true));
+      dispatch(setMenuError(null));
 
-export const addMenu = (
-  title: string,
-  titleEn: string,
-  sizeId: number,
-  pricing: number,
-  description: string,
-  descriptionEn: string,
-  categoryId: number,
-  allergyIds: number[],
-  extraIds: number[],
-  picture: File,
-  addPicture: boolean,
-  supplierId: number
-) => (dispatch: Function) => {
-  dispatch(setAddPending(true));
-  dispatch(setAddSuccess(false));
-  dispatch(setAddError(""));
-  async.waterfall(
-    [
-      (callback: any) => {
-        axios
-          .post(`/api/menus/add/`, {
-            title,
-            titleEn,
-            sizeId,
-            pricing,
-            description,
-            descriptionEn,
-            categoryId,
-            allergyIds,
-            extraIds,
-            supplierId,
-            picture: picture && addPicture ? picture.name : null
-          })
-          .then(res => callback(null, res));
-      },
-      (result: any, callback: any) => {
-        if (result && picture && addPicture) {
-          const data = new FormData();
-          data.append("picture", picture);
-          axios.post("/api/menus/add_picture/", data);
-        }
-        callback(null, result);
-      },
-      (result: any, callback: any) => {
-        dispatch(addMenuDispatch(result, supplierId));
-        callback(null, "");
+      const response = await axios.get(`/api/menu/list/`);
+      if (response.data.data) {
+        dispatch(setMenuList(response.data.data));
+        dispatch(setMenuListTotalCount(response.data.total));
+      } else {
+        dispatch(setMenuError("Get menu list failed!"));
       }
-    ],
-    err => {
-      if (err) dispatch(setAddError(err.message));
-      dispatch(setAddPending(false));
+    } catch (error) {
+      dispatch(setMenuError(error instanceof Error ? error.message : "An error occurred"));
+    } finally {
+      dispatch(setMenuLoading(false));
     }
-  );
-};
+  }
+);
 
-function editMenuDispatch(res: any, supplierId: number) {
-  return (dispatch: Function) => {
-    dispatch(setEditSuccess(!!res.data));
-    if (!res.data) {
-      dispatch(setEditError("Edit menu failed!"));
-    } else {
-      dispatch(getMenusSupplier(supplierId));
-    }
-  };
-}
+// Action thunk pour récupérer la liste des menus avec pagination
+export const getMenuListWithPagination = createAsyncThunk(
+  'menu/getMenuListWithPagination',
+  async ({ limit, offset }: { limit: number; offset: number }, { dispatch }) => {
+    try {
+      dispatch(setMenuLoading(true));
+      dispatch(setMenuError(null));
 
-export const editMenu = (
-  id: number,
-  title: string,
-  titleEn: string,
-  sizeId: number,
-  pricing: number,
-  description: string,
-  descriptionEn: string,
-  categoryId: number,
-  allergyIds: number[],
-  extraIds: number[],
-  picture: File,
-  editPicture: boolean,
-  supplierId: number
-) => (dispatch: Function) => {
-  dispatch(setEditPending(true));
-  dispatch(setEditSuccess(false));
-  dispatch(setEditError(""));
-  async.waterfall(
-    [
-      (callback: any) => {
-        axios
-          .put(`/api/menus/edit/${id}`, {
-            title,
-            titleEn,
-            sizeId,
-            pricing,
-            description,
-            descriptionEn,
-            categoryId,
-            allergyIds,
-            extraIds,
-            supplierId,
-            picture: picture && editPicture ? picture.name : null
-          })
-          .then(res => callback(null, res));
-      },
-      (result: any, callback: any) => {
-        if (result && picture && editPicture) {
-          const data = new FormData();
-          data.append("picture", picture);
-          axios.post("/api/menus/add_picture/", data);
-        }
-        callback(null, result);
-      },
-      (result: any, callback: any) => {
-        dispatch(editMenuDispatch(result, supplierId));
-        callback(null, "");
+      const response = await axios.get(`/api/menu/list/`, {
+        params: { limit, offset }
+      });
+      if (response.data.data) {
+        dispatch(setMenuList(response.data.data));
+        dispatch(setMenuListTotalCount(response.data.total));
+      } else {
+        dispatch(setMenuError("Get menu list with pagination failed!"));
       }
-    ],
-    err => {
-      if (err) dispatch(setEditError(err.message));
-      dispatch(setEditPending(false));
+    } catch (error) {
+      dispatch(setMenuError(error instanceof Error ? error.message : "An error occurred"));
+    } finally {
+      dispatch(setMenuLoading(false));
     }
-  );
-};
+  }
+);
 
-function deleteMenuDispatch(res: any, supplierId: number) {
-  return (dispatch: Function) => {
-    dispatch(setDeleteSuccess(!!res.data));
-    if (!res.data) {
-      dispatch(setDeleteError("Delete menu failed!"));
-    } else {
-      dispatch(getMenusSupplier(supplierId));
+// Action thunk pour récupérer la liste des menus par catégorie
+export const getMenuListByCategory = createAsyncThunk(
+  'menu/getMenuListByCategory',
+  async ({ categoryId, limit, offset }: { categoryId: number; limit: number; offset: number }, { dispatch }) => {
+    try {
+      dispatch(setMenuLoading(true));
+      dispatch(setMenuError(null));
+
+      const response = await axios.get(`/api/menu/list/category/${categoryId}`, {
+        params: { limit, offset }
+      });
+      if (response.data.data) {
+        dispatch(setMenuList(response.data.data));
+        dispatch(setMenuListTotalCount(response.data.total));
+      } else {
+        dispatch(setMenuError("Get menu list by category failed!"));
+      }
+    } catch (error) {
+      dispatch(setMenuError(error instanceof Error ? error.message : "An error occurred"));
+    } finally {
+      dispatch(setMenuLoading(false));
     }
-  };
-}
+  }
+);
 
-export const deleteMenu = (id: number, supplierId: number) => (
-  dispatch: Function
-) => {
-  dispatch(setDeletePending(true));
-  dispatch(setDeleteSuccess(false));
-  dispatch(setDeleteError(""));
-  axios
-    .delete(`/api/menus/delete/${id}`, {})
-    .then(res => dispatch(deleteMenuDispatch(res, supplierId)))
-    .catch((err: string) => dispatch(setDeleteError(err)))
-    .then(() => dispatch(setDeletePending(false)));
-};
+// Action thunk pour récupérer la liste des menus par fournisseur
+export const getMenuListBySupplier = createAsyncThunk(
+  'menu/getMenuListBySupplier',
+  async ({ supplierId, limit, offset }: { supplierId: number; limit: number; offset: number }, { dispatch }) => {
+    try {
+      dispatch(setMenuLoading(true));
+      dispatch(setMenuError(null));
 
-function getMenusSupplierDispatch(res: any) {
-  return (dispatch: Function) => {
-    dispatch(setListSuccess(!!res.payload.data));
-    if (!res.payload.data) {
-      dispatch(setListError("List menus for supplier failed!"));
+      const response = await axios.get(`/api/menu/list/supplier/${supplierId}`, {
+        params: { limit, offset }
+      });
+      if (response.data.data) {
+        dispatch(setMenuList(response.data.data));
+        dispatch(setMenuListTotalCount(response.data.total));
+      } else {
+        dispatch(setMenuError("Get menu list by supplier failed!"));
+      }
+    } catch (error) {
+      dispatch(setMenuError(error instanceof Error ? error.message : "An error occurred"));
+    } finally {
+      dispatch(setMenuLoading(false));
     }
-  };
-}
+  }
+);
 
-export const getMenusSupplier = (id: number) => (dispatch: Function) => {
-  dispatch(setListPending(true));
-  dispatch(setListSuccess(false));
-  dispatch(setListError(""));
-  axios.get(`/api/menus/list_supplier/${id}`, {})
-    .then(res => {
-      dispatch(setMenuList(res.data));
-      dispatch(getMenusSupplierDispatch(res));
-    })
-    .catch((err: string) => dispatch(setListError(err)))
-    .finally(() => dispatch(setListPending(false)));
-};
+// Action thunk pour ajouter un menu
+export const addMenu = createAsyncThunk(
+  'menu/addMenu',
+  async (menuData: Partial<IMenu>, { dispatch }) => {
+    try {
+      dispatch(setMenuLoading(true));
+      dispatch(setMenuSuccess(false));
+      dispatch(setMenuError(null));
 
-function getMenusDispatch(res: any) {
-  return (dispatch: Function) => {
-    dispatch(setListSuccess(!!res.payload.data));
-    if (!res.payload.data) {
-      dispatch(setListError("List menus failed!"));
+      const response = await axios.post(`/api/menu/add/`, menuData);
+      if (response.data) {
+        dispatch(setMenuSuccess(true));
+        dispatch(getMenuList());
+      } else {
+        dispatch(setMenuError("Add menu failed!"));
+      }
+    } catch (error) {
+      dispatch(setMenuError(error instanceof Error ? error.message : "An error occurred"));
+    } finally {
+      dispatch(setMenuLoading(false));
     }
-  };
-}
+  }
+);
 
-export const getMenus = () => (dispatch: Function) => {
-  dispatch(setListPending(true));
-  dispatch(setListSuccess(false));
-  dispatch(setListError(""));
-  const menuList = axios.get("/api/menus/list/", {});
-  dispatch(setMenuList(menuList))
-    .then((res: any) => dispatch(getMenusDispatch(res)))
-    .catch((err: string) => dispatch(setListError(err)))
-    .then(() => dispatch(setListPending(false)));
-};
+// Action thunk pour supprimer un menu
+export const deleteMenu = createAsyncThunk(
+  'menu/deleteMenu',
+  async (menuId: number, { dispatch }) => {
+    try {
+      dispatch(setMenuLoading(true));
+      dispatch(setMenuSuccess(false));
+      dispatch(setMenuError(null));
+
+      const response = await axios.delete(`/api/menu/delete/${menuId}`);
+      if (response.data) {
+        dispatch(setMenuSuccess(true));
+        dispatch(getMenuList());
+      } else {
+        dispatch(setMenuError("Delete menu failed!"));
+      }
+    } catch (error) {
+      dispatch(setMenuError(error instanceof Error ? error.message : "An error occurred"));
+    } finally {
+      dispatch(setMenuLoading(false));
+    }
+  }
+);
+
+// Action thunk pour modifier un menu
+export const editMenu = createAsyncThunk(
+  'menu/editMenu',
+  async ({ menuId, menuData }: { menuId: number; menuData: Partial<IMenu> }, { dispatch }) => {
+    try {
+      dispatch(setMenuLoading(true));
+      dispatch(setMenuSuccess(false));
+      dispatch(setMenuError(null));
+
+      const response = await axios.put(`/api/menu/edit/${menuId}`, menuData);
+      if (response.data) {
+        dispatch(setMenuSuccess(true));
+        dispatch(getMenuList());
+      } else {
+        dispatch(setMenuError("Edit menu failed!"));
+      }
+    } catch (error) {
+      dispatch(setMenuError(error instanceof Error ? error.message : "An error occurred"));
+    } finally {
+      dispatch(setMenuLoading(false));
+    }
+  }
+);
+
+export default menuSlice.reducer;

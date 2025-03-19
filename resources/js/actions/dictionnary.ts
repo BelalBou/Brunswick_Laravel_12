@@ -1,47 +1,87 @@
 import axios from "axios";
-import { setListPending, setListSuccess, setListError } from "./list";
+import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
 
 // authentication
-
 const userLS = localStorage.getItem("user") || null;
 const tokenLS = userLS ? JSON.parse(userLS).token : "";
 axios.defaults.headers.common["authorization"] = `Bearer ${tokenLS}`;
 
-// types declaration
-
-type DictionnaryListAction = {
-  type: "SET_DICTIONNARY_LIST";
-  payload: any;
-};
-
-export type DictionnaryAction = DictionnaryListAction;
-
-// types definition
-
-export const SET_DICTIONNARY_LIST = "SET_DICTIONNARY_LIST";
-export const setDictionnaryList = (dictionnaryList: any) => ({
-  type: SET_DICTIONNARY_LIST,
-  payload: dictionnaryList
-});
-
-// dictionnary
-
-function getDictionnariesDispatch(res: any) {
-  return (dispatch: Function) => {
-    dispatch(setListSuccess(!!res.payload.data));
-    if (!res.payload.data) {
-      dispatch(setListError("List dictionnaries failed!"));
-    }
-  };
+export interface Dictionary {
+  id: number;
+  name: string;
+  value: string;
+  language: string;
 }
 
-export const getDictionnaries = () => (dispatch: Function) => {
-  dispatch(setListPending(true));
-  dispatch(setListSuccess(false));
-  dispatch(setListError(""));
-  const dictionnaryList = axios.get(`/api/dictionnaries/list/`, {});
-  dispatch(setDictionnaryList(dictionnaryList))
-    .then((res: any) => dispatch(getDictionnariesDispatch(res)))
-    .catch((err: string) => dispatch(setListError(err)))
-    .then(() => dispatch(setListPending(false)));
+export interface DictionaryState {
+  list: Dictionary[];
+  isLoading: boolean;
+  error: string | null;
+  success: boolean;
+}
+
+const initialState: DictionaryState = {
+  list: [],
+  isLoading: false,
+  error: null,
+  success: false
 };
+
+const dictionarySlice = createSlice({
+  name: 'dictionary',
+  initialState,
+  reducers: {
+    setDictionaryList: (state, action: PayloadAction<Dictionary[]>) => {
+      state.list = action.payload;
+    },
+    setDictionaryLoading: (state, action: PayloadAction<boolean>) => {
+      state.isLoading = action.payload;
+    },
+    setDictionaryError: (state, action: PayloadAction<string | null>) => {
+      state.error = action.payload;
+    },
+    setDictionarySuccess: (state, action: PayloadAction<boolean>) => {
+      state.success = action.payload;
+    },
+    resetDictionaryState: (state) => {
+      Object.assign(state, initialState);
+    }
+  }
+});
+
+export const {
+  setDictionaryList,
+  setDictionaryLoading,
+  setDictionaryError,
+  setDictionarySuccess,
+  resetDictionaryState
+} = dictionarySlice.actions;
+
+export const getDictionaries = createAsyncThunk(
+  'dictionary/getDictionaries',
+  async (_, { dispatch }) => {
+    try {
+      dispatch(setDictionaryLoading(true));
+      dispatch(setDictionarySuccess(false));
+      dispatch(setDictionaryError(null));
+      
+      const response = await axios.get('/api/dictionnaries/list/');
+      
+      if (response.data) {
+        dispatch(setDictionaryList(response.data));
+        dispatch(setDictionarySuccess(true));
+      } else {
+        dispatch(setDictionaryError("List dictionaries failed!"));
+      }
+      
+      return response.data;
+    } catch (error) {
+      dispatch(setDictionaryError(error instanceof Error ? error.message : "An error occurred"));
+      throw error;
+    } finally {
+      dispatch(setDictionaryLoading(false));
+    }
+  }
+);
+
+export default dictionarySlice.reducer;

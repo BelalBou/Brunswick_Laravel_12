@@ -1,38 +1,41 @@
-// types declaration
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-type EditPendingAction = {
-  type: 'SET_EDIT_PENDING',
-  payload: boolean,
+export interface EditState {
+  isPending: boolean;
+  isSuccess: boolean;
+  error: string | null;
+}
+
+const initialState: EditState = {
+  isPending: false,
+  isSuccess: false,
+  error: null
 };
 
-type EditSuccessAction = {
-  type: 'SET_EDIT_SUCCESS',
-  payload: boolean,
-};
-
-type EditErrorAction = {
-  type: 'SET_EDIT_ERROR',
-  payload: string,
-};
-
-export type EditAction = EditPendingAction | EditSuccessAction | EditErrorAction;
-
-// types definition
-
-export const SET_EDIT_PENDING = 'SET_EDIT_PENDING';
-export const setEditPending = (isEditPending: boolean) => ({
-  type: SET_EDIT_PENDING,
-  payload: isEditPending,
+const editSlice = createSlice({
+  name: 'edit',
+  initialState,
+  reducers: {
+    setEditPending: (state, action: PayloadAction<boolean>) => {
+      state.isPending = action.payload;
+    },
+    setEditSuccess: (state, action: PayloadAction<boolean>) => {
+      state.isSuccess = action.payload;
+    },
+    setEditError: (state, action: PayloadAction<string | null>) => {
+      state.error = action.payload;
+    },
+    resetEditState: (state) => {
+      Object.assign(state, initialState);
+    }
+  }
 });
 
-export const SET_EDIT_SUCCESS = 'SET_EDIT_SUCCESS';
-export const setEditSuccess = (isEditSuccess: boolean) => ({
-  type: SET_EDIT_SUCCESS,
-  payload: isEditSuccess,
-});
+export const {
+  setEditPending,
+  setEditSuccess,
+  setEditError,
+  resetEditState
+} = editSlice.actions;
 
-export const SET_EDIT_ERROR = 'SET_EDIT_ERROR';
-export const setEditError = (editError: string) => ({
-  type: SET_EDIT_ERROR,
-  payload: editError,
-});
+export default editSlice.reducer;

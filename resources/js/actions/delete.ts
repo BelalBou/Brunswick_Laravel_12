@@ -1,41 +1,41 @@
-// types declaration
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-type DeletePendingAction = {
-  type: 'SET_DELETE_PENDING',
-  payload: boolean,
+export interface DeleteState {
+  isPending: boolean;
+  isSuccess: boolean;
+  error: string | null;
+}
+
+const initialState: DeleteState = {
+  isPending: false,
+  isSuccess: false,
+  error: null
 };
 
-type DeleteSuccessAction = {
-  type: 'SET_DELETE_SUCCESS',
-  payload: boolean,
-};
-
-type DeleteErrorAction = {
-  type: 'SET_DELETE_ERROR',
-  payload: string,
-};
-
-export type DeleteAction =
-  | DeletePendingAction
-  | DeleteSuccessAction
-  | DeleteErrorAction;
-
-// types definition
-
-export const SET_DELETE_PENDING = 'SET_DELETE_PENDING';
-export const setDeletePending = (isDeletePending: boolean) => ({
-  type: SET_DELETE_PENDING,
-  payload: isDeletePending,
+const deleteSlice = createSlice({
+  name: 'delete',
+  initialState,
+  reducers: {
+    setDeletePending: (state, action: PayloadAction<boolean>) => {
+      state.isPending = action.payload;
+    },
+    setDeleteSuccess: (state, action: PayloadAction<boolean>) => {
+      state.isSuccess = action.payload;
+    },
+    setDeleteError: (state, action: PayloadAction<string | null>) => {
+      state.error = action.payload;
+    },
+    resetDeleteState: (state) => {
+      Object.assign(state, initialState);
+    }
+  }
 });
 
-export const SET_DELETE_SUCCESS = 'SET_DELETE_SUCCESS';
-export const setDeleteSuccess = (isDeleteSuccess: boolean) => ({
-  type: SET_DELETE_SUCCESS,
-  payload: isDeleteSuccess,
-});
+export const {
+  setDeletePending,
+  setDeleteSuccess,
+  setDeleteError,
+  resetDeleteState
+} = deleteSlice.actions;
 
-export const SET_DELETE_ERROR = 'SET_DELETE_ERROR';
-export const setDeleteError = (deleteError: string) => ({
-  type: SET_DELETE_ERROR,
-  payload: deleteError,
-});
+export default deleteSlice.reducer;

@@ -1,21 +1,26 @@
-import { Dispatch } from "redux";
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 export interface PageState {
   selected: number;
 }
 
-export interface SelectedAction {
-  type: "SET_SELECTED";
-  payload: number;
-}
+const initialState: PageState = {
+  selected: 0
+};
 
-export type PageAction = SelectedAction;
-
-export const setSelected = (selected: number): SelectedAction => ({
-  type: "SET_SELECTED",
-  payload: selected
+const pageSlice = createSlice({
+  name: 'page',
+  initialState,
+  reducers: {
+    setSelected: (state, action: PayloadAction<number>) => {
+      state.selected = action.payload;
+    },
+    resetPageState: (state) => {
+      Object.assign(state, initialState);
+    }
+  }
 });
 
-export const pageDispatch = (pageData: PageState) => (dispatch: Dispatch<PageAction>) => {
-  dispatch(setSelected(pageData.selected));
-};
+export const { setSelected, resetPageState } = pageSlice.actions;
+
+export default pageSlice.reducer;

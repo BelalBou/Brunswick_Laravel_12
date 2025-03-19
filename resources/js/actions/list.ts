@@ -1,38 +1,41 @@
-// types declaration
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-type ListPendingAction = {
-  type: 'SET_LIST_PENDING',
-  payload: boolean,
+export interface ListState {
+  isPending: boolean;
+  isSuccess: boolean;
+  error: string | null;
+}
+
+const initialState: ListState = {
+  isPending: false,
+  isSuccess: false,
+  error: null
 };
 
-type ListSuccessAction = {
-  type: 'SET_LIST_SUCCESS',
-  payload: boolean,
-};
-
-type ListErrorAction = {
-  type: 'SET_LIST_ERROR',
-  payload: string,
-};
-
-export type ListAction = ListPendingAction | ListSuccessAction | ListErrorAction;
-
-// types definition
-
-export const SET_LIST_PENDING = 'SET_LIST_PENDING';
-export const setListPending = (isListPending: boolean) => ({
-  type: SET_LIST_PENDING,
-  payload: isListPending,
+const listSlice = createSlice({
+  name: 'list',
+  initialState,
+  reducers: {
+    setListPending: (state, action: PayloadAction<boolean>) => {
+      state.isPending = action.payload;
+    },
+    setListSuccess: (state, action: PayloadAction<boolean>) => {
+      state.isSuccess = action.payload;
+    },
+    setListError: (state, action: PayloadAction<string | null>) => {
+      state.error = action.payload;
+    },
+    resetListState: (state) => {
+      Object.assign(state, initialState);
+    }
+  }
 });
 
-export const SET_LIST_SUCCESS = 'SET_LIST_SUCCESS';
-export const setListSuccess = (isListSuccess: boolean) => ({
-  type: SET_LIST_SUCCESS,
-  payload: isListSuccess,
-});
+export const {
+  setListPending,
+  setListSuccess,
+  setListError,
+  resetListState
+} = listSlice.actions;
 
-export const SET_LIST_ERROR = 'SET_LIST_ERROR';
-export const setListError = (listError: string) => ({
-  type: SET_LIST_ERROR,
-  payload: listError,
-});
+export default listSlice.reducer;
