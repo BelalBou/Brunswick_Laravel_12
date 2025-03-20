@@ -8,8 +8,11 @@ import IOrderMenuSize from "./IOrderMenuSize";
 export default interface IOrderMenu {
   id: number;
   order_id: number;
-  menu_id: number;
   quantity: number;
+  pricing: string;
+  article_not_retrieved: boolean;
+  remark: string;
+  menu_id: number;
   total_price: number;
   created_at: string;
   updated_at: string;

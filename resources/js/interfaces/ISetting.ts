@@ -32,4 +32,5 @@ export default interface ISetting {
   total_price?: number;
   user_id?: number;
   order_extras?: any[];
+  time_limit?: number;
 }

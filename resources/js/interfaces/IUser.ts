@@ -8,6 +8,7 @@ export default interface IUser {
   type: string;
   supplier_id: number | null;
   token: string;
+  validity: string;
   created_at: string;
   updated_at: string;
   phone?: string;

@@ -6,10 +6,11 @@ import IOrderExtra from "./IOrderExtra";
 export default interface IOrder {
   id: number;
   date: string;
+  User: IUser;
+  Menu: IMenu[];
   status: string;
   total_price: number;
   user_id: number;
-  User: IUser;
   order_menus: IOrderMenu[];
   order_extras: IOrderExtra[];
   created_at: string;

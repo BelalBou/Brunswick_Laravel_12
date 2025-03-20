@@ -29,7 +29,7 @@ import ISetting from "../../interfaces/ISetting";
 import ISelect from "../../interfaces/ISelect";
 import IMenu from "../../interfaces/IMenu";
 import IOrderExtra from "../../interfaces/IOrderExtra";
-import IOrder from "../../interfaces/IOrder";
+import IOrderInterface from "../../interfaces/IOrder";
 import IOrderDisplay from "../../interfaces/IOrderDisplay";
 import { RootState, AppDispatch } from "../../types/redux";
 import { logout } from "../../actions/login";
@@ -117,7 +117,7 @@ interface IProps {
   selected: number;
   dictionnaryList: any[];
   cartList: ICart[];
-  orderList: IOrder[];
+  orderList: IOrderInterface[];
   orderExtraList: IOrderExtra[];
   orderListTotalCount: number;
   supplierList: ISupplier[];
@@ -169,23 +169,6 @@ interface IState {
 interface IOrderMenu {
   quantity: number;
   article_not_retrieved: boolean;
-}
-
-interface IOrder {
-  id: number;
-  date: string;
-  User?: {
-    id: number;
-    first_name: string;
-    last_name: string;
-    supplier_id?: number;
-  };
-  Menu: Array<{
-    id: number;
-    title: string;
-    pricing: number;
-    order_menu: IOrderMenu[];
-  }>;
 }
 
 const Orders: React.FC<IProps> = ({
@@ -521,7 +504,7 @@ const Orders: React.FC<IProps> = ({
     return orderList.map((order) => ({
       id: order.id,
       date: moment(order.date).format("DD/MM/YYYY HH:mm"),
-      customer: `${order.User?.first_name} ${order.User?.last_name}` || "",
+      client: `${order.User?.first_name} ${order.User?.last_name}` || "",
       supplier: supplierList.find(s => s.id === order.User?.supplier_id)?.name || "",
       menu: order.Menu[0]?.title || "",
       quantity: order.Menu[0]?.order_menu[0]?.quantity || 0,
@@ -563,11 +546,11 @@ const Orders: React.FC<IProps> = ({
 
   const handleOpenEdit = (orderId: number) => {
     const order = orderList.find(o => o.id === orderId);
-    if (order) {
+    if (order && order.Menu[0]) {
       const cart: ICart = {
         menu: order.Menu[0],
-        quantity: order.Menu[0]?.order_menu[0]?.quantity || 0,
-        remark: "",
+        quantity: order.Menu[0].order_menu[0]?.quantity || 0,
+        remark: order.Menu[0].order_menu[0]?.remark || "",
         extras: []
       };
       setState(prev => ({
@@ -642,9 +625,9 @@ const Orders: React.FC<IProps> = ({
     }));
   };
 
-  const handleRetrieveOrder = (): IOrder | undefined => {
+  const handleRetrieveOrder = (): IOrderInterface | undefined => {
     const { detailsId } = state;
-    return orderList.find((order: IOrder) => order.id === detailsId);
+    return orderList.find((order: IOrderInterface) => order.id === detailsId);
   };
 
   const handleRetrieveOrderExtra = (menuId: number): IOrderExtra | undefined => {
@@ -653,8 +636,8 @@ const Orders: React.FC<IProps> = ({
 
   const handleTableData = () => {
     const data: IOrderDisplay[] = [];
-    orderList.forEach((order: IOrder) => {
-      const pricing = order.Menu.reduce((acc: number, menu: IMenu) => {
+    orderList.forEach((order) => {
+      const pricing = order.Menu.reduce((acc, menu) => {
         const orderExtra = handleRetrieveOrderExtra(menu.id);
         return acc + (orderExtra ? parseFloat(orderExtra.pricing) : 0);
       }, 0);
@@ -689,6 +672,38 @@ const Orders: React.FC<IProps> = ({
     return data;
   };
 
+  const handleFilterOrders = () => {
+    const { limit, offset, selectedFilter } = state;
+    const supplierIds = selectedSuppliers.map(supplier => supplier.value);
+    const customerIds = selectedCustomers.map(customer => customer.value);
+    
+    actions.filterOrdersDispatch(
+      limit,
+      offset,
+      selectedFilter,
+      selectedDate || moment(),
+      supplierIds,
+      customerIds
+    );
+  };
+
+  const handleDeleteOrder = () => {
+    const { limit, offset, selectedFilter } = state;
+    const supplierIds = selectedSuppliers.map(supplier => supplier.value);
+    const customerIds = selectedCustomers.map(customer => customer.value);
+
+    actions.deleteOrders(
+      deleteId,
+      userType === "customer",
+      limit,
+      offset,
+      selectedFilter,
+      selectedDate || moment(),
+      supplierIds,
+      customerIds
+    );
+  };
+
   const handleDisplaySuppliers = () => {
     if (supplierList && supplierList.length > 0) {
       return supplierList.map((supplier: ISupplier) => ({
@@ -709,24 +724,26 @@ const Orders: React.FC<IProps> = ({
     return [];
   };
 
-  const handleFilterDate = (date: moment.Moment) => {
-    if (userType === "customer") {
+  const handleFilterDate = (date: moment.Moment | null) => {
+    if (date && userType === "customer") {
       actions.getOrdersForCustomer(10, 0);
-    } else if (userType === "supplier") {
+    } else if (date && userType === "supplier") {
       actions.filterOrdersDispatch(10, 0, "all", date, [userSupplierId], []);
-    } else if (userType === "administrator") {
+    } else if (date && userType === "administrator") {
       actions.filterOrdersDispatch(10, 0, "all", date, [], []);
     }
   };
 
-  const handleFilterSuppliers = (supplierIds: number[]) => {
+  const handleFilterSuppliers = (suppliers: { value: number; label: string }[]) => {
     if (userType === "administrator") {
+      const supplierIds = suppliers.map(supplier => supplier.value);
       actions.filterOrdersDispatch(10, 0, "all", moment(), supplierIds, []);
     }
   };
 
-  const handleFilterCustomers = (customerIds: number[]) => {
+  const handleFilterCustomers = (customers: { value: number; label: string }[]) => {
     if (userType === "administrator") {
+      const customerIds = customers.map(customer => customer.value);
       actions.filterOrdersDispatch(10, 0, "all", moment(), [], customerIds);
     }
   };
@@ -836,10 +853,25 @@ const Orders: React.FC<IProps> = ({
               email_address: "",
               type: "",
               language: "",
-              supplier_id: 0
+              supplier_id: 0,
+              password: "",
+              token: "",
+              validity: "",
+              created_at: "",
+              updated_at: ""
             },
-            Menu: []
-          } as IOrder}
+            Menu: [],
+            status: "",
+            total_price: 0,
+            user_id: 0,
+            order_menus: [],
+            order_extras: [],
+            created_at: "",
+            updated_at: "",
+            is_carried_away: false,
+            is_delivered: false,
+            is_paid: false
+          } as IOrderInterface}
           userType={userType}
           userLanguage={userLanguage}
           editable={isOrderEditable(
@@ -926,7 +958,13 @@ const Orders: React.FC<IProps> = ({
                   hasMore={hasMore}
                   isListPending={isListPending}
                   onOpenDelete={handleOpenDelete}
-                  onOpenEdit={handleOpenEdit}
+                  onOpenEdit={(cart: ICart) => {
+                    setState(prev => ({
+                      ...prev,
+                      openEdit: true,
+                      editCart: cart
+                    }));
+                  }}
                   onFetchNextData={handleFetchNextData}
                   checkDictionnary={getTranslation}
                   isOrderEditable={isOrderEditable}
@@ -941,9 +979,9 @@ const Orders: React.FC<IProps> = ({
   );
 };
 
-export default styled(Orders)(({ classes }) => ({
+export default styled(Orders)(({ theme }) => ({
   heroUnit: {
-    backgroundColor: classes.palette.background.paper,
+    backgroundColor: theme.palette.background.paper,
     borderRadius: ".625rem"
   },
   layout: {
@@ -952,8 +990,8 @@ export default styled(Orders)(({ classes }) => ({
   },
   cardGrid: {
     padding: 0,
-    [classes.breakpoints.up("md")]: {
-      padding: classes.spacing(4)
+    [theme.breakpoints.up("md")]: {
+      padding: theme.spacing(4)
     }
   },
   main: {

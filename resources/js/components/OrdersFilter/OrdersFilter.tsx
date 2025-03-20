@@ -9,6 +9,7 @@ import Grid from "@mui/material/Grid";
 import IntegratedReactSelect from "../IntegratedReactSelect/IntegratedReactSelect";
 import ISelect from "../../interfaces/ISelect";
 import { DateValidationError } from "@mui/x-date-pickers/models";
+import Select from "react-select";
 
 moment.locale("fr");
 
@@ -26,18 +27,18 @@ interface ISelectOption {
 }
 
 interface IProps {
-  suppliers: ISelect[];
-  customers: ISelect[];
+  suppliers: { value: number; label: string }[];
+  customers: { value: number; label: string }[];
   userType: string;
-  selectedDate: moment.Moment | null;
-  selectedSuppliers: ISelect[];
-  selectedCustomers: ISelect[];
   handleToday: boolean;
   handleSuppliers: boolean;
   handleCustomers: boolean;
+  selectedDate: moment.Moment | null;
+  selectedCustomers: { value: number; label: string }[];
+  selectedSuppliers: { value: number; label: string }[];
   onChangeDate: (date: moment.Moment | null) => void;
-  onChangeSuppliers: (suppliers: ISelect[]) => void;
-  onChangeCustomers: (customers: ISelect[]) => void;
+  onChangeSuppliers: (suppliers: { value: number; label: string }[]) => void;
+  onChangeCustomers: (customers: { value: number; label: string }[]) => void;
 }
 
 const OrdersFilters: React.FC<IProps> = ({

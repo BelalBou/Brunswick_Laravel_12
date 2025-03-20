@@ -28,7 +28,7 @@ interface IProps {
   orderExtraList: IOrderExtra[];
   hasMore: boolean;
   isListPending: boolean;
-  onOpenDelete: (id: number) => void;
+  onOpenDelete: (orderId: number) => void;
   onOpenEdit: (cart: ICart) => void;
   onFetchNextData: () => void;
   checkDictionnary: (tag: string) => string;
