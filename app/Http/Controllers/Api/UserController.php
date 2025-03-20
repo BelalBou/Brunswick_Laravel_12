@@ -217,10 +217,29 @@ final class UserController extends Controller
     public function logout(Request $request): JsonResponse
     {
         try {
+            \Log::info('Tentative de déconnexion', [
+                'user_id' => $request->user() ? $request->user()->id : 'non authentifié',
+                'token' => $request->bearerToken() ? substr($request->bearerToken(), 0, 10) . '...' : 'aucun'
+            ]);
+            
+            if (!$request->user()) {
+                \Log::warning('Tentative de déconnexion sans utilisateur authentifié');
+                return response()->json(['message' => 'Non authentifié'], 401);
+            }
+            
             // Révoque le token actuel
             $request->user()->currentAccessToken()->delete();
+            
+            \Log::info('Déconnexion réussie', [
+                'user_id' => $request->user()->id
+            ]);
+            
             return response()->json(['message' => 'Déconnexion réussie']);
         } catch (\Exception $e) {
+            \Log::error('Erreur lors de la déconnexion', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }

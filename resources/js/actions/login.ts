@@ -106,21 +106,46 @@ export const login = createAsyncThunk(
 export const logout = () => async (dispatch: AppDispatch) => {
   try {
     // Appeler l'API pour révoquer le token si l'utilisateur est connecté
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-    if (user.token) {
-      await axios.post('/api/logout', {}, {
+    const userStr = localStorage.getItem('user');
+    console.log('Déconnexion - User string from localStorage:', userStr);
+    
+    if (!userStr) {
+      console.log('Aucun utilisateur trouvé dans localStorage');
+      dispatch(setLoginSuccess(false));
+      return;
+    }
+
+    const user = JSON.parse(userStr);
+    console.log('Déconnexion - User parsed:', user);
+    
+    if (user && user.token) {
+      console.log('Déconnexion - Token trouvé, envoi de la requête de déconnexion');
+      const response = await axios.post('/api/logout', {}, {
         headers: {
-          'Authorization': `Bearer ${user.token}`
+          'Authorization': `Bearer ${user.token}`,
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
         }
       });
+      console.log('Déconnexion - Réponse reçue:', response.data);
+    } else {
+      console.log('Déconnexion - Aucun token trouvé');
     }
   } catch (error) {
     console.error('Erreur lors de la déconnexion', error);
+    if (axios.isAxiosError(error)) {
+      console.error('Détails de l\'erreur Axios:', {
+        response: error.response?.data,
+        status: error.response?.status,
+        headers: error.response?.headers
+      });
+    }
   } finally {
     // Toujours nettoyer le localStorage et l'état Redux même en cas d'erreur
     localStorage.removeItem('user');
     delete axios.defaults.headers.common['Authorization'];
     dispatch(setLoginSuccess(false));
+    console.log('Déconnexion - État local nettoyé et redux mis à jour');
   }
 };
 
