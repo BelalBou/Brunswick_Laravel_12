@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test React</title>
+</head>
+<body>
+    <div id="root">Test de chargement React</div>
+    <script type="module">
+        // Ce script teste l'import de React
+        import React from 'react';
+        console.log('React importé avec succès');
+        console.log('Version React:', React.version);
+        
+        // Test du DOM
+        const root = document.getElementById('root');
+        root.innerHTML = `React version ${React.version} chargé avec succès!`;
+    </script>
+</body>
+</html> 

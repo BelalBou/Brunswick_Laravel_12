@@ -1,3 +1,6 @@
+// Importation du débogage React
+import './debug-react';
+
 import * as React from "react";
 import { createRoot } from "react-dom/client";
 import { Provider } from "react-redux";
@@ -6,6 +9,10 @@ import AppRoutes from "./routes";
 import { store } from "./store";
 import "./css/index.css";
 import * as serviceWorker from "./serviceWorker";
+
+// Code de débogage pour vérifier la version de React
+console.log('React version dans index.tsx:', React.version);
+console.log('React est correctement chargé dans index.tsx');
 
 import { setLoginSuccess } from "./actions/login";
 import {

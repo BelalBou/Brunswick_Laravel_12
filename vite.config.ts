@@ -8,15 +8,17 @@ export default defineConfig({
         laravel({
             input: [
                 'resources/css/app.css',
-                'resources/js/index.tsx'
+                'resources/js/app.jsx'
             ],
             refresh: true,
         }),
         react({
+            include: '**/*.{jsx,tsx}',
             jsxRuntime: 'automatic',
             babel: {
-                presets: ['@babel/preset-react', '@babel/preset-typescript'],
-                plugins: ['@babel/plugin-transform-react-jsx']
+                plugins: [
+                    ['@babel/plugin-transform-react-jsx', { runtime: 'automatic' }]
+                ]
             }
         }),
     ],
@@ -30,12 +32,13 @@ export default defineConfig({
             'interfaces': path.resolve(__dirname, './resources/js/interfaces'),
             'types': path.resolve(__dirname, './resources/js/types'),
         },
+        extensions: ['.js', '.jsx', '.ts', '.tsx', '.json']
     },
     server: {
         cors: {
-            origin: ['http://localhost:8000', 'http://127.0.0.1:8000'],
+            origin: ['http://localhost:8000', 'http://127.0.0.1:8000', 'http://[::1]:3000', 'http://localhost:3000'],
             methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-            allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+            allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-XSRF-TOKEN'],
             credentials: true
         },
         strictPort: true,
@@ -50,6 +53,18 @@ export default defineConfig({
                 target: 'http://localhost:8000',
                 changeOrigin: true,
                 secure: false,
+                ws: true,
+                configure: (proxy, options) => {
+                    proxy.on('error', (err, req, res) => {
+                        console.log('proxy error', err);
+                    });
+                    proxy.on('proxyReq', (proxyReq, req, res) => {
+                        console.log('Sending Request to the Target:', req.method, req.url);
+                    });
+                    proxy.on('proxyRes', (proxyRes, req, res) => {
+                        console.log('Received Response from the Target:', proxyRes.statusCode, req.url);
+                    });
+                }
             }
         }
     },
@@ -61,14 +76,13 @@ export default defineConfig({
             'react-redux',
             'redux-thunk',
             'redux-promise',
-            'react-data-export',
             'react-router-dom',
             '@mui/material',
             '@mui/icons-material',
             '@emotion/react',
             '@emotion/styled'
         ],
-        exclude: ['@material-ui/core', '@material-ui/icons']
+        exclude: ['@material-ui/core', '@material-ui/icons', 'react-data-export', 'xlsx']
     },
     build: {
         rollupOptions: {
@@ -87,12 +101,5 @@ export default defineConfig({
                 additionalData: `@import "@/css/index.css";`
             }
         }
-    },
-    esbuild: {
-        jsxDev: true,
-        jsxInject: `import React from 'react'`,
-        loader: 'tsx',
-        include: /src\/.*\.[tj]sx?$/,
-        exclude: [],
     }
 }); 

@@ -8,9 +8,12 @@ axios.defaults.headers.common["authorization"] = `Bearer ${tokenLS}`;
 
 export interface Dictionary {
   id: number;
-  name: string;
-  value: string;
-  language: string;
+  tag: string;
+  translation_fr: string;
+  translation_en: string;
+  deleted: boolean;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface DictionaryState {
@@ -31,8 +34,14 @@ const dictionarySlice = createSlice({
   name: 'dictionary',
   initialState,
   reducers: {
-    setDictionaryList: (state, action: PayloadAction<Dictionary[]>) => {
-      state.list = action.payload;
+    setDictionaryList: (state, action: PayloadAction<any>) => {
+      if (Array.isArray(action.payload)) {
+        state.list = action.payload;
+      } else {
+        console.error('setDictionaryList a reçu des données non-tableau:', action.payload);
+        state.list = [];
+        state.error = 'Format de données incorrect';
+      }
     },
     setDictionaryLoading: (state, action: PayloadAction<boolean>) => {
       state.isLoading = action.payload;
@@ -65,18 +74,28 @@ export const getDictionaries = createAsyncThunk(
       dispatch(setDictionarySuccess(false));
       dispatch(setDictionaryError(null));
       
-      const response = await axios.get('/api/dictionnaries/list/');
+      const response = await axios.get('/api/dictionaries', {
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      });
       
-      if (response.data) {
+      if (response.data && Array.isArray(response.data)) {
         dispatch(setDictionaryList(response.data));
         dispatch(setDictionarySuccess(true));
       } else {
-        dispatch(setDictionaryError("List dictionaries failed!"));
+        console.error('Format de réponse incorrect pour les dictionnaires:', response);
+        dispatch(setDictionaryList([]));
+        dispatch(setDictionaryError('Format de réponse incorrect'));
       }
       
       return response.data;
-    } catch (error) {
-      dispatch(setDictionaryError(error instanceof Error ? error.message : "An error occurred"));
+    } catch (error: any) {
+      console.error('Erreur lors de la récupération des dictionnaires:', error);
+      dispatch(setDictionaryError(error.message || 'Une erreur est survenue'));
+      dispatch(setDictionaryList([]));
       throw error;
     } finally {
       dispatch(setDictionaryLoading(false));

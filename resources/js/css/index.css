@@ -14,13 +14,9 @@ body {
     background-color: #f5f5f5;
 }
 
-/* Prevent FOUC (Flash of Unstyled Content) */
+/* Styles de base pour le root */
 #root {
-    display: none;
-}
-
-#root.loaded {
-    display: block;
+    min-height: 100vh;
 }
 
 /*--- classes ---*/

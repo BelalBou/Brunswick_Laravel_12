@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "jsx": "react-jsx",
+    "checkJs": false,
+    "paths": {
+      "@/*": ["resources/js/*"],
+      "components/*": ["resources/js/components/*"],
+      "utils/*": ["resources/js/utils/*"],
+      "actions/*": ["resources/js/actions/*"],
+      "reducers/*": ["resources/js/reducers/*"],
+      "interfaces/*": ["resources/js/interfaces/*"],
+      "types/*": ["resources/js/types/*"]
+    }
+  },
+  "include": ["resources/js/**/*"]
+} 

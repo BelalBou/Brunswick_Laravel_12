@@ -26,7 +26,7 @@ const StyledMain = styled("main")(({ theme }) => ({
   display: "block",
   marginLeft: theme.spacing(3),
   marginRight: theme.spacing(3),
-  [theme.breakpoints.up(400 + theme.spacing(3) * 2)]: {
+  [theme.breakpoints.up(400)]: {
     width: 400,
     marginLeft: "auto",
     marginRight: "auto"
@@ -38,7 +38,7 @@ const StyledPaper = styled(Paper)(({ theme }) => ({
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
-  padding: `${theme.spacing(2)}px ${theme.spacing(3)}px ${theme.spacing(3)}px`
+  padding: `${theme.spacing(2)} ${theme.spacing(3)} ${theme.spacing(3)}`
 }));
 
 const StyledAvatar = styled(Avatar)(({ theme }) => ({
@@ -48,7 +48,12 @@ const StyledAvatar = styled(Avatar)(({ theme }) => ({
 
 const StyledForm = styled("form")(({ theme }) => ({
   width: "100%",
-  marginTop: theme.spacing(1)
+  marginTop: theme.spacing(1),
+  "& .MuiFormControl-root": {
+    width: "100%",
+    display: "block",
+    marginBottom: theme.spacing(2)
+  }
 }));
 
 const StyledSubmitButton = styled(Button)(({ theme }) => ({
@@ -93,7 +98,7 @@ const Login: React.FC = () => {
     editPending: state.edit.isPending,
     isEditSuccess: state.edit.isSuccess,
     editError: state.edit.error,
-    userLanguage: state.user.userLanguage,
+    userLanguage: state.user.currentUser?.language || "",
     dictionaryList: state.dictionary.list
   }));
 
@@ -274,17 +279,17 @@ const Login: React.FC = () => {
 
   return (
     <>
-      <StyledMain>
-        <StyledPaper>
+      <StyledMain className="login-container">
+        <StyledPaper className="login-paper">
           <StyledAvatar>
             <LockOutlinedIcon />
           </StyledAvatar>
           <Typography component="h1" variant="h5">
             {getDictionaryValue("login")}
           </Typography>
-          <StyledForm noValidate>
-            <FormControl margin="normal" required>
-              <InputLabel htmlFor="email">
+          <StyledForm noValidate className="centered-form">
+            <FormControl margin="normal" required fullWidth>
+              <InputLabel htmlFor="email" className="centered-label">
                 {getDictionaryValue("email")}
               </InputLabel>
               <Input
@@ -295,10 +300,11 @@ const Login: React.FC = () => {
                 value={emailAddress}
                 onChange={handleChangeEmailAddress}
                 onKeyPress={handleKeyPressLogin}
+                className="centered-input"
               />
             </FormControl>
-            <FormControl margin="normal" required>
-              <InputLabel htmlFor="password">
+            <FormControl margin="normal" required fullWidth>
+              <InputLabel htmlFor="password" className="centered-label">
                 {getDictionaryValue("password")}
               </InputLabel>
               <Input
@@ -309,9 +315,11 @@ const Login: React.FC = () => {
                 value={password}
                 onChange={handleChangePassword}
                 onKeyPress={handleKeyPressLogin}
+                className="centered-input"
               />
             </FormControl>
             <FormControlLabel
+              className="show-password-control"
               control={
                 <Checkbox
                   value="remember"
@@ -333,6 +341,7 @@ const Login: React.FC = () => {
               color="primary"
               onClick={handleLogin}
               disabled={isLoginPending}
+              size="large"
             >
               {isLoginPending ? (
                 <LinearProgress />
@@ -346,12 +355,12 @@ const Login: React.FC = () => {
       <Snackbar
         open={openLogin}
         onClose={handleCloseLogin}
-        message={loginError}
+        message={loginError ?? ""}
       />
       <Snackbar
         open={openEdit}
         onClose={handleCloseEdit}
-        message={editError}
+        message={editError ?? ""}
       />
       <Snackbar
         open={openReset}

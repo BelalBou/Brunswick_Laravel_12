@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Dictionary;
+use App\Models\Dictionnary;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
@@ -14,8 +14,8 @@ final class DictionaryController extends Controller
 {
     public function index(): JsonResponse
     {
-        $dictionaries = Dictionary::where('deleted', false)
-            ->orderBy('key')
+        $dictionaries = Dictionnary::where('deleted', false)
+            ->orderBy('tag')
             ->get();
 
         return response()->json($dictionaries);
@@ -24,18 +24,18 @@ final class DictionaryController extends Controller
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'key' => 'required|string|max:255|unique:dictionaries,key',
-            'value' => 'required|string',
-            'value_en' => 'required|string'
+            'tag' => 'required|string|max:255|unique:dictionnaries,tag',
+            'translation_fr' => 'required|string',
+            'translation_en' => 'required|string'
         ]);
 
         try {
             DB::beginTransaction();
 
-            $dictionary = Dictionary::create([
-                'key' => $validated['key'],
-                'value' => $validated['value'],
-                'value_en' => $validated['value_en'],
+            $dictionary = Dictionnary::create([
+                'tag' => $validated['tag'],
+                'translation_fr' => $validated['translation_fr'],
+                'translation_en' => $validated['translation_en'],
                 'deleted' => false
             ]);
 
@@ -48,24 +48,24 @@ final class DictionaryController extends Controller
         }
     }
 
-    public function show(Dictionary $dictionary): JsonResponse
+    public function show(Dictionnary $dictionary): JsonResponse
     {
         return response()->json($dictionary);
     }
 
-    public function update(Request $request, Dictionary $dictionary): JsonResponse
+    public function update(Request $request, Dictionnary $dictionary): JsonResponse
     {
         $validated = $request->validate([
-            'value' => 'required|string',
-            'value_en' => 'required|string'
+            'translation_fr' => 'required|string',
+            'translation_en' => 'required|string'
         ]);
 
         try {
             DB::beginTransaction();
 
             $dictionary->update([
-                'value' => $validated['value'],
-                'value_en' => $validated['value_en']
+                'translation_fr' => $validated['translation_fr'],
+                'translation_en' => $validated['translation_en']
             ]);
 
             DB::commit();
@@ -77,7 +77,7 @@ final class DictionaryController extends Controller
         }
     }
 
-    public function destroy(Dictionary $dictionary): JsonResponse
+    public function destroy(Dictionnary $dictionary): JsonResponse
     {
         try {
             $dictionary->update(['deleted' => true]);
@@ -89,7 +89,7 @@ final class DictionaryController extends Controller
 
     public function getByKey(string $key): JsonResponse
     {
-        $dictionary = Dictionary::where('key', $key)
+        $dictionary = Dictionnary::where('tag', $key)
             ->where('deleted', false)
             ->first();
 
@@ -102,9 +102,9 @@ final class DictionaryController extends Controller
 
     public function getByLanguage(string $language): JsonResponse
     {
-        $dictionaries = Dictionary::where('deleted', false)
-            ->select('key', $language === 'en' ? 'value_en as value' : 'value')
-            ->orderBy('key')
+        $dictionaries = Dictionnary::where('deleted', false)
+            ->select('tag', $language === 'en' ? 'translation_en as value' : 'translation_fr as value')
+            ->orderBy('tag')
             ->get();
 
         return response()->json($dictionaries);

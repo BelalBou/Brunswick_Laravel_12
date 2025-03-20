@@ -1,25 +1,42 @@
 {
     "compilerOptions": {
         "target": "ESNext",
-        "useDefineForClassFields": true,
         "lib": ["DOM", "DOM.Iterable", "ESNext"],
-        "allowJs": false,
-        "skipLibCheck": true,
-        "esModuleInterop": true,
-        "allowSyntheticDefaultImports": true,
-        "strict": true,
-        "forceConsistentCasingInFileNames": true,
         "module": "ESNext",
-        "moduleResolution": "Node",
+        "skipLibCheck": true,
+        "moduleResolution": "bundler",
+        "allowImportingTsExtensions": true,
         "resolveJsonModule": true,
         "isolatedModules": true,
         "noEmit": true,
         "jsx": "react-jsx",
+        "strict": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "noFallthroughCasesInSwitch": true,
+        "allowJs": true,
+        "esModuleInterop": true,
+        "allowSyntheticDefaultImports": true,
         "baseUrl": ".",
         "paths": {
-            "@/*": ["resources/js/*"]
-        }
+            "@/*": ["resources/js/*"],
+            "components/*": ["resources/js/components/*"],
+            "utils/*": ["resources/js/utils/*"],
+            "actions/*": ["resources/js/actions/*"],
+            "reducers/*": ["resources/js/reducers/*"],
+            "interfaces/*": ["resources/js/interfaces/*"],
+            "types/*": ["resources/js/types/*"]
+        },
+        "typeRoots": [
+            "node_modules/@types",
+            "resources/js/types"
+        ]
     },
-    "include": ["resources/js"],
+    "include": [
+        "resources/js/**/*.ts",
+        "resources/js/**/*.tsx",
+        "resources/js/**/*.js",
+        "resources/js/**/*.jsx"
+    ],
     "references": [{ "path": "./tsconfig.node.json" }]
 } 

@@ -126,20 +126,20 @@ interface IProps {
   actions: {
     logout: () => (dispatch: AppDispatch) => void;
     getDictionaries: () => AsyncThunkAction<any, void, any>;
-    getSettingList: () => (dispatch: AppDispatch) => void;
-    getOrders: (limit: number, offset: number) => (dispatch: AppDispatch) => void;
-    getOrdersForCustomer: (limit: number, offset: number) => (dispatch: AppDispatch) => void;
-    getOrdersForSupplier: (supplierId: number, todayOnly: boolean, limit: number, offset: number) => (dispatch: AppDispatch) => void;
-    getOrdersExtra: () => (dispatch: AppDispatch) => void;
-    getSuppliers: () => (dispatch: AppDispatch) => void;
-    getUsers: () => (dispatch: AppDispatch) => void;
-    getOrdersForDate: (date: string, limit: number, offset: number) => (dispatch: AppDispatch) => void;
-    getOrdersForSuppliers: (supplierIds: number[], limit: number, offset: number) => (dispatch: AppDispatch) => void;
-    getOrdersForCustomers: (customerIds: number[], limit: number, offset: number) => (dispatch: AppDispatch) => void;
-    getOrdersForCustomerSpread: (limit: number, offset: number) => (dispatch: AppDispatch) => void;
-    filterOrdersDispatch: (limit: number, offset: number, selectedFilter: string, selectedDate: moment.Moment, selectedSupplierIds: number[], selectedCustomerIds: number[]) => (dispatch: AppDispatch) => void;
-    deleteOrders: (id: number, forCustomer: boolean, limit: number, offset: number, selectedFilter: string, selectedDate: moment.Moment, selectedSupplierIds: number[], selectedCustomerIds: number[]) => (dispatch: AppDispatch) => void;
-    editOrder: (orderId: number, menuId: number, quantity: number, remark: string, forCustomer: boolean, limit: number, offset: number, selectedFilter: string, selectedDate: moment.Moment, selectedSupplierIds: number[], selectedCustomerIds: number[]) => (dispatch: AppDispatch) => void;
+    getSettingList: () => AsyncThunkAction<any, void, any>;
+    getOrders: (limit: number, offset: number) => AsyncThunkAction<any, any, any>;
+    getOrdersForCustomer: (limit: number, offset: number) => AsyncThunkAction<any, any, any>;
+    getOrdersForSupplier: (supplierId: number, todayOnly: boolean, limit: number, offset: number) => AsyncThunkAction<any, any, any>;
+    getOrdersExtra: () => AsyncThunkAction<any, void, any>;
+    getSuppliers: () => AsyncThunkAction<any, void, any>;
+    getUsers: () => AsyncThunkAction<any, void, any>;
+    getOrdersForDate: (date: string, limit: number, offset: number) => AsyncThunkAction<any, any, any>;
+    getOrdersForSuppliers: (supplierIds: number[], limit: number, offset: number) => AsyncThunkAction<any, any, any>;
+    getOrdersForCustomers: (customerIds: number[], limit: number, offset: number) => AsyncThunkAction<any, any, any>;
+    getOrdersForCustomerSpread: (limit: number, offset: number) => AsyncThunkAction<any, any, any>;
+    filterOrdersDispatch: (limit: number, offset: number, selectedFilter: string, selectedDate: moment.Moment, selectedSupplierIds: number[], selectedCustomerIds: number[]) => AsyncThunkAction<any, any, any>;
+    deleteOrders: (id: number, forCustomer: boolean, limit: number, offset: number, selectedFilter: string, selectedDate: moment.Moment, selectedSupplierIds: number[], selectedCustomerIds: number[]) => AsyncThunkAction<any, any, any>;
+    editOrder: (orderId: number, menuId: number, quantity: number, remark: string, forCustomer: boolean, limit: number, offset: number, selectedFilter: string, selectedDate: moment.Moment, selectedSupplierIds: number[], selectedCustomerIds: number[]) => AsyncThunkAction<any, any, any>;
     setSelected: (selected: number) => (dispatch: AppDispatch) => void;
   };
 }

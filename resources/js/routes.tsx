@@ -2,7 +2,7 @@ import React from "react";
 import { Routes, Route, useLocation, useParams } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "./types/redux";
-import App from "./components/App/App";
+import App from "./components/App/App.jsx";
 import Login from "./components/Login/Login";
 import Menus from "./components/Menus/Menus";
 import Cart from "./components/Cart/Cart";
@@ -122,11 +122,13 @@ const AppRoutes: React.FC = () => {
   const userId = currentUser?.id || 0;
 
   // Convertir le dictionnaire au format attendu
-  const formattedDictionnaryList = dictionnaryList.map(dict => ({
-    tag: dict.name,
-    value: dict.value,
-    value_en: dict.language === "en" ? dict.value : ""
-  }));
+  const formattedDictionnaryList = Array.isArray(dictionnaryList) 
+    ? dictionnaryList.map(dict => ({
+        tag: dict.tag,
+        value: dict.translation_fr,
+        value_en: dict.translation_en
+      }))
+    : [];
 
   const commonProps = {
     isLoginSuccess,

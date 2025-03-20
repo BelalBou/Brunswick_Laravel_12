@@ -1,15 +1,14 @@
 import React from 'react';
 import { Navigate, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { RootState } from "../../types/redux";
 
-// Composant simplifié sans directive JSX spéciale
-const App = () => {
-  console.log('Composant App chargé');
+// Composant optimisé pour la dernière version de React
+function App() {
+  console.log('Composant App.jsx chargé avec la dernière version de React');
   
   const location = useLocation();
-  const isLoginSuccess = useSelector((state: RootState) => state.login.isLoginSuccess);
-  const userType = useSelector((state: RootState) => state.user.currentUser?.type);
+  const isLoginSuccess = useSelector((state) => state.login.isLoginSuccess);
+  const userType = useSelector((state) => state.user.currentUser?.type);
 
   // Redirection basée sur le type d'utilisateur
   const getDefaultRoute = () => {
@@ -34,6 +33,6 @@ const App = () => {
       state={{ from: location }}
     />
   );
-};
+}
 
-export default App;
+export default App; 
