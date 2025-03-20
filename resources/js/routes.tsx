@@ -20,14 +20,21 @@ import { logout } from "./actions/login";
 import { getDictionaries } from "./actions/dictionnary";
 import { getSettingList } from "./actions/setting";
 import { getSupplierList } from "./actions/supplier";
-import { getCustomers } from "./actions/user";
+import { getCustomers, getUsers } from "./actions/user";
 import { setSelected } from "./actions/page";
 import {
   getOrdersForCustomer,
   filterOrdersDispatch,
   addOrder,
   deleteOrders,
-  editOrder
+  editOrder,
+  getOrders,
+  getOrdersForSupplier,
+  getOrdersExtra,
+  getOrdersForDate,
+  getOrdersForSuppliers,
+  getOrdersForCustomers,
+  getOrdersForCustomerSpread
 } from "./actions/order";
 
 // Types pour les props communes
@@ -46,11 +53,19 @@ interface CommonProps {
     getSettingList: typeof getSettingList;
     getOrdersForCustomer: typeof getOrdersForCustomer;
     filterOrdersDispatch: typeof filterOrdersDispatch;
-    getSupplierList: typeof getSupplierList;
+    getSuppliers: typeof getSupplierList;
     getCustomers: typeof getCustomers;
+    getUsers: typeof getUsers;
     deleteOrders: typeof deleteOrders;
     editOrder: typeof editOrder;
     setSelected: typeof setSelected;
+    getOrders: typeof getOrders;
+    getOrdersForSupplier: typeof getOrdersForSupplier;
+    getOrdersExtra: typeof getOrdersExtra;
+    getOrdersForDate: typeof getOrdersForDate;
+    getOrdersForSuppliers: typeof getOrdersForSuppliers;
+    getOrdersForCustomers: typeof getOrdersForCustomers;
+    getOrdersForCustomerSpread: typeof getOrdersForCustomerSpread;
   };
   isEditSuccess: boolean;
   isDeleteSuccess: boolean;
@@ -69,11 +84,19 @@ const AppRoutes: React.FC = () => {
     getSettingList,
     getOrdersForCustomer,
     filterOrdersDispatch,
-    getSupplierList,
+    getSuppliers: getSupplierList,
     getCustomers,
+    getUsers,
     deleteOrders,
     editOrder,
-    setSelected
+    setSelected,
+    getOrders,
+    getOrdersForSupplier,
+    getOrdersExtra,
+    getOrdersForDate,
+    getOrdersForSuppliers,
+    getOrdersForCustomers,
+    getOrdersForCustomerSpread
   };
 
   const {

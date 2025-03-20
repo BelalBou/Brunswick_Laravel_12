@@ -291,4 +291,167 @@ export const deleteOrder = (
   );
 };
 
+// Action thunk pour récupérer toutes les commandes
+export const getOrders = (limit: number = 0, offset: number = 0) => async (dispatch: AppDispatch) => {
+  try {
+    dispatch(setOrderLoading(true));
+    dispatch(setOrderError(null));
+
+    const response = await axios.get(`/api/orders/list/`, {
+      params: { limit, offset }
+    });
+
+    if (response.data.data) {
+      dispatch(setOrderList(response.data.data));
+      dispatch(setOrderListTotalCount(response.data.total));
+    } else {
+      dispatch(setOrderError("Get orders failed!"));
+    }
+  } catch (error) {
+    dispatch(setOrderError(error instanceof Error ? error.message : "An error occurred"));
+  } finally {
+    dispatch(setOrderLoading(false));
+  }
+};
+
+// Action thunk pour récupérer les commandes d'un fournisseur
+export const getOrdersForSupplier = (
+  supplierId: number,
+  todayOnly: boolean = false,
+  limit: number = 0,
+  offset: number = 0
+) => async (dispatch: AppDispatch) => {
+  try {
+    dispatch(setOrderLoading(true));
+    dispatch(setOrderError(null));
+
+    const response = await axios.get(`/api/orders/list/supplier/${supplierId}`, {
+      params: { todayOnly, limit, offset }
+    });
+
+    if (response.data.data) {
+      dispatch(setOrderList(response.data.data));
+      dispatch(setOrderListTotalCount(response.data.total));
+    } else {
+      dispatch(setOrderError("Get orders for supplier failed!"));
+    }
+  } catch (error) {
+    dispatch(setOrderError(error instanceof Error ? error.message : "An error occurred"));
+  } finally {
+    dispatch(setOrderLoading(false));
+  }
+};
+
+// Action thunk pour récupérer les extras des commandes
+export const getOrdersExtra = () => async (dispatch: AppDispatch) => {
+  try {
+    dispatch(setOrderLoading(true));
+    dispatch(setOrderError(null));
+
+    const response = await axios.get(`/api/orders/extras/`);
+
+    if (response.data.data) {
+      dispatch(setOrderExtraList(response.data.data));
+    } else {
+      dispatch(setOrderError("Get orders extra failed!"));
+    }
+  } catch (error) {
+    dispatch(setOrderError(error instanceof Error ? error.message : "An error occurred"));
+  } finally {
+    dispatch(setOrderLoading(false));
+  }
+};
+
+// Action thunk pour récupérer les commandes pour une date
+export const getOrdersForDate = (date: string, limit: number = 0, offset: number = 0) => async (dispatch: AppDispatch) => {
+  try {
+    dispatch(setOrderLoading(true));
+    dispatch(setOrderError(null));
+
+    const response = await axios.get(`/api/orders/list/date/${date}`, {
+      params: { limit, offset }
+    });
+
+    if (response.data.data) {
+      dispatch(setOrderList(response.data.data));
+      dispatch(setOrderListTotalCount(response.data.total));
+    } else {
+      dispatch(setOrderError("Get orders for date failed!"));
+    }
+  } catch (error) {
+    dispatch(setOrderError(error instanceof Error ? error.message : "An error occurred"));
+  } finally {
+    dispatch(setOrderLoading(false));
+  }
+};
+
+// Action thunk pour récupérer les commandes pour plusieurs fournisseurs
+export const getOrdersForSuppliers = (supplierIds: number[], limit: number = 0, offset: number = 0) => async (dispatch: AppDispatch) => {
+  try {
+    dispatch(setOrderLoading(true));
+    dispatch(setOrderError(null));
+
+    const response = await axios.get(`/api/orders/list/suppliers/`, {
+      params: { supplierIds, limit, offset }
+    });
+
+    if (response.data.data) {
+      dispatch(setOrderList(response.data.data));
+      dispatch(setOrderListTotalCount(response.data.total));
+    } else {
+      dispatch(setOrderError("Get orders for suppliers failed!"));
+    }
+  } catch (error) {
+    dispatch(setOrderError(error instanceof Error ? error.message : "An error occurred"));
+  } finally {
+    dispatch(setOrderLoading(false));
+  }
+};
+
+// Action thunk pour récupérer les commandes pour plusieurs clients
+export const getOrdersForCustomers = (customerIds: number[], limit: number = 0, offset: number = 0) => async (dispatch: AppDispatch) => {
+  try {
+    dispatch(setOrderLoading(true));
+    dispatch(setOrderError(null));
+
+    const response = await axios.get(`/api/orders/list/customers/`, {
+      params: { customerIds, limit, offset }
+    });
+
+    if (response.data.data) {
+      dispatch(setOrderList(response.data.data));
+      dispatch(setOrderListTotalCount(response.data.total));
+    } else {
+      dispatch(setOrderError("Get orders for customers failed!"));
+    }
+  } catch (error) {
+    dispatch(setOrderError(error instanceof Error ? error.message : "An error occurred"));
+  } finally {
+    dispatch(setOrderLoading(false));
+  }
+};
+
+// Action thunk pour récupérer les commandes d'un client avec spread
+export const getOrdersForCustomerSpread = (limit: number = 0, offset: number = 0) => async (dispatch: AppDispatch) => {
+  try {
+    dispatch(setOrderLoading(true));
+    dispatch(setOrderError(null));
+
+    const response = await axios.get(`/api/orders/list/customer/spread/`, {
+      params: { limit, offset }
+    });
+
+    if (response.data.data) {
+      dispatch(setOrderListSpread(response.data.data));
+      dispatch(setOrderListTotalCount(response.data.total));
+    } else {
+      dispatch(setOrderError("Get orders for customer spread failed!"));
+    }
+  } catch (error) {
+    dispatch(setOrderError(error instanceof Error ? error.message : "An error occurred"));
+  } finally {
+    dispatch(setOrderLoading(false));
+  }
+};
+
 export default orderSlice.reducer;

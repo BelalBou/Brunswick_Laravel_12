@@ -43,4 +43,22 @@ export default interface IMenu {
   supplier: ISupplier;
   /** Allergies associées au menu */
   allergies: IAllergy[];
+  created_at: string;
+  updated_at: string;
+  price?: number;
+  quantity?: number;
+  selected_extras?: IExtra[];
+  selected_allergies?: IAllergy[];
+  is_selected?: boolean;
+  is_carried_away?: boolean;
+  is_delivered?: boolean;
+  is_paid?: boolean;
+  payment_method?: string;
+  notes?: string;
+  delivery_address?: string;
+  delivery_time?: string;
+  status?: string;
+  total_price?: number;
+  user_id?: number;
+  order_extras?: any[];
 }

@@ -204,4 +204,31 @@ export const getCustomers = createAsyncThunk(
   }
 );
 
+// Action thunk pour récupérer tous les utilisateurs
+export const getUsers = createAsyncThunk(
+  'user/getUsers',
+  async (_, { dispatch }) => {
+    try {
+      dispatch(setUserLoading(true));
+      dispatch(setUserError(null));
+
+      const response = await axios.get('/api/users');
+      
+      if (response.data) {
+        dispatch(setUserSuccess(true));
+        return response.data;
+      } else {
+        dispatch(setUserError('Failed to get users'));
+        return null;
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'An error occurred while getting users';
+      dispatch(setUserError(errorMessage));
+      return null;
+    } finally {
+      dispatch(setUserLoading(false));
+    }
+  }
+);
+
 export default userSlice.reducer;

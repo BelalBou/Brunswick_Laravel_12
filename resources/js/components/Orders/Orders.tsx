@@ -59,6 +59,7 @@ import {
   Box
 } from "@mui/material";
 import { Edit as EditIcon } from "@mui/icons-material";
+import { AsyncThunkAction } from "@reduxjs/toolkit";
 
 const StyledMain = styled('main')({
   flex: 1
@@ -124,7 +125,7 @@ interface IProps {
   settingList: ISetting[];
   actions: {
     logout: () => (dispatch: AppDispatch) => void;
-    getDictionaries: () => (dispatch: AppDispatch) => void;
+    getDictionaries: () => AsyncThunkAction<any, void, any>;
     getSettingList: () => (dispatch: AppDispatch) => void;
     getOrders: (limit: number, offset: number) => (dispatch: AppDispatch) => void;
     getOrdersForCustomer: (limit: number, offset: number) => (dispatch: AppDispatch) => void;
