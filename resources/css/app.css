@@ -46,12 +46,12 @@ body {
     width: 100% !important;
 }
 
-.centered-label.MuiInputLabel-root {
+.MuiInputLabel-root {
     left: 50% !important;
     transform: translate(-50%, 24px) scale(1) !important;
 }
 
-.centered-label.MuiInputLabel-shrink {
+.MuiInputLabel-shrink {
     transform: translate(-50%, 1.5px) scale(0.75) !important;
 }
 
@@ -71,9 +71,10 @@ body {
     width: 100%;
 }
 
-.show-password-control {
+.reset-password-control {
     margin-top: 8px !important;
-    margin-bottom: 8px !important;
+    margin-bottom: 16px !important;
+    font-size: 14px !important;
 }
 
 .MuiFormHelperText-root {

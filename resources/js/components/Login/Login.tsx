@@ -289,7 +289,7 @@ const Login: React.FC = () => {
           </Typography>
           <StyledForm noValidate className="centered-form">
             <FormControl margin="normal" required fullWidth>
-              <InputLabel htmlFor="email" className="centered-label">
+              <InputLabel htmlFor="email">
                 {getDictionaryValue("email")}
               </InputLabel>
               <Input
@@ -304,12 +304,12 @@ const Login: React.FC = () => {
               />
             </FormControl>
             <FormControl margin="normal" required fullWidth>
-              <InputLabel htmlFor="password" className="centered-label">
+              <InputLabel htmlFor="password">
                 {getDictionaryValue("password")}
               </InputLabel>
               <Input
                 name="password"
-                type={resetPassword ? "text" : "password"}
+                type="password"
                 id="password"
                 autoComplete="current-password"
                 value={password}
@@ -319,36 +319,53 @@ const Login: React.FC = () => {
               />
             </FormControl>
             <FormControlLabel
-              className="show-password-control"
+              className="reset-password-control"
               control={
                 <Checkbox
-                  value="remember"
+                  value="resetPassword"
                   color="primary"
                   checked={resetPassword}
                   onChange={handleChangeResetPassword}
                 />
               }
-              label={getDictionaryValue("show_password")}
+              label={getDictionaryValue("want_reset_password") || "Je souhaite réinitialiser mon mot de passe"}
             />
             {!validated && (
               <FormHelperText error>
                 {getDictionaryValue("invalid_email_password")}
               </FormHelperText>
             )}
-            <StyledSubmitButton
-              fullWidth
-              variant="contained"
-              color="primary"
-              onClick={handleLogin}
-              disabled={isLoginPending}
-              size="large"
-            >
-              {isLoginPending ? (
-                <LinearProgress />
-              ) : (
-                getDictionaryValue("login")
-              )}
-            </StyledSubmitButton>
+            {!resetPassword ? (
+              <StyledSubmitButton
+                fullWidth
+                variant="contained"
+                color="primary"
+                onClick={handleLogin}
+                disabled={isLoginPending}
+                size="large"
+              >
+                {isLoginPending ? (
+                  <LinearProgress />
+                ) : (
+                  getDictionaryValue("login")
+                )}
+              </StyledSubmitButton>
+            ) : (
+              <StyledSubmitButton
+                fullWidth
+                variant="contained"
+                color="primary"
+                onClick={handleResetPassword}
+                disabled={isLoginPending}
+                size="large"
+              >
+                {isLoginPending ? (
+                  <LinearProgress />
+                ) : (
+                  getDictionaryValue("reset_password") || "Réinitialiser"
+                )}
+              </StyledSubmitButton>
+            )}
           </StyledForm>
         </StyledPaper>
       </StyledMain>
