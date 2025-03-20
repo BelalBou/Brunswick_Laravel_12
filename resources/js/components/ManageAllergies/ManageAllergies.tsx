@@ -1,11 +1,10 @@
-import React, { Component } from "react";
+import React from "react";
 import { Navigate } from "react-router-dom";
-import classNames from "classnames";
-import { withStyles, Theme } from "@material-ui/core/styles";
-import Tooltip from "@material-ui/core/Tooltip";
-import IconButton from "@material-ui/core/IconButton";
-import EditIcon from "@material-ui/icons/Edit";
-import DeleteIcon from "@material-ui/icons/Delete";
+import { styled } from "@mui/material/styles";
+import Tooltip from "@mui/material/Tooltip";
+import IconButton from "@mui/material/IconButton";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
 import MenuBar from "../MenuBar/MenuBar";
 import Footer from "../Footer/Footer";
 import Table from "../Table/Table";
@@ -16,28 +15,25 @@ import DeleteStuff from "../DeleteStuff/DeleteStuff";
 import checkDictionnary from "../../utils/CheckDictionnary/CheckDictionnary";
 import IAllergy from "../../interfaces/IAllergy";
 
-const styles = (theme: Theme) => ({
-  heroUnit: {
-    backgroundColor: theme.palette.background.paper,
-    borderRadius: ".625rem"
-  },
-  layout: {
-    width: "auto",
-    margin: "0 auto"
-  },
-  cardGrid: {
-    padding: theme.spacing(4)
-  },
-  main: {
-    flex: 1
-  }
+const StyledMain = styled("main")({
+  flex: 1
 });
 
-interface IProvidedProps {
-  classes: any;
-}
+const StyledLayout = styled("div")({
+  width: "auto",
+  margin: "0 auto"
+});
 
-interface IProps {
+const StyledCardGrid = styled("div")(({ theme }) => ({
+  padding: theme.spacing(4)
+}));
+
+const StyledHeroUnit = styled("div")(({ theme }) => ({
+  backgroundColor: theme.palette.background.paper,
+  borderRadius: ".625rem"
+}));
+
+interface ManageAllergiesProps {
   isLoginSuccess: boolean;
   isAddSuccess: boolean;
   isEditSuccess: boolean;
@@ -52,7 +48,7 @@ interface IProps {
   actions: any;
 }
 
-interface IState {
+interface ManageAllergiesState {
   openAdd: boolean;
   openEdit: boolean;
   openDelete: boolean;
@@ -66,8 +62,21 @@ interface IState {
   deleteDescription: string;
 }
 
-class ManageAllergies extends Component<IProvidedProps & IProps, IState> {
-  state = {
+const ManageAllergies: React.FC<ManageAllergiesProps> = ({
+  isLoginSuccess,
+  isAddSuccess,
+  isEditSuccess,
+  isDeleteSuccess,
+  isListPending,
+  dictionnaryList,
+  allergyList,
+  userToken,
+  userType,
+  userLanguage,
+  selected,
+  actions
+}) => {
+  const [state, setState] = React.useState<ManageAllergiesState>({
     openAdd: false,
     openEdit: false,
     openDelete: false,
@@ -79,63 +88,60 @@ class ManageAllergies extends Component<IProvidedProps & IProps, IState> {
     editDescription: "",
     editDescriptionEn: "",
     deleteDescription: ""
-  };
+  });
 
-  componentDidMount() {
-    const { isLoginSuccess } = this.props;
+  React.useEffect(() => {
     if (isLoginSuccess) {
-      this.refresh();
+      refresh();
     }
-  }
+  }, [isLoginSuccess]);
 
-  componentDidUpdate(prevProps: IProps) {
-    const { userToken } = this.props;
-    if (userToken !== prevProps.userToken) {
-      this.refresh();
-    }
-  }
+  React.useEffect(() => {
+    refresh();
+  }, [userToken]);
 
-  refresh = () => {
-    const { userType } = this.props;
+  const refresh = () => {
     if (userType === "administrator") {
-      this.props.actions.getDictionnaries();
-      this.props.actions.getAllergies();
+      actions.getDictionnaries();
+      actions.getAllergies();
     }
   };
 
-  handleLogout = () => {
-    this.props.actions.logout();
+  const handleLogout = () => {
+    actions.logout();
   };
 
-  handleChangeSelected = (selected: number) => {
-    this.props.actions.setSelected(selected);
+  const handleChangeSelected = (selected: number) => {
+    actions.setSelected(selected);
     localStorage.setItem("selected", selected.toString());
   };
 
-  handleCloseSnackbarAdded = () => {
-    this.setState({
+  const handleCloseSnackbarAdded = () => {
+    setState(prev => ({
+      ...prev,
       added: false
-    });
+    }));
   };
 
-  handleCloseSnackbarEdited = () => {
-    this.setState({
+  const handleCloseSnackbarEdited = () => {
+    setState(prev => ({
+      ...prev,
       edited: false
-    });
+    }));
   };
 
-  handleCloseSnackbarDeleted = () => {
-    this.setState({
+  const handleCloseSnackbarDeleted = () => {
+    setState(prev => ({
+      ...prev,
       deleted: false
-    });
+    }));
   };
 
-  checkDictionnary = (tag: string) => {
-    const { dictionnaryList, userLanguage } = this.props;
+  const getDictionaryValue = (tag: string) => {
     return checkDictionnary(tag, dictionnaryList, userLanguage);
   };
 
-  handleTableColumns = () => {
+  const handleTableColumns = () => {
     return [
       {
         name: "description",
@@ -152,8 +158,7 @@ class ManageAllergies extends Component<IProvidedProps & IProps, IState> {
     ];
   };
 
-  handleTableRows = () => {
-    const { allergyList } = this.props;
+  const handleTableRows = () => {
     if (allergyList && allergyList.length > 0) {
       return allergyList.map(allergy => {
         const obj = {
@@ -165,7 +170,7 @@ class ManageAllergies extends Component<IProvidedProps & IProps, IState> {
                 <IconButton
                   color="primary"
                   onClick={() =>
-                    this.handleOpenEdit(
+                    handleOpenEdit(
                       allergy.id,
                       allergy.description,
                       allergy.description_en
@@ -179,7 +184,7 @@ class ManageAllergies extends Component<IProvidedProps & IProps, IState> {
                 <IconButton
                   color="secondary"
                   onClick={() =>
-                    this.handleOpenDelete(allergy.id, allergy.description)
+                    handleOpenDelete(allergy.id, allergy.description)
                   }
                 >
                   <DeleteIcon />
@@ -195,175 +200,176 @@ class ManageAllergies extends Component<IProvidedProps & IProps, IState> {
     }
   };
 
-  handleOpenAdd = () => {
-    this.setState({
+  const handleOpenAdd = () => {
+    setState(prev => ({
+      ...prev,
       openAdd: true
-    });
+    }));
   };
 
-  handleOpenEdit = (id: number, description: string, descriptionEn: string) => {
-    this.setState({
+  const handleOpenEdit = (id: number, description: string, descriptionEn: string) => {
+    setState(prev => ({
+      ...prev,
       editId: id,
       editDescription: description,
       editDescriptionEn: descriptionEn,
       openEdit: true
-    });
+    }));
   };
 
-  handleOpenDelete = (id: number, description: string) => {
-    this.setState({
+  const handleOpenDelete = (id: number, description: string) => {
+    setState(prev => ({
+      ...prev,
       deleteId: id,
       deleteDescription: description,
       openDelete: true
-    });
+    }));
   };
 
-  handleCloseAdd = () => {
-    this.setState({
+  const handleCloseAdd = () => {
+    setState(prev => ({
+      ...prev,
       openAdd: false
-    });
+    }));
   };
 
-  handleCloseEdit = () => {
-    this.setState({
+  const handleCloseEdit = () => {
+    setState(prev => ({
+      ...prev,
       openEdit: false
-    });
+    }));
   };
 
-  handleCloseDelete = () => {
-    this.setState({
+  const handleCloseDelete = () => {
+    setState(prev => ({
+      ...prev,
       openDelete: false
-    });
+    }));
   };
 
-  handleAdd = (description: string, descriptionEn: string) => {
+  const handleAdd = (description: string, descriptionEn: string) => {
     if (description) {
-      this.props.actions.addAllergy(description, descriptionEn);
+      actions.addAllergy(description, descriptionEn);
     }
-    this.setState({
+    setState(prev => ({
+      ...prev,
       openAdd: false,
       added: true
-    });
+    }));
   };
 
-  handleEdit = (description: string, descriptionEn: string) => {
-    const { editId } = this.state;
+  const handleEdit = (description: string, descriptionEn: string) => {
+    const { editId } = state;
     if (editId > 0 && description) {
-      this.props.actions.editAllergy(editId, description, descriptionEn);
+      actions.editAllergy(editId, description, descriptionEn);
     }
-    this.setState({
+    setState(prev => ({
+      ...prev,
       openEdit: false,
       edited: true
-    });
+    }));
   };
 
-  handleDelete = () => {
-    const { deleteId } = this.state;
+  const handleDelete = () => {
+    const { deleteId } = state;
     if (deleteId > 0) {
-      this.props.actions.deleteAllergy(deleteId);
-      this.setState({
+      actions.deleteAllergy(deleteId);
+      setState(prev => ({
+        ...prev,
         openDelete: false,
         deleted: true
-      });
+      }));
     }
   };
 
-  render() {
-    const {
-      openAdd,
-      openEdit,
-      openDelete,
-      added,
-      edited,
-      deleted,
-      editDescription,
-      editDescriptionEn,
-      deleteDescription
-    } = this.state;
-    const {
-      isLoginSuccess,
-      isListPending,
-      isAddSuccess,
-      isEditSuccess,
-      isDeleteSuccess,
-      userType,
-      selected,
-      classes
-    } = this.props;
-    if (!isLoginSuccess) {
-      return <Navigate to="/login" replace />;
-    }
-    return (
-      <MenuBar
-        isLoginSuccess={isLoginSuccess}
-        isListPending={isListPending}
-        userType={userType}
-        selected={selected}
-        title="Allergènes"
-        onLogout={this.handleLogout}
-        onChangeSelected={this.handleChangeSelected}
-        checkDictionnary={this.checkDictionnary}
-      >
-        {isAddSuccess && added && (
-          <SnackbarAction
-            success
-            message="L'allergène a bien été ajouté !"
-            onClose={this.handleCloseSnackbarAdded}
-          />
-        )}
-        {isEditSuccess && edited && (
-          <SnackbarAction
-            success
-            message="L'allergène a bien été modifié !"
-            onClose={this.handleCloseSnackbarEdited}
-          />
-        )}
-        {isDeleteSuccess && deleted && (
-          <SnackbarAction
-            success
-            message="L'allergène a bien été supprimé !"
-            onClose={this.handleCloseSnackbarDeleted}
-          />
-        )}
-        {openAdd && (
-          <AddAllergy onClose={this.handleCloseAdd} onAdd={this.handleAdd} />
-        )}
-        {openEdit && (
-          <EditAllergy
-            description={editDescription}
-            descriptionEn={editDescriptionEn}
-            onClose={this.handleCloseEdit}
-            onEdit={this.handleEdit}
-          />
-        )}
-        {openDelete && (
-          <DeleteStuff
-            title="Supprimer un allergène"
-            description={`L'allergène « ${deleteDescription} » sera définitivement perdu !`}
-            onClose={this.handleCloseDelete}
-            onDelete={this.handleDelete}
-            checkDictionnary={this.checkDictionnary}
-          />
-        )}
-        <main className={classes.main}>
-          <div className={classNames(classes.layout, classes.cardGrid)}>
-            <div className={classes.heroUnit}>
+  if (!isLoginSuccess) {
+    return <Navigate to="/login" replace />;
+  }
+
+  const {
+    openAdd,
+    openEdit,
+    openDelete,
+    added,
+    edited,
+    deleted,
+    editDescription,
+    editDescriptionEn,
+    deleteDescription
+  } = state;
+
+  return (
+    <MenuBar
+      isLoginSuccess={isLoginSuccess}
+      isListPending={isListPending}
+      userType={userType}
+      selected={selected}
+      title="Allergènes"
+      onLogout={handleLogout}
+      onChangeSelected={handleChangeSelected}
+      checkDictionnary={getDictionaryValue}
+    >
+      {isAddSuccess && added && (
+        <SnackbarAction
+          success
+          message="L'allergène a bien été ajouté !"
+          onClose={handleCloseSnackbarAdded}
+        />
+      )}
+      {isEditSuccess && edited && (
+        <SnackbarAction
+          success
+          message="L'allergène a bien été modifié !"
+          onClose={handleCloseSnackbarEdited}
+        />
+      )}
+      {isDeleteSuccess && deleted && (
+        <SnackbarAction
+          success
+          message="L'allergène a bien été supprimé !"
+          onClose={handleCloseSnackbarDeleted}
+        />
+      )}
+      {openAdd && (
+        <AddAllergy onClose={handleCloseAdd} onAdd={handleAdd} />
+      )}
+      {openEdit && (
+        <EditAllergy
+          description={editDescription}
+          descriptionEn={editDescriptionEn}
+          onClose={handleCloseEdit}
+          onEdit={handleEdit}
+        />
+      )}
+      {openDelete && (
+        <DeleteStuff
+          title="Supprimer un allergène"
+          description={`L'allergène « ${deleteDescription} » sera définitivement perdu !`}
+          onClose={handleCloseDelete}
+          onDelete={handleDelete}
+          checkDictionnary={getDictionaryValue}
+        />
+      )}
+      <StyledMain>
+        <StyledLayout>
+          <StyledCardGrid>
+            <StyledHeroUnit>
               <Table
                 add
-                rows={this.handleTableRows()}
-                columns={this.handleTableColumns()}
+                rows={handleTableRows()}
+                columns={handleTableColumns()}
                 defaultSorting={[
                   { columnName: "description", direction: "asc" }
                 ]}
-                onAddedRowsChange={this.handleOpenAdd}
+                onAddedRowsChange={handleOpenAdd}
               />
-            </div>
-          </div>
-        </main>
-        <Footer />
-      </MenuBar>
-    );
-  }
-}
+            </StyledHeroUnit>
+          </StyledCardGrid>
+        </StyledLayout>
+      </StyledMain>
+      <Footer />
+    </MenuBar>
+  );
+};
 
-export default withStyles(styles, { withTheme: true })(ManageAllergies);
+export default ManageAllergies;

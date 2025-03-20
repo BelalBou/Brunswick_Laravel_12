@@ -1,33 +1,40 @@
-import React, { Component } from "react";
+import React, { useState } from "react";
 import moment from "moment";
 import "moment/locale/fr";
 import emailValidator from "email-validator";
-import { withStyles, Theme } from "@material-ui/core/styles";
-import Button from "@material-ui/core/Button";
-import TextField from "@material-ui/core/TextField";
-import Dialog from "@material-ui/core/Dialog";
-import DialogActions from "@material-ui/core/DialogActions";
-import DialogContent from "@material-ui/core/DialogContent";
-import DialogTitle from "@material-ui/core/DialogTitle";
-import MenuItem from "@material-ui/core/MenuItem";
-import Grid from "@material-ui/core/Grid";
-import InputLabel from "@material-ui/core/InputLabel";
-import FormControl from "@material-ui/core/FormControl";
-import Select from "@material-ui/core/Select";
+import { styled } from "@mui/material/styles";
+import Button from "@mui/material/Button";
+import TextField from "@mui/material/TextField";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogTitle from "@mui/material/DialogTitle";
+import MenuItem from "@mui/material/MenuItem";
+import Grid from "@mui/material/Grid";
+import InputLabel from "@mui/material/InputLabel";
+import FormControl from "@mui/material/FormControl";
+import Select, { SelectChangeEvent } from "@mui/material/Select";
 
 moment.locale("fr");
 
-const styles = (theme: Theme) => ({
-  margin: {
-    margin: theme.spacing.unit
+const StyledDialog = styled(Dialog)(({ theme }) => ({
+  "& .MuiDialog-paper": {
+    margin: `${theme.spacing(3)} !important`,
+    [theme.breakpoints.up("md")]: {
+      margin: `${theme.spacing(6)} auto !important`
+    }
   }
-});
+}));
 
-interface IProvidedProps {
-  classes: any;
-}
+const StyledTextField = styled(TextField)(({ theme }) => ({
+  margin: theme.spacing(1)
+}));
 
-interface IProps {
+const StyledFormControl = styled(FormControl)(({ theme }) => ({
+  margin: theme.spacing(1)
+}));
+
+interface EditSettingProps {
   timeLimit: string;
   startPeriod: number;
   endPeriod: number;
@@ -45,72 +52,49 @@ interface IProps {
   ) => void;
 }
 
-interface IState {
-  timeLimit: string;
-  startPeriod: number;
-  endPeriod: number;
-  emailOrderCc: string;
-  emailSupplierCc: string;
-  emailVendorCc: string;
-  validated: boolean;
-}
+const EditSetting: React.FC<EditSettingProps> = ({
+  timeLimit: initialTimeLimit,
+  startPeriod: initialStartPeriod,
+  endPeriod: initialEndPeriod,
+  emailOrderCc: initialEmailOrderCc,
+  emailSupplierCc: initialEmailSupplierCc,
+  emailVendorCc: initialEmailVendorCc,
+  onClose,
+  onEdit
+}): JSX.Element => {
+  const [timeLimit, setTimeLimit] = useState<string>(initialTimeLimit);
+  const [startPeriod, setStartPeriod] = useState<number>(initialStartPeriod);
+  const [endPeriod, setEndPeriod] = useState<number>(initialEndPeriod);
+  const [emailOrderCc, setEmailOrderCc] = useState<string>(initialEmailOrderCc);
+  const [emailSupplierCc, setEmailSupplierCc] = useState<string>(initialEmailSupplierCc);
+  const [emailVendorCc, setEmailVendorCc] = useState<string>(initialEmailVendorCc);
+  const [validated, setValidated] = useState<boolean>(true);
 
-class EditSetting extends Component<IProvidedProps & IProps, IState> {
-  state = {
-    timeLimit: this.props.timeLimit,
-    startPeriod: this.props.startPeriod,
-    endPeriod: this.props.endPeriod,
-    emailOrderCc: this.props.emailOrderCc,
-    emailSupplierCc: this.props.emailSupplierCc,
-    emailVendorCc: this.props.emailVendorCc,
-    validated: true
+  const handleChangeTimeLimit = (event: React.ChangeEvent<HTMLInputElement>): void => {
+    setTimeLimit(event.target.value);
   };
 
-  handleChangeTimeLimit = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const { value } = event.target;
-    this.setState({
-      timeLimit: value
-    });
+  const handleChangeStartPeriod = (event: SelectChangeEvent<number>): void => {
+    setStartPeriod(Number(event.target.value));
   };
 
-  handleChangeStartPeriod = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const { value } = event.target;
-    this.setState({
-      startPeriod: parseInt(value)
-    });
+  const handleChangeEndPeriod = (event: SelectChangeEvent<number>): void => {
+    setEndPeriod(Number(event.target.value));
   };
 
-  handleChangeEndPeriod = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const { value } = event.target;
-    this.setState({
-      endPeriod: parseInt(value)
-    });
+  const handleChangeEmailOrderCc = (event: React.ChangeEvent<HTMLInputElement>): void => {
+    setEmailOrderCc(event.target.value.trim().toLowerCase());
   };
 
-  handleChangeEmailOrderCc = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const { value } = event.target;
-    this.setState({
-      emailOrderCc: value.trim().toLowerCase()
-    });
+  const handleChangeEmailSupplierCc = (event: React.ChangeEvent<HTMLInputElement>): void => {
+    setEmailSupplierCc(event.target.value.trim().toLowerCase());
   };
 
-  handleChangeEmailSupplierCc = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const { value } = event.target;
-    this.setState({
-      emailSupplierCc: value.trim().toLowerCase()
-    });
+  const handleChangeEmailVendorCc = (event: React.ChangeEvent<HTMLInputElement>): void => {
+    setEmailVendorCc(event.target.value.trim().toLowerCase());
   };
 
-  handleChangeEmailVendorCc = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const { value } = event.target;
-    this.setState({
-      emailVendorCc: value.trim().toLowerCase()
-    });
-  };
-
-  handleValidateEmailAddress = (emailAddresses: string[]) => {
+  const handleValidateEmailAddress = (emailAddresses: string[]): boolean => {
     if (emailAddresses && emailAddresses.length > 0) {
       return emailAddresses
         .map(emailAddress => emailValidator.validate(emailAddress))
@@ -119,26 +103,16 @@ class EditSetting extends Component<IProvidedProps & IProps, IState> {
     return false;
   };
 
-  handleValidated = () => {
-    const {
-      timeLimit,
-      startPeriod,
-      endPeriod,
-      emailOrderCc,
-      emailSupplierCc,
-      emailVendorCc
-    } = this.state;
+  const handleValidated = (): void => {
     if (
       !timeLimit ||
-      !this.handleValidateEmailAddress(emailOrderCc.split(";")) ||
-      !this.handleValidateEmailAddress(emailSupplierCc.split(";")) ||
-      !this.handleValidateEmailAddress(emailVendorCc.split(";"))
+      !handleValidateEmailAddress(emailOrderCc.split(";")) ||
+      !handleValidateEmailAddress(emailSupplierCc.split(";")) ||
+      !handleValidateEmailAddress(emailVendorCc.split(";"))
     ) {
-      this.setState({
-        validated: false
-      });
+      setValidated(false);
     } else {
-      this.props.onEdit(
+      onEdit(
         timeLimit,
         startPeriod,
         endPeriod,
@@ -149,7 +123,7 @@ class EditSetting extends Component<IProvidedProps & IProps, IState> {
     }
   };
 
-  handlePeriodSelect = () => {
+  const handlePeriodSelect = (): JSX.Element[] => {
     return Array.from(Array(7).keys()).map(x => (
       <MenuItem key={x} value={x} className="capitalized-text">
         {moment.weekdays(true)[x]}
@@ -157,138 +131,113 @@ class EditSetting extends Component<IProvidedProps & IProps, IState> {
     ));
   };
 
-  render() {
-    const {
-      timeLimit,
-      startPeriod,
-      endPeriod,
-      emailOrderCc,
-      emailSupplierCc,
-      emailVendorCc,
-      validated
-    } = this.state;
-    const { classes } = this.props;
-    return (
-      <Dialog
-        open
-        onClose={this.props.onClose}
-        aria-labelledby="form-dialog-title"
-      >
-        <DialogTitle id="form-dialog-title">Éditer un paramètre</DialogTitle>
-        <DialogContent>
-          <TextField
-            id="timeLimit"
-            label="Heure limite"
-            type="time"
-            value={this.state.timeLimit}
-            onChange={this.handleChangeTimeLimit}
-            autoFocus
-            defaultValue="11:00"
-            className={classes.margin}
-            InputLabelProps={{
-              shrink: true
-            }}
-            inputProps={{
-              step: 900
-            }}
-            fullWidth
-            required
-            error={!validated && !timeLimit}
-          />
-          <Grid container spacing={8}>
-            <Grid item xs>
-              <FormControl className={classes.margin} fullWidth required>
-                <InputLabel htmlFor="category">Jour de début</InputLabel>
-                <Select
-                  value={startPeriod}
-                  onChange={this.handleChangeStartPeriod}
-                  inputProps={{
-                    name: "startPeriod",
-                    id: "startPeriod",
-                    className: "capitalized-text"
-                  }}
-                >
-                  {this.handlePeriodSelect()}
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs>
-              <FormControl className={classes.margin} fullWidth required>
-                <InputLabel htmlFor="category">Jour de fin</InputLabel>
-                <Select
-                  value={endPeriod}
-                  onChange={this.handleChangeEndPeriod}
-                  inputProps={{
-                    name: "endPeriod",
-                    id: "endPeriod",
-                    className: "capitalized-text"
-                  }}
-                >
-                  {this.handlePeriodSelect()}
-                </Select>
-              </FormControl>
-            </Grid>
+  return (
+    <StyledDialog
+      open
+      onClose={onClose}
+      aria-labelledby="form-dialog-title"
+    >
+      <DialogTitle id="form-dialog-title">Éditer un paramètre</DialogTitle>
+      <DialogContent>
+        <StyledTextField
+          id="timeLimit"
+          label="Heure limite"
+          type="time"
+          value={timeLimit}
+          onChange={handleChangeTimeLimit}
+          autoFocus
+          defaultValue="11:00"
+          InputLabelProps={{
+            shrink: true
+          }}
+          inputProps={{
+            step: 900
+          }}
+          fullWidth
+          required
+          error={!validated && !timeLimit}
+        />
+        <Grid container spacing={1}>
+          <Grid item xs>
+            <StyledFormControl fullWidth required>
+              <InputLabel htmlFor="category">Jour de début</InputLabel>
+              <Select
+                value={startPeriod}
+                onChange={handleChangeStartPeriod}
+                inputProps={{
+                  name: "startPeriod",
+                  id: "startPeriod",
+                  className: "capitalized-text"
+                }}
+              >
+                {handlePeriodSelect()}
+              </Select>
+            </StyledFormControl>
           </Grid>
-          <TextField
-            className={classes.margin}
-            id="standard-multiline-flexible"
-            label="E-mails commandes"
-            multiline
-            rowsMax="4"
-            value={emailOrderCc}
-            onChange={this.handleChangeEmailOrderCc}
-            fullWidth
-            required
-            error={
-              !validated &&
-              !this.handleValidateEmailAddress(emailOrderCc.split(";"))
-            }
-            helperText="Le caractère « ; » doit être utilisé afin de séparer plusieurs adresses e-mails"
-          />
-          <TextField
-            className={classes.margin}
-            id="standard-multiline-flexible"
-            label="E-mails fournisseurs"
-            multiline
-            rowsMax="4"
-            value={emailSupplierCc}
-            onChange={this.handleChangeEmailSupplierCc}
-            fullWidth
-            required
-            error={
-              !validated &&
-              !this.handleValidateEmailAddress(emailSupplierCc.split(";"))
-            }
-            helperText="Le caractère « ; » doit être utilisé afin de séparer plusieurs adresses e-mails"
-          />
-          <TextField
-            className={classes.margin}
-            id="standard-multiline-flexible"
-            label="E-mails caissiers"
-            multiline
-            rowsMax="4"
-            value={emailVendorCc}
-            onChange={this.handleChangeEmailVendorCc}
-            fullWidth
-            required
-            error={
-              !validated &&
-              !this.handleValidateEmailAddress(emailVendorCc.split(";"))
-            }
-            helperText="Le caractère « ; » doit être utilisé afin de séparer plusieurs adresses e-mails"
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={this.props.onClose} color="primary">
-            Annuler
-          </Button>
-          <Button onClick={this.handleValidated} color="primary">
-            Éditer
-          </Button>
-        </DialogActions>
-      </Dialog>
-    );
-  }
-}
+          <Grid item xs>
+            <StyledFormControl fullWidth required>
+              <InputLabel htmlFor="category">Jour de fin</InputLabel>
+              <Select
+                value={endPeriod}
+                onChange={handleChangeEndPeriod}
+                inputProps={{
+                  name: "endPeriod",
+                  id: "endPeriod",
+                  className: "capitalized-text"
+                }}
+              >
+                {handlePeriodSelect()}
+              </Select>
+            </StyledFormControl>
+          </Grid>
+        </Grid>
+        <StyledTextField
+          id="standard-multiline-flexible"
+          label="E-mails commandes"
+          multiline
+          maxRows={4}
+          value={emailOrderCc}
+          onChange={handleChangeEmailOrderCc}
+          fullWidth
+          required
+          error={!validated && !handleValidateEmailAddress(emailOrderCc.split(";"))}
+          helperText="Le caractère « ; » doit être utilisé afin de séparer plusieurs adresses e-mails"
+        />
+        <StyledTextField
+          id="standard-multiline-flexible"
+          label="E-mails fournisseurs"
+          multiline
+          maxRows={4}
+          value={emailSupplierCc}
+          onChange={handleChangeEmailSupplierCc}
+          fullWidth
+          required
+          error={!validated && !handleValidateEmailAddress(emailSupplierCc.split(";"))}
+          helperText="Le caractère « ; » doit être utilisé afin de séparer plusieurs adresses e-mails"
+        />
+        <StyledTextField
+          id="standard-multiline-flexible"
+          label="E-mails caissiers"
+          multiline
+          maxRows={4}
+          value={emailVendorCc}
+          onChange={handleChangeEmailVendorCc}
+          fullWidth
+          required
+          error={!validated && !handleValidateEmailAddress(emailVendorCc.split(";"))}
+          helperText="Le caractère « ; » doit être utilisé afin de séparer plusieurs adresses e-mails"
+        />
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose} color="primary">
+          Annuler
+        </Button>
+        <Button onClick={handleValidated} color="primary">
+          Éditer
+        </Button>
+      </DialogActions>
+    </StyledDialog>
+  );
+};
 
-export default withStyles(styles)(EditSetting);
+export default EditSetting;

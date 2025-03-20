@@ -1,55 +1,50 @@
 import React from "react";
-import { withStyles, Theme } from "@material-ui/core/styles";
-import Typography from "@material-ui/core/Typography";
+import { styled } from "@mui/material/styles";
+import Typography from "@mui/material/Typography";
 import emptyCart from "../../images/empty-cart.svg";
 
-const styles = (theme: Theme) => ({
-  div: {
-    display: "block",
-    width: "100%"
-  },
-  h5: {
-    padding: theme.spacing.unit * 4
-  },
-  img: {
-    width: "128px",
-    paddingTop: theme.spacing.unit * 6
-  },
-  body2: {
-    paddingTop: theme.spacing.unit * 2
-  }
+const Container = styled('div')({
+  display: "block",
+  width: "100%"
 });
 
-interface IProvidedProps {
-  classes: any;
-}
+const StyledImage = styled('img')(({ theme }) => ({
+  width: "128px",
+  paddingTop: theme.spacing(6)
+}));
 
-interface IProps {
+const TitleTypography = styled(Typography)(({ theme }) => ({
+  padding: theme.spacing(4)
+}));
+
+const BodyTypography = styled(Typography)(({ theme }) => ({
+  paddingTop: theme.spacing(2)
+}));
+
+interface CartEmptyProps {
   checkDictionnary: (tag: string) => string;
 }
 
-const CartEmpty = ({ classes, checkDictionnary }: IProvidedProps & IProps) => (
-  <div className={classes.div}>
-    <img src={emptyCart} className={classes.img} />
-    <Typography
+const CartEmpty: React.FC<CartEmptyProps> = ({ checkDictionnary }): JSX.Element => (
+  <Container>
+    <StyledImage src={emptyCart} alt="Empty cart" />
+    <TitleTypography
       variant="h5"
       align="center"
       color="textPrimary"
       gutterBottom
-      className={classes.h5}
     >
       {checkDictionnary("_PANIER_VIDE")}
-      <Typography
+      <BodyTypography
         variant="body2"
         color="textSecondary"
         gutterBottom
         paragraph
-        className={classes.body2}
       >
         {checkDictionnary("_SI_REMPLIR_PANIER")}
-      </Typography>
-    </Typography>
-  </div>
+      </BodyTypography>
+    </TitleTypography>
+  </Container>
 );
 
-export default withStyles(styles, { withTheme: true })(CartEmpty);
+export default CartEmpty;

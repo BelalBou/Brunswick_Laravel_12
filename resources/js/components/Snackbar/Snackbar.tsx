@@ -1,25 +1,20 @@
 import React from "react";
-import { Theme, createStyles } from "@material-ui/core";
-import Snackbar from "@material-ui/core/Snackbar";
-import IconButton from "@material-ui/core/IconButton";
-import CloseIcon from "@material-ui/icons/Close";
-import { withStyles } from "@material-ui/core/styles";
+import { styled } from "@mui/material/styles";
+import Snackbar from "@mui/material/Snackbar";
+import IconButton from "@mui/material/IconButton";
+import CloseIcon from "@mui/icons-material/Close";
 
-const styles = (theme: Theme) =>
-  createStyles({
-    close: {
-      padding: theme.spacing(0.5)
-    }
-  });
+const StyledIconButton = styled(IconButton)(({ theme }) => ({
+  padding: theme.spacing(0.5)
+}));
 
 interface IProps {
-  classes: any;
   message: string;
   open: boolean;
   onClose: () => void;
 }
 
-const CustomSnackbar = ({ classes, message, open, onClose }: IProps) => {
+const CustomSnackbar: React.FC<IProps> = ({ message, open, onClose }) => {
   return (
     <Snackbar
       anchorOrigin={{
@@ -34,18 +29,17 @@ const CustomSnackbar = ({ classes, message, open, onClose }: IProps) => {
       }}
       message={<span id="message-id">{message}</span>}
       action={[
-        <IconButton
+        <StyledIconButton
           key="close"
           aria-label="close"
           color="inherit"
-          className={classes.close}
           onClick={onClose}
         >
           <CloseIcon />
-        </IconButton>
+        </StyledIconButton>
       ]}
     />
   );
 };
 
-export default withStyles(styles)(CustomSnackbar);
+export default CustomSnackbar;

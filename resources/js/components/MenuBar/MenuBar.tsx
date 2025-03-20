@@ -1,122 +1,122 @@
-import React, { Component } from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { withStyles, Theme, createStyles } from "@material-ui/core/styles";
-import AppBar from "@material-ui/core/AppBar";
-import Toolbar from "@material-ui/core/Toolbar";
-import IconButton from "@material-ui/core/IconButton";
-import MenuItem from "@material-ui/core/MenuItem";
-import Menu from "@material-ui/core/Menu";
-import Drawer from "@material-ui/core/Drawer";
-import ListItem from "@material-ui/core/ListItem";
-import ListItemText from "@material-ui/core/ListItemText";
-import List from "@material-ui/core/List";
-import Divider from "@material-ui/core/Divider";
-import ListItemIcon from "@material-ui/core/ListItemIcon";
-import ListSubheader from "@material-ui/core/ListSubheader";
-import Badge from "@material-ui/core/Badge";
-import Hidden from "@material-ui/core/Hidden";
-import Typography from "@material-ui/core/Typography";
-import LinkMUI from "@material-ui/core/Link";
-import LinearProgress from "@material-ui/core/LinearProgress";
-import MenuIcon from "@material-ui/icons/Menu";
-import AccountCircleIcon from "@material-ui/icons/AccountCircle";
-import RestaurantMenuIcon from "@material-ui/icons/RestaurantMenu";
-import PeopleIcon from "@material-ui/icons/People";
-import ShoppingCartIcon from "@material-ui/icons/ShoppingCart";
-import FormatListBulletedIcon from "@material-ui/icons/FormatListBulleted";
-import LocalShippingIcon from "@material-ui/icons/LocalShipping";
-import FolderIcon from "@material-ui/icons/Folder";
-import SettingsIcon from "@material-ui/icons/Settings";
-import BugReportIcon from "@material-ui/icons/BugReport";
-import ReportProblemIcon from "@material-ui/icons/ReportProblem";
-import FormatSizeIcon from "@material-ui/icons/FormatSize";
-import AddBoxIcon from "@material-ui/icons/AddBox";
+import { styled } from "@mui/material/styles";
+import AppBar from "@mui/material/AppBar";
+import Toolbar from "@mui/material/Toolbar";
+import IconButton from "@mui/material/IconButton";
+import MenuItem from "@mui/material/MenuItem";
+import Menu from "@mui/material/Menu";
+import Drawer from "@mui/material/Drawer";
+import ListItem from "@mui/material/ListItem";
+import ListItemText from "@mui/material/ListItemText";
+import List from "@mui/material/List";
+import Divider from "@mui/material/Divider";
+import ListItemIcon from "@mui/material/ListItemIcon";
+import ListSubheader from "@mui/material/ListSubheader";
+import Badge from "@mui/material/Badge";
+import Hidden from "@mui/material/Hidden";
+import Typography from "@mui/material/Typography";
+import LinkMUI from "@mui/material/Link";
+import LinearProgress from "@mui/material/LinearProgress";
+import MenuIcon from "@mui/icons-material/Menu";
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import RestaurantMenuIcon from "@mui/icons-material/RestaurantMenu";
+import PeopleIcon from "@mui/icons-material/People";
+import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
+import FormatListBulletedIcon from "@mui/icons-material/FormatListBulleted";
+import LocalShippingIcon from "@mui/icons-material/LocalShipping";
+import FolderIcon from "@mui/icons-material/Folder";
+import SettingsIcon from "@mui/icons-material/Settings";
+import BugReportIcon from "@mui/icons-material/BugReport";
+import ReportProblemIcon from "@mui/icons-material/ReportProblem";
+import FormatSizeIcon from "@mui/icons-material/FormatSize";
+import AddBoxIcon from "@mui/icons-material/AddBox";
 import SearchBar from "../SearchBar/SearchBar";
 import logo from "../../images/logo.svg";
+import Box from "@mui/material/Box";
 
 const drawerWidth = 240;
 
-const styles = (theme: Theme) =>
-  createStyles({
-    root: {
-      [theme.breakpoints.up("md")]: {
-        display: "flex"
-      }
-    },
-    drawer: {
-      [theme.breakpoints.up("sm")]: {
-        width: drawerWidth,
-        flexShrink: 0
-      }
-    },
-    appBar: {
-      marginLeft: drawerWidth,
-      [theme.breakpoints.up("sm")]: {
-        width: `calc(100% - ${drawerWidth}px)`
-      }
-    },
-    menuButton: {
-      marginRight: 20,
-      [theme.breakpoints.up("sm")]: {
-        display: "none"
-      }
-    },
-    toolbar: {
-      ...theme.mixins.toolbar
-    },
-    drawerPaper: {
-      width: drawerWidth
-    },
-    content: {
-      flexGrow: 1,
-      padding: 0,
-      display: "flex",
-      minHeight: "100vh",
-      flexDirection: "column"
-    },
-    grow: {
-      flexGrow: 1
-    },
-    sectionDesktop: {
-      display: "none",
-      [theme.breakpoints.up("md")]: {
-        display: "flex"
-      }
-    },
-    sectionMobile: {
-      display: "flex",
-      [theme.breakpoints.up("md")]: {
-        display: "none"
-      }
-    },
-    body2: {
-      position: "fixed",
-      bottom: 0,
-      marginLeft: theme.spacing(7)
-    },
-    img: {
-      width: "160px",
-      marginTop: theme.spacing(3),
-      marginLeft: theme.spacing(5)
-    },
-    list: {
-      width: "100%",
-      maxWidth: 360,
-      backgroundColor: theme.palette.background.paper,
-      position: "relative",
-      overflow: "auto",
-      maxHeight: "85%",
-      padding: 0
-    },
-    linearProgress: {
-      zIndex: theme.zIndex.drawer + 2
-    }
-  });
+const StyledRoot = styled('div')(({ theme }) => ({
+  [theme.breakpoints.up("md")]: {
+    display: "flex"
+  }
+}));
 
-interface IProvidedProps {
-  classes: any;
-  theme: Theme;
-}
+const StyledDrawer = styled('nav')(({ theme }) => ({
+  [theme.breakpoints.up("sm")]: {
+    width: drawerWidth,
+    flexShrink: 0
+  }
+}));
+
+const StyledAppBar = styled(AppBar)(({ theme }) => ({
+  marginLeft: drawerWidth,
+  [theme.breakpoints.up("sm")]: {
+    width: `calc(100% - ${drawerWidth}px)`
+  }
+}));
+
+const StyledMenuButton = styled(IconButton)(({ theme }) => ({
+  marginRight: 20,
+  [theme.breakpoints.up("sm")]: {
+    display: "none"
+  }
+}));
+
+const StyledToolbar = styled('div')(({ theme }) => ({
+  ...theme.mixins.toolbar
+}));
+
+const StyledDrawerPaper = styled('div')({
+  width: drawerWidth
+});
+
+const StyledContent = styled('main')({
+  flexGrow: 1,
+  padding: 0,
+  display: "flex",
+  minHeight: "100vh",
+  flexDirection: "column"
+});
+
+const StyledGrow = styled('div')({
+  flexGrow: 1
+});
+
+const StyledSectionDesktop = styled('div')(({ theme }) => ({
+  display: "none",
+  [theme.breakpoints.up("md")]: {
+    display: "flex"
+  }
+}));
+
+const StyledSectionMobile = styled('div')(({ theme }) => ({
+  display: "flex",
+  [theme.breakpoints.up("md")]: {
+    display: "none"
+  }
+}));
+
+const StyledBody2 = styled(Typography)(({ theme }) => ({
+  position: "fixed",
+  bottom: 0,
+  marginLeft: theme.spacing(7)
+}));
+
+const StyledList = styled(List)(({ theme }) => ({
+  width: "100%",
+  maxWidth: 360,
+  backgroundColor: theme.palette.background.paper,
+  position: "relative",
+  overflow: "auto",
+  maxHeight: "85%",
+  padding: 0
+}));
+
+const StyledLinearProgress = styled(LinearProgress)(({ theme }) => ({
+  zIndex: theme.zIndex.drawer + 2
+}));
 
 interface IProps {
   isLoginSuccess: boolean;
@@ -134,55 +134,52 @@ interface IProps {
   children?: React.ReactNode;
 }
 
-interface IState {
-  mobileOpen: boolean;
-  anchorElProfile: HTMLElement | null;
-}
+const MenuBar: React.FC<IProps> = ({
+  isLoginSuccess,
+  isListPending,
+  userType,
+  cartItems = 0,
+  orderItems = 0,
+  search = false,
+  selected,
+  title = "",
+  onLogout,
+  onChangeSelected,
+  checkDictionnary,
+  onSearch,
+  children
+}) => {
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [anchorElProfile, setAnchorElProfile] = useState<HTMLElement | null>(null);
 
-class MenuBar extends Component<IProvidedProps & IProps, IState> {
-  static defaultProps = {
-    cartItems: 0,
-    orderItems: 0,
-    search: false,
-    title: ""
+  const handleProfileMenuOpen = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setAnchorElProfile(event.currentTarget);
   };
 
-  state = {
-    mobileOpen: false,
-    anchorElProfile: null
+  const handleMenuCloseProfile = () => {
+    setAnchorElProfile(null);
   };
 
-  handleProfileMenuOpen = (event: React.MouseEvent<HTMLButtonElement>) => {
-    this.setState({ anchorElProfile: event.currentTarget });
+  const handleDrawerToggle = () => {
+    setMobileOpen(!mobileOpen);
   };
 
-  handleMenuCloseProfile = () => {
-    this.setState({ anchorElProfile: null });
+  const handleAccount = () => {
+    handleMenuCloseProfile();
+    handleClickListItem(0);
   };
 
-  handleDrawerToggle = () => {
-    this.setState(state => ({ mobileOpen: !state.mobileOpen }));
+  const handleClickListItem = (selected: number) => {
+    onChangeSelected(selected);
+    setMobileOpen(false);
   };
 
-  handleAccount = () => {
-    this.handleMenuCloseProfile();
-    this.handleClickListItem(0);
-  };
-
-  handleClickListItem = (selected: number) => {
-    this.props.onChangeSelected(selected);
-    this.setState({
-      mobileOpen: false
-    });
-  };
-
-  renderBadge = () => {
-    const { cartItems } = this.props;
-    if (cartItems && cartItems > 0) {
+  const renderBadge = () => {
+    if (cartItems > 0) {
       return (
         <IconButton
           color="inherit"
-          onClick={() => this.handleClickListItem(2)}
+          onClick={() => handleClickListItem(2)}
           component={({ innerRef, ...props }) => <Link {...props} to="/cart" />}
         >
           <Badge badgeContent={cartItems} color="secondary">
@@ -193,17 +190,15 @@ class MenuBar extends Component<IProvidedProps & IProps, IState> {
     }
   };
 
-  renderLoaders = () => {
-    const { isListPending } = this.props;
+  const renderLoaders = () => {
     if (isListPending) {
-      return <LinearProgress className={this.props.classes.linearProgress} />;
+      return <StyledLinearProgress />;
     }
     return null;
   };
 
-  renderDrawerCartBadge = () => {
-    const { cartItems } = this.props;
-    if (cartItems && cartItems > 0) {
+  const renderDrawerCartBadge = () => {
+    if (cartItems > 0) {
       return (
         <ListItemIcon>
           <Badge color="secondary" badgeContent={cartItems}>
@@ -219,18 +214,7 @@ class MenuBar extends Component<IProvidedProps & IProps, IState> {
     );
   };
 
-  renderDrawerOrderBadge = () => {
-    const { orderItems } = this.props;
-    /*
-    if (orderItems && orderItems > 0) {
-      return (
-        <ListItemIcon>
-          <Badge color="primary" badgeContent={orderItems}>
-            <FormatListBulletedIcon />
-          </Badge>
-        </ListItemIcon>
-      );
-    }*/
+  const renderDrawerOrderBadge = () => {
     return (
       <ListItemIcon>
         <FormatListBulletedIcon />
@@ -238,9 +222,7 @@ class MenuBar extends Component<IProvidedProps & IProps, IState> {
     );
   };
 
-  renderMenuProfile = () => {
-    const { selected, isLoginSuccess } = this.props;
-    const { anchorElProfile } = this.state;
+  const renderMenuProfile = () => {
     const isMenuProfileOpen = Boolean(anchorElProfile);
     return (
       <Menu
@@ -248,48 +230,55 @@ class MenuBar extends Component<IProvidedProps & IProps, IState> {
         anchorOrigin={{ vertical: "top", horizontal: "right" }}
         transformOrigin={{ vertical: "top", horizontal: "right" }}
         open={isMenuProfileOpen}
-        onClose={this.handleMenuCloseProfile}
+        onClose={handleMenuCloseProfile}
       >
         <MenuItem
-          button
-          onClick={() => this.handleAccount()}
+          onClick={() => handleAccount()}
           selected={selected === 0}
         >
           <Link to="/account" style={{ textDecoration: 'none', color: 'inherit' }}>
-            {this.props.checkDictionnary("_MON_COMPTE")}
+            {checkDictionnary("_MON_COMPTE")}
           </Link>
         </MenuItem>
         <MenuItem
-          button
-          onClick={this.props.onLogout}
+          onClick={onLogout}
         >
           <Link to="/login" style={{ textDecoration: 'none', color: 'inherit' }}>
             {isLoginSuccess
-              ? this.props.checkDictionnary("_SE_DECONNECTER")
-              : this.props.checkDictionnary("_SE_CONNECTER")}
+              ? checkDictionnary("_SE_DECONNECTER")
+              : checkDictionnary("_SE_CONNECTER")}
           </Link>
         </MenuItem>
       </Menu>
     );
   };
 
-  renderDrawer = () => {
-    const { userType, selected, classes } = this.props;
+  const renderDrawer = () => {
     return (
       <>
-        <div className={classes.toolbar}>
-          <img src={logo} alt="Brunswick" className={classes.img} />
-        </div>
+        <StyledToolbar>
+          <Box sx={{ 
+            width: "160px",
+            mt: 3,
+            ml: 5
+          }}>
+            <img 
+              src={logo} 
+              alt="Brunswick" 
+              style={{ width: "100%" }}
+            />
+          </Box>
+        </StyledToolbar>
         <Divider />
-        <List className={classes.list}>
+        <StyledList>
           {userType !== "supplier" && (
             <>
               <ListSubheader component="div" disableSticky>
-                {this.props.checkDictionnary("_MES_COMMANDES").toUpperCase()}
+                {checkDictionnary("_MES_COMMANDES").toUpperCase()}
               </ListSubheader>
               <ListItem
                 button
-                onClick={() => this.handleClickListItem(1)}
+                onClick={() => handleClickListItem(1)}
                 selected={selected === 1}
                 component={({ innerRef, ...props }) => (
                   <Link {...props} to="/menus" />
@@ -302,32 +291,32 @@ class MenuBar extends Component<IProvidedProps & IProps, IState> {
               </ListItem>
               <ListItem
                 button
-                onClick={() => this.handleClickListItem(2)}
+                onClick={() => handleClickListItem(2)}
                 selected={selected === 2}
                 component={({ innerRef, ...props }) => (
                   <Link {...props} to="/cart" />
                 )}
               >
-                {this.renderDrawerCartBadge()}
+                {renderDrawerCartBadge()}
                 <ListItemText
                   inset
-                  primary={this.props.checkDictionnary("_MON_PANIER")}
+                  primary={checkDictionnary("_MON_PANIER")}
                 />
               </ListItem>
             </>
           )}
           <ListItem
             button
-            onClick={() => this.handleClickListItem(3)}
+            onClick={() => handleClickListItem(3)}
             selected={selected === 3}
             component={({ innerRef, ...props }) => (
               <Link {...props} to="/orders" />
             )}
           >
-            {this.renderDrawerOrderBadge()}
+            {renderDrawerOrderBadge()}
             <ListItemText
               inset
-              primary={this.props.checkDictionnary("_MES_COMMANDES")}
+              primary={checkDictionnary("_MES_COMMANDES")}
             />
           </ListItem>
           <Divider />
@@ -339,7 +328,7 @@ class MenuBar extends Component<IProvidedProps & IProps, IState> {
               {userType === "administrator" && (
                 <ListItem
                   button
-                  onClick={() => this.handleClickListItem(4)}
+                  onClick={() => handleClickListItem(4)}
                   selected={selected === 4}
                   component={({ innerRef, ...props }) => (
                     <Link {...props} to="/orders/all" />
@@ -353,7 +342,7 @@ class MenuBar extends Component<IProvidedProps & IProps, IState> {
               )}
               <ListItem
                 button
-                onClick={() => this.handleClickListItem(5)}
+                onClick={() => handleClickListItem(5)}
                 selected={selected === 5}
                 component={({ innerRef, ...props }) => (
                   <Link {...props} to="/menus-carried-away" />
@@ -374,7 +363,7 @@ class MenuBar extends Component<IProvidedProps & IProps, IState> {
               </ListSubheader>
               <ListItem
                 button
-                onClick={() => this.handleClickListItem(13)}
+                onClick={() => handleClickListItem(13)}
                 selected={selected === 13}
                 component={({ innerRef, ...props }) => (
                   <Link {...props} to="/manage-categories" />
@@ -387,7 +376,7 @@ class MenuBar extends Component<IProvidedProps & IProps, IState> {
               </ListItem>
               <ListItem
                 button
-                onClick={() => this.handleClickListItem(14)}
+                onClick={() => handleClickListItem(14)}
                 selected={selected === 14}
                 component={({ innerRef, ...props }) => (
                   <Link {...props} to="/manage-menu-sizes" />
@@ -400,7 +389,7 @@ class MenuBar extends Component<IProvidedProps & IProps, IState> {
               </ListItem>
               <ListItem
                 button
-                onClick={() => this.handleClickListItem(15)}
+                onClick={() => handleClickListItem(15)}
                 selected={selected === 15}
                 component={({ innerRef, ...props }) => (
                   <Link {...props} to="/manage-allergies" />
@@ -413,7 +402,7 @@ class MenuBar extends Component<IProvidedProps & IProps, IState> {
               </ListItem>
               <ListItem
                 button
-                onClick={() => this.handleClickListItem(18)}
+                onClick={() => handleClickListItem(18)}
                 selected={selected === 18}
                 component={({ innerRef, ...props }) => (
                   <Link {...props} to="/manage-extras" />
@@ -426,7 +415,7 @@ class MenuBar extends Component<IProvidedProps & IProps, IState> {
               </ListItem>
               <ListItem
                 button
-                onClick={() => this.handleClickListItem(16)}
+                onClick={() => handleClickListItem(16)}
                 selected={selected === 16}
                 component={({ innerRef, ...props }) => (
                   <Link {...props} to="/manage-menus" />
@@ -443,7 +432,7 @@ class MenuBar extends Component<IProvidedProps & IProps, IState> {
               </ListSubheader>
               <ListItem
                 button
-                onClick={() => this.handleClickListItem(11)}
+                onClick={() => handleClickListItem(11)}
                 selected={selected === 11}
                 component={({ innerRef, ...props }) => (
                   <Link {...props} to="/manage-users" />
@@ -456,7 +445,7 @@ class MenuBar extends Component<IProvidedProps & IProps, IState> {
               </ListItem>
               <ListItem
                 button
-                onClick={() => this.handleClickListItem(12)}
+                onClick={() => handleClickListItem(12)}
                 selected={selected === 12}
                 component={({ innerRef, ...props }) => (
                   <Link {...props} to="/manage-suppliers" />
@@ -469,7 +458,7 @@ class MenuBar extends Component<IProvidedProps & IProps, IState> {
               </ListItem>
               <ListItem
                 button
-                onClick={() => this.handleClickListItem(17)}
+                onClick={() => handleClickListItem(17)}
                 selected={selected === 17}
                 component={({ innerRef, ...props }) => (
                   <Link {...props} to="/manage-settings" />
@@ -483,8 +472,7 @@ class MenuBar extends Component<IProvidedProps & IProps, IState> {
               <Divider />
             </>
           )}
-          <Typography
-            className={classes.body2}
+          <StyledBody2
             variant="body2"
             color="textSecondary"
             gutterBottom
@@ -493,108 +481,102 @@ class MenuBar extends Component<IProvidedProps & IProps, IState> {
             <LinkMUI href="https://brunswick.com/" target="_blank">
               Brunswick
             </LinkMUI>
-          </Typography>
-        </List>
+          </StyledBody2>
+        </StyledList>
       </>
     );
   };
 
-  render() {
-    const { search, title, classes, theme } = this.props;
-    const { mobileOpen, anchorElProfile } = this.state;
-    const isMenuProfileOpen = Boolean(anchorElProfile);
-    return (
-      <>
-        {this.renderLoaders()}
-        <div className={classes.root}>
-          <AppBar position="fixed" className={classes.appBar}>
-            <Toolbar>
-              <IconButton
-                color="inherit"
-                aria-label="Open drawer"
-                onClick={this.handleDrawerToggle}
-                className={classes.menuButton}
-              >
-                <MenuIcon />
-              </IconButton>
-              <div className={classes.sectionDesktop}>
+  return (
+    <>
+      {renderLoaders()}
+      <StyledRoot>
+        <StyledAppBar position="fixed">
+          <Toolbar>
+            <StyledMenuButton
+              color="inherit"
+              aria-label="Open drawer"
+              onClick={handleDrawerToggle}
+            >
+              <MenuIcon />
+            </StyledMenuButton>
+            <StyledSectionDesktop>
+              <Typography variant="h6" color="inherit">
+                {title}
+              </Typography>
+            </StyledSectionDesktop>
+            <StyledSectionMobile>
+              {(!search || !onSearch) && (
                 <Typography variant="h6" color="inherit">
                   {title}
                 </Typography>
-              </div>
-              <div className={classes.sectionMobile}>
-                {(!search || !this.props.onSearch) && (
-                  <Typography variant="h6" color="inherit">
-                    {title}
-                  </Typography>
-                )}
-              </div>
-              {search && this.props.onSearch && (
-                <SearchBar
-                  onSearch={this.props.onSearch}
-                  checkDictionnary={this.props.checkDictionnary}
-                />
               )}
-              <div className={classes.grow} />
-              <div className={classes.sectionDesktop}>
-                {this.renderBadge()}
-                <IconButton
-                  aria-owns={isMenuProfileOpen ? "material-appbar" : undefined}
-                  aria-haspopup="true"
-                  onClick={this.handleProfileMenuOpen}
-                  color="inherit"
-                >
-                  <AccountCircleIcon />
-                </IconButton>
-              </div>
-              <div className={classes.sectionMobile}>
-                {this.renderBadge()}
-                <IconButton
-                  aria-owns={isMenuProfileOpen ? "material-appbar" : undefined}
-                  aria-haspopup="true"
-                  onClick={this.handleProfileMenuOpen}
-                  color="inherit"
-                >
-                  <AccountCircleIcon />
-                </IconButton>
-              </div>
-            </Toolbar>
-          </AppBar>
-          <nav className={classes.drawer}>
-            <Hidden implementation="css" mdUp>
-              <Drawer
-                variant="temporary"
-                anchor={theme.direction === "rtl" ? "right" : "left"}
-                open={mobileOpen}
-                onClose={this.handleDrawerToggle}
-                classes={{
-                  paper: classes.drawerPaper
-                }}
+            </StyledSectionMobile>
+            {search && onSearch && (
+              <SearchBar
+                onSearch={onSearch}
+                checkDictionnary={checkDictionnary}
+              />
+            )}
+            <StyledGrow />
+            <StyledSectionDesktop>
+              {renderBadge()}
+              <IconButton
+                aria-owns={Boolean(anchorElProfile) ? "material-appbar" : undefined}
+                aria-haspopup="true"
+                onClick={handleProfileMenuOpen}
+                color="inherit"
               >
-                {this.renderDrawer()}
-              </Drawer>
-            </Hidden>
-            <Hidden implementation="css" smDown>
-              <Drawer
-                classes={{
-                  paper: classes.drawerPaper
-                }}
-                variant="permanent"
-                open
+                <AccountCircleIcon />
+              </IconButton>
+            </StyledSectionDesktop>
+            <StyledSectionMobile>
+              {renderBadge()}
+              <IconButton
+                aria-owns={Boolean(anchorElProfile) ? "material-appbar" : undefined}
+                aria-haspopup="true"
+                onClick={handleProfileMenuOpen}
+                color="inherit"
               >
-                {this.renderDrawer()}
-              </Drawer>
-            </Hidden>
-          </nav>
-          <main className={classes.content}>
-            <div className={classes.toolbar} />
-            {this.props.children}
-          </main>
-          {this.renderMenuProfile()}
-        </div>
-      </>
-    );
-  }
-}
+                <AccountCircleIcon />
+              </IconButton>
+            </StyledSectionMobile>
+          </Toolbar>
+        </StyledAppBar>
+        <StyledDrawer>
+          <Hidden implementation="css" mdUp>
+            <Drawer
+              variant="temporary"
+              anchor="left"
+              open={mobileOpen}
+              onClose={handleDrawerToggle}
+              PaperProps={{
+                sx: { width: drawerWidth }
+              }}
+            >
+              {renderDrawer()}
+            </Drawer>
+          </Hidden>
+          <Hidden implementation="css" smDown>
+            <Drawer
+              PaperProps={{
+                sx: { width: drawerWidth }
+              }}
+              variant="permanent"
+              open
+            >
+              {renderDrawer()}
+            </Drawer>
+          </Hidden>
+        </StyledDrawer>
+        <StyledContent>
+          <StyledToolbar />
+          {children}
+        </StyledContent>
+        {renderMenuProfile()}
+      </StyledRoot>
+    </>
+  );
+};
 
-export default withStyles(styles, { withTheme: true })(MenuBar);
+export default MenuBar;

@@ -5,6 +5,9 @@ export default interface IUser {
   sex: string;
   email_address: string;
   type: string;
-  supplier_id: number;
+  supplier_id: number | null;
   language: string;
+  password?: string;
+  token?: string;
+  validity?: string;
 }

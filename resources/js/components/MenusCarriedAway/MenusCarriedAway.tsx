@@ -1,9 +1,8 @@
-import React, { Component } from "react";
+import React, { useState, useEffect } from "react";
 import { Navigate } from "react-router-dom";
-import classNames from "classnames";
+import { styled } from "@mui/material/styles";
 import moment from "moment";
-import { withStyles, Theme } from "@material-ui/core/styles";
-import Checkbox from "@material-ui/core/Checkbox";
+import Checkbox from "@mui/material/Checkbox";
 import MenuBar from "../MenuBar/MenuBar";
 import Footer from "../Footer/Footer";
 import Table from "../Table/Table";
@@ -14,31 +13,23 @@ import IMenuCarriedAway from "../../interfaces/IMenuCarriedAway";
 import IMenu from "../../interfaces/IMenu";
 import IOrder from "../../interfaces/IOrder";
 
-const styles = (theme: Theme) => ({
-  heroUnit: {
-    backgroundColor: theme.palette.background.paper,
-    borderRadius: ".625rem"
-  },
-  heroContent: {
-    maxWidth: 600,
-    margin: "0 auto",
-    padding: `${theme.spacing.unit * 8}px 0 ${theme.spacing.unit * 6}px`
-  },
-  layout: {
-    width: "auto",
-    margin: "0 auto"
-  },
-  cardGrid: {
-    padding: theme.spacing.unit * 4
-  },
-  main: {
-    flex: 1
-  }
+const StyledMain = styled('main')({
+  flex: 1
 });
 
-interface IProvidedProps {
-  classes: any;
-}
+const StyledLayout = styled('div')({
+  width: "auto",
+  margin: "0 auto"
+});
+
+const StyledCardGrid = styled('div')(({ theme }) => ({
+  padding: theme.spacing(4)
+}));
+
+const StyledHeroUnit = styled('div')(({ theme }) => ({
+  backgroundColor: theme.palette.background.paper,
+  borderRadius: ".625rem"
+}));
 
 interface IProps {
   isLoginSuccess: boolean;
@@ -55,82 +46,80 @@ interface IProps {
   actions: any;
 }
 
-interface IState {
-  edited: boolean;
-  selectedDate: moment.Moment;
-}
+const MenusCarriedAway: React.FC<IProps> = ({
+  isLoginSuccess,
+  isAddSuccess,
+  isEditSuccess,
+  isDeleteSuccess,
+  isListPending,
+  dictionnaryList,
+  orderList,
+  userToken,
+  userType,
+  userLanguage,
+  selected,
+  actions
+}) => {
+  const [edited, setEdited] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(moment());
 
-class MenusCarriedAway extends Component<IProvidedProps & IProps, IState> {
-  state = {
-    edited: false,
-    selectedDate: moment()
-  };
-
-  componentDidMount() {
-    const { isLoginSuccess, userType } = this.props;
+  useEffect(() => {
     if (isLoginSuccess) {
-      this.refresh();
+      refresh();
     }
     if (userType === "vendor") {
-      this.handleChangeSelected(5);
+      handleChangeSelected(5);
     }
-  }
+  }, []);
 
-  componentDidUpdate(prevProps: IProps) {
-    const { userToken } = this.props;
-    if (userToken !== prevProps.userToken) {
-      this.refresh();
+  useEffect(() => {
+    if (userToken) {
+      refresh();
     }
-  }
+  }, [userToken]);
 
-  refresh = () => {
-    const { selectedDate } = this.state;
-    const { userType } = this.props;
+  const refresh = () => {
     if (userType === "administrator" || userType === "vendor") {
-      this.props.actions.getDictionnaries();
-      this.props.actions.getOrdersForDate(selectedDate.format("YYYY-MM-DD"));
+      actions.getDictionnaries();
+      actions.getOrdersForDate(selectedDate.format("YYYY-MM-DD"));
     }
   };
 
-  handleLogout = () => {
-    this.props.actions.logout();
+  const handleLogout = () => {
+    actions.logout();
   };
 
-  handleChangeSelected = (selected: number) => {
-    this.props.actions.setSelected(selected);
+  const handleChangeSelected = (selected: number) => {
+    actions.setSelected(selected);
     localStorage.setItem("selected", selected.toString());
   };
 
-  handleChangeArticleCarriedAway = (
-    event: React.ChangeEvent<HTMLInputElement>,
-    orderId: number,
-    menuId: number
-  ) => {
-    const { selectedDate } = this.state;
-    const { checked } = event.target;
-    this.props.actions.editArticleCarriedAway(
-      orderId,
-      menuId,
-      checked,
+  const handleChangeArticleCarriedAway = (menu: IMenu, order: IOrder) => {
+    const updatedMenu = {
+      ...menu,
+      order_menu: [{
+        ...menu.order_menu[0],
+        article_not_retrieved: !menu.order_menu[0].article_not_retrieved
+      }]
+    };
+    actions.editArticleCarriedAway(
+      order.id,
+      menu.id,
+      !menu.order_menu[0].article_not_retrieved,
       selectedDate.format("YYYY-MM-DD")
     );
-    this.setState({
-      edited: true
-    });
+    setEdited(true);
   };
 
-  handleCloseSnackbarEdited = () => {
-    this.setState({
-      edited: false
-    });
+  const handleCloseSnackbarEdited = () => {
+    setEdited(false);
   };
 
-  checkDictionnary = (tag: string) => {
-    const { dictionnaryList, userLanguage } = this.props;
+  const getDictionaryValue = (tag: string) => {
     return checkDictionnary(tag, dictionnaryList, userLanguage);
   };
 
-  handleTableColumns = () => {
+  const handleTableColumns = () => {
     return [
       {
         name: "not_retrieved",
@@ -147,8 +136,7 @@ class MenusCarriedAway extends Component<IProvidedProps & IProps, IState> {
     ];
   };
 
-  handleTableRows = () => {
-    const { orderList } = this.props;
+  const handleTableRows = () => {
     const objArr: IMenuCarriedAway[] = [];
     if (orderList && orderList.length > 0) {
       orderList.map(order => {
@@ -157,25 +145,15 @@ class MenusCarriedAway extends Component<IProvidedProps & IProps, IState> {
             const obj = {
               not_retrieved: (
                 <Checkbox
-                  color="secondary"
-                  checked={menu.order_menus.article_not_retrieved}
-                  onChange={event =>
-                    this.handleChangeArticleCarriedAway(
-                      event,
-                      order.id,
-                      menu.id
-                    )
-                  }
+                  color="primary"
+                  checked={menu.order_menu[0].article_not_retrieved}
+                  onChange={() => handleChangeArticleCarriedAway(menu, order)}
                 />
               ),
               client: `${
                 order.User.first_name
               } ${order.User.last_name.toUpperCase()}`,
-              menu: `${
-                menu.order_menus.quantity > 1
-                  ? `${menu.order_menus.quantity}x`
-                  : ""
-              } ${menu.MenuSize ? menu.MenuSize.title : ""} ${menu.title}`
+              menu: `${menu.title} (${menu.order_menu[0].quantity})`
             };
             objArr.push(obj);
           });
@@ -185,64 +163,58 @@ class MenusCarriedAway extends Component<IProvidedProps & IProps, IState> {
     return objArr;
   };
 
-  handleChangeSelectedDate = (selectedDate: moment.Moment) => {
-    this.setState({ selectedDate });
-    this.props.actions.getOrdersForDate(selectedDate.format("YYYY-MM-DD"));
+  const handleChangeSelectedDate = (selectedDate: moment.Moment | null) => {
+    if (selectedDate) {
+      setSelectedDate(selectedDate);
+      actions.getOrdersForDate(selectedDate.format("YYYY-MM-DD"));
+    }
   };
 
-  render() {
-    const { selectedDate, edited } = this.state;
-    const {
-      isLoginSuccess,
-      isListPending,
-      isEditSuccess,
-      userType,
-      selected,
-      classes
-    } = this.props;
-    if (!isLoginSuccess) {
-      return <Navigate to="/login" replace />;
-    }
-    return (
-      <MenuBar
-        isLoginSuccess={isLoginSuccess}
-        isListPending={isListPending}
-        userType={userType}
-        selected={selected}
-        title="Non-réception des commandes"
-        onLogout={this.handleLogout}
-        onChangeSelected={this.handleChangeSelected}
-        checkDictionnary={this.checkDictionnary}
-      >
-        {isEditSuccess && edited && (
-          <SnackbarAction
-            success
-            message="Le menu a bien été modifié !"
-            onClose={this.handleCloseSnackbarEdited}
-          />
-        )}
-        <main className={classes.main}>
-          <div className={classNames(classes.layout, classes.cardGrid)}>
-            <div className={classes.heroUnit}>
+  if (!isLoginSuccess) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return (
+    <MenuBar
+      isLoginSuccess={isLoginSuccess}
+      isListPending={isListPending}
+      userType={userType}
+      selected={selected}
+      title="Non-réception des commandes"
+      onLogout={handleLogout}
+      onChangeSelected={handleChangeSelected}
+      checkDictionnary={getDictionaryValue}
+    >
+      {isEditSuccess && edited && (
+        <SnackbarAction
+          success
+          message="Le menu a bien été modifié !"
+          onClose={handleCloseSnackbarEdited}
+        />
+      )}
+      <StyledMain>
+        <StyledLayout>
+          <StyledCardGrid>
+            <StyledHeroUnit>
               <MenusCarriedAwayFilter
                 selectedDate={selectedDate}
-                onChangeSelectedDate={this.handleChangeSelectedDate}
+                onChangeSelectedDate={handleChangeSelectedDate}
               />
               <Table
-                rows={this.handleTableRows()}
-                columns={this.handleTableColumns()}
+                rows={handleTableRows()}
+                columns={handleTableColumns()}
                 defaultSorting={[
                   { columnName: "client", direction: "asc" },
                   { columnName: "menu", direction: "asc" }
                 ]}
               />
-            </div>
-          </div>
-        </main>
-        <Footer />
-      </MenuBar>
-    );
-  }
-}
+            </StyledHeroUnit>
+          </StyledCardGrid>
+        </StyledLayout>
+      </StyledMain>
+      <Footer />
+    </MenuBar>
+  );
+};
 
-export default withStyles(styles, { withTheme: true })(MenusCarriedAway);
+export default MenusCarriedAway;

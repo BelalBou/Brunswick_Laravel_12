@@ -3,10 +3,12 @@ import { Navigate, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { RootState } from "../../types/redux";
 
-const App: React.FC = () => {
+type UserType = "admin" | "supplier" | "customer" | null;
+
+const App: React.FC = (): JSX.Element => {
   const location = useLocation();
   const isLoginSuccess = useSelector((state: RootState) => state.login.isLoginSuccess);
-  const userType = useSelector((state: RootState) => state.user.type);
+  const userType = useSelector((state: RootState) => state.user.currentUser?.type) as UserType;
 
   // Redirection basée sur le type d'utilisateur
   const getDefaultRoute = (): string => {
@@ -14,7 +16,6 @@ const App: React.FC = () => {
       case "admin":
         return "/settings";
       case "supplier":
-        return "/menus";
       case "customer":
         return "/menus";
       default:
@@ -22,9 +23,12 @@ const App: React.FC = () => {
     }
   };
 
+  const defaultRoute = getDefaultRoute();
+  const shouldRedirect = isLoginSuccess && defaultRoute !== "/login";
+
   return (
     <Navigate 
-      to={isLoginSuccess ? getDefaultRoute() : "/login"} 
+      to={shouldRedirect ? defaultRoute : "/login"} 
       replace 
       state={{ from: location }}
     />

@@ -1,70 +1,59 @@
 // /src/components/SnackbarAction/SnackbarAction.tsx
 import React from "react";
-import { Theme } from "@material-ui/core/styles";
-import withStyles from "@material-ui/core/styles/withStyles";
-import Snackbar from "@material-ui/core/Snackbar";
-import IconButton from "@material-ui/core/IconButton";
-import green from "@material-ui/core/colors/green";
-import CloseIcon from "@material-ui/icons/Close";
+import { styled } from "@mui/material/styles";
+import Snackbar from "@mui/material/Snackbar";
+import IconButton from "@mui/material/IconButton";
+import CloseIcon from "@mui/icons-material/Close";
+import { green } from "@mui/material/colors";
 
-const styles = (theme: Theme) => ({
-  iconButton: {
-    padding: theme.spacing.unit / 2
-  },
-  success: {
-    backgroundColor: green[600]
-  },
-  error: {
-    backgroundColor: theme.palette.error.dark
-  },
-  default: {
-    background: theme.palette.primary.main
-  }
-});
+const StyledIconButton = styled(IconButton)(({ theme }) => ({
+  padding: theme.spacing(0.5)
+}));
+
+const StyledSnackbar = styled(Snackbar)<{ variant?: 'success' | 'error' | 'default' }>(
+  ({ theme, variant }) => ({
+    "& .MuiSnackbarContent-root": {
+      backgroundColor: variant === 'success' 
+        ? green[600]
+        : variant === 'error'
+          ? theme.palette.error.dark
+          : theme.palette.primary.main
+    }
+  })
+);
 
 interface Props {
   success?: boolean;
   error?: boolean;
   message: React.ReactNode;
-  classes: any;
   onClose?: () => void;
 }
 
-function SnackbarAction(props: Props) {
-  function renderRootClassName() {
-    if (props.success) {
-      return props.classes.success;
-    }
-    if (props.error) {
-      return props.classes.error;
-    }
-    return props.classes.default;
-  }
+const SnackbarAction: React.FC<Props> = ({ success, error, message, onClose }) => {
+  const variant = success ? 'success' : error ? 'error' : 'default';
 
   return (
-    <Snackbar
+    <StyledSnackbar
+      variant={variant}
       open
       autoHideDuration={2500}
-      onClose={props.onClose}
+      onClose={onClose}
       ContentProps={{
-        classes: {
-          root: renderRootClassName()
-        }
+        "aria-describedby": "message-id"
       }}
-      message={<span id="message-id">{props.message}</span>}
+      message={<span id="message-id">{message}</span>}
       action={[
-        <IconButton
+        <StyledIconButton
           key="close"
           aria-label="Close"
           color="inherit"
-          className={props.classes.iconButton}
-          onClick={props.onClose}
+          onClick={onClose}
         >
           <CloseIcon />
-        </IconButton>
+        </StyledIconButton>
       ]}
     />
   );
-}
+};
 
-export default withStyles(styles)(SnackbarAction);
+export default SnackbarAction;

@@ -1,17 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { Navigate, useParams } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-import classNames from "classnames";
 import moment from "moment";
 import "moment/locale/en-gb";
 import "moment/locale/fr";
-import { withStyles, Theme, createStyles } from "@material-ui/core/styles";
-import Tooltip from "@material-ui/core/Tooltip";
-import Button from "@material-ui/core/Button";
-import IconButton from "@material-ui/core/IconButton";
-import VisibilityIcon from "@material-ui/icons/Visibility";
-import DeleteIcon from "@material-ui/icons/Delete";
-import ImportExportIcon from "@material-ui/icons/ImportExport";
+import { styled } from "@mui/material/styles";
+import Tooltip from "@mui/material/Tooltip";
+import Button from "@mui/material/Button";
+import IconButton from "@mui/material/IconButton";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import DeleteIcon from "@mui/icons-material/Delete";
+import ImportExportIcon from "@mui/icons-material/ImportExport";
 import MenuBar from "../MenuBar/MenuBar";
 import Footer from "../Footer/Footer";
 import Table from "../Table/Table";
@@ -36,76 +35,76 @@ import { RootState, AppDispatch } from "../../types/redux";
 import { logout } from "../../actions/login";
 import { setSelected } from "../../actions/page";
 import { 
-  getOrders,
   getOrdersForCustomer,
-  getOrdersForSupplier,
-  getOrdersExtra,
-  getOrdersForDate,
-  getOrdersForSuppliers,
-  getOrdersForCustomers,
-  getOrdersForCustomerSpread
-} from "../../actions/order";
-import {
+  filterOrdersDispatch,
+  addOrder,
   deleteOrders,
-  deleteOrder,
   editOrder
 } from "../../actions/order";
-import { getDictionnaries } from "../../actions/dictionnary";
-import { getSettings } from "../../actions/setting";
-import { getSuppliers } from "../../actions/supplier";
-import { getCustomers } from "../../actions/user";
+import { getDictionaries } from "../../actions/dictionnary";
+import { getSettingList } from "../../actions/setting";
+import { getSupplierList } from "../../actions/supplier";
+import getUserList from "../../actions/user";
 import axios from "axios";
+import {
+  Typography,
+  Grid,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  Snackbar,
+  Alert,
+  Box
+} from "@mui/material";
+import { Edit as EditIcon } from "@mui/icons-material";
 
-const styles = (theme: Theme) =>
-  createStyles({
-    heroUnit: {
-      backgroundColor: theme.palette.background.paper,
-      borderRadius: ".625rem"
-    },
-    layout: {
-      width: "auto",
-      margin: "0 auto"
-    },
-    cardGrid: {
-      padding: 0,
-      [theme.breakpoints.up("md")]: {
-        padding: theme.spacing(4)
-      }
-    },
-    button: {
-      marginTop: theme.spacing(2),
-      marginLeft: theme.spacing(2)
-    },
-    sectionDesktop: {
-      display: "none",
-      [theme.breakpoints.up("md")]: {
-        display: "flex"
-      }
-    },
-    sectionMobile: {
-      display: "flex",
-      [theme.breakpoints.up("md")]: {
-        display: "none"
-      }
-    },
-    main: {
-      flex: 1
-    }
-  });
+const StyledMain = styled('main')({
+  flex: 1
+});
 
-interface IProvidedProps {
-  classes: {
-    heroUnit: string;
-    layout: string;
-    cardGrid: string;
-    button: string;
-    sectionDesktop: string;
-    sectionMobile: string;
-    main: string;
-  };
-}
+const StyledLayout = styled('div')({
+  width: "auto",
+  margin: "0 auto"
+});
 
-interface IProps extends IProvidedProps {
+const StyledCardGrid = styled('div')(({ theme }) => ({
+  padding: 0,
+  [theme.breakpoints.up("md")]: {
+    padding: theme.spacing(4)
+  }
+}));
+
+const StyledHeroUnit = styled('div')(({ theme }) => ({
+  backgroundColor: theme.palette.background.paper,
+  borderRadius: ".625rem"
+}));
+
+const StyledButton = styled(Button)(({ theme }) => ({
+  marginTop: theme.spacing(2),
+  marginLeft: theme.spacing(2)
+}));
+
+const StyledSectionDesktop = styled('div')(({ theme }) => ({
+  display: "none",
+  [theme.breakpoints.up("md")]: {
+    display: "flex"
+  }
+}));
+
+const StyledSectionMobile = styled('div')(({ theme }) => ({
+  display: "flex",
+  [theme.breakpoints.up("md")]: {
+    display: "none"
+  }
+}));
+
+const StyledIconButton = styled(IconButton)(({ theme }) => ({
+  margin: theme.spacing(1)
+}));
+
+interface IProps {
   isLoginSuccess: boolean;
   isEditSuccess: boolean;
   isDeleteSuccess: boolean;
@@ -125,27 +124,22 @@ interface IProps extends IProvidedProps {
   settingList: ISetting[];
   actions: {
     logout: () => (dispatch: AppDispatch) => void;
-    getDictionnaries: () => (dispatch: AppDispatch) => void;
-    getSettings: () => (dispatch: AppDispatch) => void;
+    getDictionaries: () => (dispatch: AppDispatch) => void;
+    getSettingList: () => (dispatch: AppDispatch) => void;
     getOrders: (limit: number, offset: number) => (dispatch: AppDispatch) => void;
     getOrdersForCustomer: (limit: number, offset: number) => (dispatch: AppDispatch) => void;
     getOrdersForSupplier: (supplierId: number, todayOnly: boolean, limit: number, offset: number) => (dispatch: AppDispatch) => void;
     getOrdersExtra: () => (dispatch: AppDispatch) => void;
     getSuppliers: () => (dispatch: AppDispatch) => void;
-    getCustomers: () => (dispatch: AppDispatch) => void;
+    getUsers: () => (dispatch: AppDispatch) => void;
     getOrdersForDate: (date: string, limit: number, offset: number) => (dispatch: AppDispatch) => void;
     getOrdersForSuppliers: (supplierIds: number[], limit: number, offset: number) => (dispatch: AppDispatch) => void;
     getOrdersForCustomers: (customerIds: number[], limit: number, offset: number) => (dispatch: AppDispatch) => void;
     getOrdersForCustomerSpread: (limit: number, offset: number) => (dispatch: AppDispatch) => void;
-    deleteOrders: (ids: number[]) => (dispatch: AppDispatch) => void;
-    deleteOrder: (id: number) => (dispatch: AppDispatch) => void;
-    editOrder: (id: number, data: Partial<IOrder>) => (dispatch: AppDispatch) => void;
+    filterOrdersDispatch: (limit: number, offset: number, selectedFilter: string, selectedDate: moment.Moment, selectedSupplierIds: number[], selectedCustomerIds: number[]) => (dispatch: AppDispatch) => void;
+    deleteOrders: (id: number, forCustomer: boolean, limit: number, offset: number, selectedFilter: string, selectedDate: moment.Moment, selectedSupplierIds: number[], selectedCustomerIds: number[]) => (dispatch: AppDispatch) => void;
+    editOrder: (orderId: number, menuId: number, quantity: number, remark: string, forCustomer: boolean, limit: number, offset: number, selectedFilter: string, selectedDate: moment.Moment, selectedSupplierIds: number[], selectedCustomerIds: number[]) => (dispatch: AppDispatch) => void;
     setSelected: (selected: number) => (dispatch: AppDispatch) => void;
-  };
-  match: {
-    params: {
-      id?: string;
-    };
   };
 }
 
@@ -171,31 +165,51 @@ interface IState {
   detailsId: number;
 }
 
-const Orders: React.FC<IProps> = ({ classes, ...props }) => {
+interface IOrderMenu {
+  quantity: number;
+  article_not_retrieved: boolean;
+}
+
+interface IOrder {
+  id: number;
+  date: string;
+  User?: {
+    id: number;
+    first_name: string;
+    last_name: string;
+    supplier_id?: number;
+  };
+  Menu: Array<{
+    id: number;
+    title: string;
+    pricing: number;
+    order_menu: IOrderMenu[];
+  }>;
+}
+
+const Orders: React.FC<IProps> = ({
+  isLoginSuccess,
+  isEditSuccess,
+  isDeleteSuccess,
+  isListPending,
+  userToken,
+  userType,
+  userSupplierId,
+  userLanguage,
+  selected,
+  dictionnaryList,
+  cartList,
+  orderList,
+  orderExtraList,
+  orderListTotalCount,
+  supplierList,
+  userList,
+  settingList,
+  actions
+}) => {
   const dispatch = useDispatch<AppDispatch>();
   const params = useParams();
   const all = params.id === "all";
-
-  const {
-    isLoginSuccess,
-    isEditSuccess,
-    isDeleteSuccess,
-    isListPending,
-    userToken,
-    userType,
-    userSupplierId,
-    userLanguage,
-    selected,
-    dictionnaryList,
-    cartList,
-    orderList,
-    orderExtraList,
-    orderListTotalCount,
-    supplierList,
-    userList,
-    settingList,
-    actions
-  } = props;
 
   const [state, setState] = useState<IState>({
     openDetails: false,
@@ -247,6 +261,20 @@ const Orders: React.FC<IProps> = ({ classes, ...props }) => {
     }
   }, [orderList, orderListTotalCount]);
 
+  useEffect(() => {
+    if (isLoginSuccess) {
+      actions.getDictionaries();
+      actions.getSettingList();
+      if (userType === "customer") {
+        actions.getOrdersForCustomer(10, 0);
+      } else if (userType === "supplier") {
+        actions.filterOrdersDispatch(10, 0, "all", moment(), [userSupplierId], []);
+      } else if (userType === "administrator") {
+        actions.filterOrdersDispatch(10, 0, "all", moment(), [], []);
+      }
+    }
+  }, [isLoginSuccess, userType, userSupplierId]);
+
   const tick = async () => {
     try {
       const response = await axios({
@@ -266,14 +294,14 @@ const Orders: React.FC<IProps> = ({ classes, ...props }) => {
     const { limit, offset } = state;
 
     tick();
-    dispatch(actions.getDictionnaries());
-    dispatch(actions.getSettings());
+    dispatch(actions.getDictionaries());
+    dispatch(actions.getSettingList());
 
     if (userType === "administrator") {
       if (all) {
         dispatch(actions.getOrders(limit, offset));
         dispatch(actions.getSuppliers());
-        dispatch(actions.getCustomers());
+        dispatch(actions.getUsers());
       } else {
         dispatch(actions.getOrdersForCustomer(limit, offset));
       }
@@ -489,71 +517,31 @@ const Orders: React.FC<IProps> = ({ classes, ...props }) => {
   };
 
   const handleTableRows = () => {
-    if (orderList && orderList.length > 0) {
-      const formattedOrders = orderList.map((order: IOrder) => {
-        const obj: Partial<IOrderDisplay> = {};
-        obj.id = order.id;
-        obj.date = moment(order.date).format(
-          userLanguage === "en" ? "MM/DD/YYYY" : "DD/MM/YYYY"
-        );
-        if (order.User) {
-          obj.client = `${
-            order.User.first_name
-          } ${order.User.last_name.toUpperCase()}`;
-        } else {
-          obj.client = `DOE John`;
-        }
-        let pricing = 0;
-        if (order.Menu && order.Menu.length > 0) {
-          const pricingArray = order.Menu.map((menu: IMenu) => {
-            let pricingTmp =
-              parseFloat(menu.order_menus.pricing) * menu.order_menus.quantity;
-            if (orderExtraList && orderExtraList.length > 0) {
-              const filteredOrderExtraList = orderExtraList.filter(
-                (x: IOrderExtra) => x.order_menu_id === menu.order_menus.id
-              );
-              if (filteredOrderExtraList && filteredOrderExtraList.length > 0) {
-                filteredOrderExtraList.map((orderExtra: IOrderExtra) => {
-                  pricingTmp +=
-                    parseFloat(orderExtra.pricing) * menu.order_menus.quantity;
-                });
-              }
-            }
-            return pricingTmp;
-          });
-          pricing = pricingArray.reduce((a: number, b: number) => a + b, 0);
-        }
-        obj.pricing = `${pricing.toLocaleString("fr", {
-          minimumFractionDigits: 2
-        })} €`;
-        obj.action = (
-          <>
-            <Tooltip title={getTranslation("_DETAILS_DE_LA_COMMANDE")}>
-              <IconButton
-                color="primary"
-                onClick={() => handleOpenDetails(order.id)}
-              >
-                <VisibilityIcon />
+    return orderList.map((order) => ({
+      id: order.id,
+      date: moment(order.date).format("DD/MM/YYYY HH:mm"),
+      customer: `${order.User?.first_name} ${order.User?.last_name}` || "",
+      supplier: supplierList.find(s => s.id === order.User?.supplier_id)?.name || "",
+      menu: order.Menu[0]?.title || "",
+      quantity: order.Menu[0]?.order_menu[0]?.quantity || 0,
+      price: order.Menu[0]?.pricing || 0,
+      total: (order.Menu[0]?.pricing || 0) * (order.Menu[0]?.order_menu[0]?.quantity || 0),
+      status: order.Menu[0]?.order_menu[0]?.article_not_retrieved ? "Non récupéré" : "Récupéré",
+      actions: (
+        <Box>
+          {isOrderEditable(order.date) && (
+            <>
+              <IconButton onClick={() => handleOpenEdit(order.id)}>
+                <EditIcon />
               </IconButton>
-            </Tooltip>
-            {userType !== "supplier" && (
-              <Tooltip title={getTranslation("_SUPPRIMER_LA_COMMANDE")}>
-                <IconButton
-                  color="secondary"
-                  onClick={() => handleOpenDelete(order.id)}
-                  disabled={!isOrderEditable(order.date)}
-                >
-                  <DeleteIcon />
-                </IconButton>
-              </Tooltip>
-            )}
-          </>
-        );
-        return obj;
-      });
-      return formattedOrders;
-    }
-    return [];
+              <IconButton onClick={() => handleOpenDelete(order.id)}>
+                <DeleteIcon />
+              </IconButton>
+            </>
+          )}
+        </Box>
+      )
+    }));
   };
 
   const handleOpenDetails = (id: number) => {
@@ -564,20 +552,29 @@ const Orders: React.FC<IProps> = ({ classes, ...props }) => {
     }));
   };
 
-  const handleOpenDelete = (id: number) => {
+  const handleOpenDelete = (orderId: number) => {
     setState(prev => ({
       ...prev,
       openDelete: true,
-      deleteId: id
+      deleteId: orderId
     }));
   };
 
-  const handleOpenEdit = (cart: ICart) => {
-    setState(prev => ({
-      ...prev,
-      openEdit: true,
-      editCart: cart
-    }));
+  const handleOpenEdit = (orderId: number) => {
+    const order = orderList.find(o => o.id === orderId);
+    if (order) {
+      const cart: ICart = {
+        menu: order.Menu[0],
+        quantity: order.Menu[0]?.order_menu[0]?.quantity || 0,
+        remark: "",
+        extras: []
+      };
+      setState(prev => ({
+        ...prev,
+        openEdit: true,
+        editCart: cart
+      }));
+    }
   };
 
   const handleCloseDetails = () => {
@@ -602,10 +599,17 @@ const Orders: React.FC<IProps> = ({ classes, ...props }) => {
   };
 
   const handleDelete = () => {
-    if (deleteId > 0 && userType === "administrator") {
-      dispatch(actions.deleteOrders([deleteId]));
-    } else if (deleteId > 0 && userType === "customer") {
-      dispatch(actions.deleteOrders([deleteId]));
+    if (deleteId > 0) {
+      dispatch(actions.deleteOrders(
+        deleteId,
+        userType === "customer",
+        10,
+        0,
+        "all",
+        moment(),
+        [userSupplierId],
+        []
+      ));
     }
     setState(prev => ({
       ...prev,
@@ -616,17 +620,19 @@ const Orders: React.FC<IProps> = ({ classes, ...props }) => {
 
   const handleEdit = () => {
     if (editCart.menu) {
-      dispatch(actions.editOrder(editCart.menu.id, {
-        date: moment().format("YYYY-MM-DD"),
-        Menu: [{
-          ...editCart.menu,
-          order_menus: {
-            ...editCart.menu.order_menus,
-            quantity: editCart.quantity,
-            remark: editCart.remark
-          }
-        }]
-      }));
+      dispatch(actions.editOrder(
+        editCart.menu.id,
+        editCart.menu.id,
+        editCart.quantity,
+        editCart.remark,
+        userType === "customer",
+        10,
+        0,
+        "all",
+        moment(),
+        [userSupplierId],
+        []
+      ));
     }
     setState(prev => ({
       ...prev,
@@ -660,21 +666,19 @@ const Orders: React.FC<IProps> = ({ classes, ...props }) => {
         action: (
           <div>
             <Tooltip title={getTranslation("_VOIR_DETAILS")}>
-              <IconButton
+              <StyledIconButton
                 onClick={() => handleOpenDetails(order.id)}
-                className={classes.button}
               >
                 <VisibilityIcon />
-              </IconButton>
+              </StyledIconButton>
             </Tooltip>
             {isOrderEditable(order.date) && (
               <Tooltip title={getTranslation("_SUPPRIMER")}>
-                <IconButton
+                <StyledIconButton
                   onClick={() => handleOpenDelete(order.id)}
-                  className={classes.button}
                 >
                   <DeleteIcon />
-                </IconButton>
+                </StyledIconButton>
               </Tooltip>
             )}
           </div>
@@ -704,163 +708,35 @@ const Orders: React.FC<IProps> = ({ classes, ...props }) => {
     return [];
   };
 
-  const handleFilterDate = (date: moment.Moment | null) => {
-    const { limit, offset } = state;
-
-    if (date) {
-      dispatch(actions.getOrdersForDate(
-        date.format("YYYY-MM-DD"),
-        limit,
-        offset
-      ));
-      setState(prev => ({
-        ...prev,
-        selectedFilter: "date",
-        selectedDate: date,
-        selectedSuppliers: [],
-        selectedCustomers: [],
-        selectedSupplierIds: [],
-        selectedCustomerIds: []
-      }));
-    } else {
-      if (userType === "administrator") {
-        dispatch(actions.getOrders(limit, offset));
-      } else if (userType === "customer") {
-        dispatch(actions.getOrdersForCustomer(limit, offset));
-      } else if (userType === "supplier") {
-        dispatch(actions.getOrdersForSupplier(
-          userSupplierId,
-          false,
-          limit,
-          offset
-        ));
-      }
-      setState(prev => ({
-        ...prev,
-        selectedFilter: "",
-        selectedDate: null,
-        selectedSuppliers: [],
-        selectedCustomers: [],
-        selectedSupplierIds: [],
-        selectedCustomerIds: [],
-        limit: 10,
-        offset: 0
-      }));
+  const handleFilterDate = (date: moment.Moment) => {
+    if (userType === "customer") {
+      actions.getOrdersForCustomer(10, 0);
+    } else if (userType === "supplier") {
+      actions.filterOrdersDispatch(10, 0, "all", date, [userSupplierId], []);
+    } else if (userType === "administrator") {
+      actions.filterOrdersDispatch(10, 0, "all", date, [], []);
     }
   };
 
-  const handleFilterSuppliers = (suppliers: ISelect[]) => {
-    const { limit, offset } = state;
-
-    if (suppliers && suppliers.length > 0) {
-      const ids = suppliers.map((supplier: ISelect) => supplier.value);
-      dispatch(actions.getOrdersForSuppliers(ids, limit, offset));
-      setState(prev => ({
-        ...prev,
-        selectedFilter: "suppliers",
-        selectedSupplierIds: ids,
-        selectedDate: null,
-        selectedSuppliers: suppliers,
-        selectedCustomers: []
-      }));
-    } else {
-      dispatch(actions.getOrders(limit, offset));
-      setState(prev => ({
-        ...prev,
-        selectedFilter: "",
-        selectedSupplierIds: [],
-        selectedDate: null,
-        selectedSuppliers: [],
-        selectedCustomers: [],
-        limit: 10,
-        offset: 0
-      }));
+  const handleFilterSuppliers = (supplierIds: number[]) => {
+    if (userType === "administrator") {
+      actions.filterOrdersDispatch(10, 0, "all", moment(), supplierIds, []);
     }
   };
 
-  const handleFilterCustomers = (customers: ISelect[]) => {
-    const { limit, offset } = state;
-
-    if (customers && customers.length > 0) {
-      const ids = customers.map((customer: ISelect) => customer.value);
-      dispatch(actions.getOrdersForCustomers(ids, limit, offset));
-      setState(prev => ({
-        ...prev,
-        selectedFilter: "customers",
-        selectedCustomerIds: ids,
-        selectedDate: null,
-        selectedSuppliers: [],
-        selectedCustomers: customers
-      }));
-    } else {
-      dispatch(actions.getOrders(limit, offset));
-      setState(prev => ({
-        ...prev,
-        selectedFilter: "",
-        selectedCustomerIds: [],
-        selectedDate: null,
-        selectedSuppliers: [],
-        selectedCustomers: [],
-        limit: 10,
-        offset: 0
-      }));
+  const handleFilterCustomers = (customerIds: number[]) => {
+    if (userType === "administrator") {
+      actions.filterOrdersDispatch(10, 0, "all", moment(), [], customerIds);
     }
   };
 
   const handleLoadData = (limit: number, offset: number) => {
-    const { selectedFilter, selectedDate, selectedSupplierIds, selectedCustomerIds } = state;
-
-    if (userType === "administrator") {
-      if (all) {
-        switch (selectedFilter) {
-          case "date":
-            dispatch(actions.getOrdersForDate(
-              selectedDate ? selectedDate.format("YYYY-MM-DD") : moment().format("YYYY-MM-DD"),
-              limit,
-              offset
-            ));
-            break;
-          case "suppliers":
-            dispatch(actions.getOrdersForSuppliers(
-              selectedSupplierIds,
-              limit,
-              offset
-            ));
-            break;
-          case "customers":
-            dispatch(actions.getOrdersForCustomers(
-              selectedCustomerIds,
-              limit,
-              offset
-            ));
-            break;
-          default:
-            dispatch(actions.getOrders(limit, offset));
-            break;
-        }
-      } else {
-        dispatch(actions.getOrdersForCustomer(limit, offset));
-      }
-    } else if (userType === "customer" || userType === "vendor") {
-      dispatch(actions.getOrdersForCustomer(limit, offset));
+    if (userType === "customer") {
+      actions.getOrdersForCustomer(limit, offset);
     } else if (userType === "supplier") {
-      switch (selectedFilter) {
-        case "date":
-          dispatch(actions.getOrdersForDate(
-            selectedDate ? selectedDate.format("YYYY-MM-DD") : moment().format("YYYY-MM-DD"),
-            limit,
-            offset
-          ));
-          break;
-        default:
-          dispatch(actions.getOrdersForSupplier(
-            userSupplierId,
-            false,
-            limit,
-            offset
-          ));
-          break;
-      }
+      actions.filterOrdersDispatch(limit, offset, "all", moment(), [userSupplierId], []);
+    } else if (userType === "administrator") {
+      actions.filterOrdersDispatch(limit, offset, "all", moment(), [], []);
     }
   };
 
@@ -994,72 +870,92 @@ const Orders: React.FC<IProps> = ({ classes, ...props }) => {
           checkDictionnary={getTranslation}
         />
       )}
-      <main className={classes.main}>
-        <div className={classNames(classes.layout, classes.cardGrid)}>
-          <div className={classes.heroUnit}>
-            {((userType === "administrator" && all) ||
-              userType === "supplier") && (
-              <OrdersExport
-                exportEl={
-                  <Button className={classes.button}>
-                    <ImportExportIcon /> Exporter les commandes
-                  </Button>
-                }
-                orderList={orderList}
-                orderExtraList={orderExtraList}
-              />
-            )}
-            {((userType === "administrator" && all) ||
-              userType === "supplier") && (
-              <OrdersFilter
-                suppliers={handleDisplaySuppliers()}
-                customers={handleDisplayCustomers()}
-                userType={userType}
-                handleToday={
-                  userType === "administrator" || userType === "supplier"
-                }
-                handleSuppliers={userType === "administrator"}
-                handleCustomers={userType === "administrator"}
-                selectedDate={selectedDate}
-                selectedCustomers={selectedCustomers}
-                selectedSuppliers={selectedSuppliers}
-                onChangeDate={handleFilterDate}
-                onChangeSuppliers={handleFilterSuppliers}
-                onChangeCustomers={handleFilterCustomers}
-              />
-            )}
-            <div className={classes.sectionDesktop}>
-              <Table
-                remotePaging
-                rows={handleTableRows()}
-                columns={handleTableColumns()}
-                defaultSorting={[{ columnName: "date", direction: "desc" }]}
-                totalCount={orderListTotalCount}
-                onChangeLimit={handleChangeLimit}
-                onChangeOffset={handleChangeOffset}
-                onLoadData={handleLoadData}
-              />
-            </div>
-            <div className={classes.sectionMobile}>
-              <OrdersList
-                userLanguage={userLanguage}
-                orderList={orderList}
-                orderExtraList={orderExtraList}
-                hasMore={hasMore}
-                isListPending={isListPending}
-                onOpenDelete={handleOpenDelete}
-                onOpenEdit={handleOpenEdit}
-                onFetchNextData={handleFetchNextData}
-                checkDictionnary={getTranslation}
-                isOrderEditable={isOrderEditable}
-              />
-            </div>
-          </div>
-        </div>
-      </main>
+      <StyledMain>
+        <StyledLayout>
+          <StyledCardGrid>
+            <StyledHeroUnit>
+              {((userType === "administrator" && all) ||
+                userType === "supplier") && (
+                <OrdersExport
+                  exportEl={
+                    <StyledButton>
+                      <ImportExportIcon /> Exporter les commandes
+                    </StyledButton>
+                  }
+                  orderList={orderList}
+                  orderExtraList={orderExtraList}
+                />
+              )}
+              {((userType === "administrator" && all) ||
+                userType === "supplier") && (
+                <OrdersFilter
+                  suppliers={handleDisplaySuppliers()}
+                  customers={handleDisplayCustomers()}
+                  userType={userType}
+                  handleToday={
+                    userType === "administrator" || userType === "supplier"
+                  }
+                  handleSuppliers={userType === "administrator"}
+                  handleCustomers={userType === "administrator"}
+                  selectedDate={selectedDate}
+                  selectedCustomers={selectedCustomers}
+                  selectedSuppliers={selectedSuppliers}
+                  onChangeDate={handleFilterDate}
+                  onChangeSuppliers={handleFilterSuppliers}
+                  onChangeCustomers={handleFilterCustomers}
+                />
+              )}
+              <StyledSectionDesktop>
+                <Table
+                  remotePaging
+                  rows={handleTableRows()}
+                  columns={handleTableColumns()}
+                  defaultSorting={[{ columnName: "date", direction: "desc" }]}
+                  totalCount={orderListTotalCount}
+                  onChangeLimit={handleChangeLimit}
+                  onChangeOffset={handleChangeOffset}
+                  onLoadData={handleLoadData}
+                />
+              </StyledSectionDesktop>
+              <StyledSectionMobile>
+                <OrdersList
+                  userLanguage={userLanguage}
+                  orderList={orderList}
+                  orderExtraList={orderExtraList}
+                  hasMore={hasMore}
+                  isListPending={isListPending}
+                  onOpenDelete={handleOpenDelete}
+                  onOpenEdit={handleOpenEdit}
+                  onFetchNextData={handleFetchNextData}
+                  checkDictionnary={getTranslation}
+                  isOrderEditable={isOrderEditable}
+                />
+              </StyledSectionMobile>
+            </StyledHeroUnit>
+          </StyledCardGrid>
+        </StyledLayout>
+      </StyledMain>
       <Footer />
     </MenuBar>
   );
 };
 
-export default withStyles(styles)(Orders);
+export default styled(Orders)(({ classes }) => ({
+  heroUnit: {
+    backgroundColor: classes.palette.background.paper,
+    borderRadius: ".625rem"
+  },
+  layout: {
+    width: "auto",
+    margin: "0 auto"
+  },
+  cardGrid: {
+    padding: 0,
+    [classes.breakpoints.up("md")]: {
+      padding: classes.spacing(4)
+    }
+  },
+  main: {
+    flex: 1
+  }
+}));

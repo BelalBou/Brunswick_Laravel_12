@@ -1,36 +1,42 @@
-import React, { Component } from "react";
-import { withStyles, Theme } from "@material-ui/core/styles";
-import Button from "@material-ui/core/Button";
-import TextField from "@material-ui/core/TextField";
-import Input from "@material-ui/core/Input";
-import Dialog from "@material-ui/core/Dialog";
-import DialogActions from "@material-ui/core/DialogActions";
-import DialogContent from "@material-ui/core/DialogContent";
-import DialogTitle from "@material-ui/core/DialogTitle";
-import Grid from "@material-ui/core/Grid";
-import Select from "@material-ui/core/Select";
-import MenuItem from "@material-ui/core/MenuItem";
-import InputLabel from "@material-ui/core/InputLabel";
-import FormControl from "@material-ui/core/FormControl";
-import InputAdornment from "@material-ui/core/InputAdornment";
-import Checkbox from "@material-ui/core/Checkbox";
-import ListItemText from "@material-ui/core/ListItemText";
-import FormControlLabel from "@material-ui/core/FormControlLabel";
+import React, { useState, useRef } from "react";
+import { 
+  Button, 
+  TextField, 
+  Input,
+  Dialog, 
+  DialogActions, 
+  DialogContent, 
+  DialogTitle,
+  Grid,
+  Select,
+  MenuItem,
+  InputLabel,
+  FormControl,
+  InputAdornment,
+  Checkbox,
+  ListItemText,
+  FormControlLabel,
+  SelectChangeEvent
+} from "@mui/material";
+import { styled } from "@mui/material/styles";
 import ICategory from "../../interfaces/ICategory";
 import IAllergy from "../../interfaces/IAllergy";
 import IMenuSize from "../../interfaces/IMenuSize";
 import IExtra from "../../interfaces/IExtra";
 
-const styles = (theme: Theme) => ({
-  margin: {
-    margin: theme.spacing.unit
-  },
-  gridItem: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center"
-  }
-});
+const StyledTextField = styled(TextField)(({ theme }) => ({
+  margin: theme.spacing(1)
+}));
+
+const StyledFormControl = styled(FormControl)(({ theme }) => ({
+  margin: theme.spacing(1)
+}));
+
+const StyledGridItem = styled(Grid)(({ theme }) => ({
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center"
+}));
 
 const MenuProps = {
   PaperProps: {
@@ -41,11 +47,7 @@ const MenuProps = {
   }
 };
 
-interface IProvidedProps {
-  classes: any;
-}
-
-interface IProps {
+interface AddMenuProps {
   categoryList: ICategory[];
   allergyList: IAllergy[];
   menuSizeList: IMenuSize[];
@@ -66,145 +68,83 @@ interface IProps {
   ) => void;
 }
 
-interface IState {
-  title: string;
-  titleEn: string;
-  description: string;
-  descriptionEn: string;
-  sizeId: number;
-  pricing: number;
-  categoryId: number;
-  allergyIds: any;
-  extraIds: any;
-  supplierId: number;
-  picture: File | null;
-  addPicture: boolean;
-  validated: boolean;
-}
+const AddMenu: React.FC<AddMenuProps> = ({ 
+  categoryList, 
+  allergyList, 
+  menuSizeList, 
+  extraList, 
+  onClose, 
+  onAdd 
+}): JSX.Element => {
+  const pictureRef = useRef<HTMLInputElement>(null);
+  const [title, setTitle] = useState<string>("");
+  const [titleEn, setTitleEn] = useState<string>("");
+  const [description, setDescription] = useState<string>("");
+  const [descriptionEn, setDescriptionEn] = useState<string>("");
+  const [sizeId, setSizeId] = useState<number>(0);
+  const [pricing, setPricing] = useState<number>(0);
+  const [categoryId, setCategoryId] = useState<number>(
+    categoryList && categoryList.length > 0 ? categoryList[0].id : 0
+  );
+  const [allergyIds, setAllergyIds] = useState<number[]>([]);
+  const [extraIds, setExtraIds] = useState<number[]>([]);
+  const [supplierId] = useState<number>(1);
+  const [picture, setPicture] = useState<File | null>(null);
+  const [addPicture, setAddPicture] = useState<boolean>(false);
+  const [validated, setValidated] = useState<boolean>(true);
 
-class AddMenu extends Component<IProvidedProps & IProps, IState> {
-  private pictureRef: HTMLInputElement | null;
-
-  constructor(props: IProvidedProps & IProps) {
-    super(props);
-    this.pictureRef = null;
-    this.state = {
-      title: "",
-      titleEn: "",
-      description: "",
-      descriptionEn: "",
-      sizeId: 0,
-      pricing: 0,
-      categoryId:
-        this.props.categoryList && this.props.categoryList.length > 0
-          ? this.props.categoryList[0].id
-          : 0,
-      allergyIds: [],
-      extraIds: [],
-      supplierId: 1,
-      picture: null,
-      addPicture: false,
-      validated: true
-    };
-  }
-
-  handleChangeTitle = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const { value } = event.target;
-    this.setState({
-      title: value
-    });
+  const handleChangeTitle = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setTitle(event.target.value);
   };
 
-  handleChangeTitleEn = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const { value } = event.target;
-    this.setState({
-      titleEn: value
-    });
+  const handleChangeTitleEn = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setTitleEn(event.target.value);
   };
 
-  handleChangeSizeId = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const { value } = event.target;
-    this.setState({
-      sizeId: parseInt(value),
-      extraIds: []
-    });
+  const handleChangeSizeId = (event: SelectChangeEvent<number>) => {
+    setSizeId(Number(event.target.value));
+    setExtraIds([]);
   };
 
-  handleChangePricing = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const { value } = event.target;
-    this.setState({
-      pricing: parseFloat(value)
-    });
+  const handleChangePricing = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setPricing(parseFloat(event.target.value));
   };
 
-  handleChangeCategoryId = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const { value } = event.target;
-    this.setState({
-      categoryId: parseInt(value)
-    });
+  const handleChangeCategoryId = (event: SelectChangeEvent<number>) => {
+    setCategoryId(Number(event.target.value));
   };
 
-  handleChangeAllergyIds = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const { value } = event.target;
-    this.setState({ allergyIds: value });
+  const handleChangeAllergyIds = (event: SelectChangeEvent<number[]>) => {
+    setAllergyIds(event.target.value as number[]);
   };
 
-  handleChangeExtraIds = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const { value } = event.target;
-    this.setState({ extraIds: value });
+  const handleChangeExtraIds = (event: SelectChangeEvent<number[]>) => {
+    setExtraIds(event.target.value as number[]);
   };
 
-  handleChangeDescription = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const { value } = event.target;
-    this.setState({
-      description: value
-    });
+  const handleChangeDescription = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setDescription(event.target.value);
   };
 
-  handleChangeDescriptionEn = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const { value } = event.target;
-    this.setState({
-      descriptionEn: value
-    });
+  const handleChangeDescriptionEn = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setDescriptionEn(event.target.value);
   };
 
-  handleChangePicture = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (this.pictureRef && this.pictureRef.files) {
-      this.setState({
-        picture: this.pictureRef.files[0]
-      });
+  const handleChangePicture = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (pictureRef.current?.files) {
+      setPicture(pictureRef.current.files[0]);
     }
   };
 
-  handleChangeAddPicture = (
-    event: React.ChangeEvent<HTMLInputElement>,
-    checked: boolean
-  ) => {
-    this.setState({
-      addPicture: checked
-    });
+  const handleChangeAddPicture = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setAddPicture(event.target.checked);
   };
 
-  handleValidated = () => {
-    const {
-      title,
-      titleEn,
-      sizeId,
-      pricing,
-      description,
-      descriptionEn,
-      categoryId,
-      allergyIds,
-      extraIds,
-      picture,
-      addPicture
-    } = this.state;
+  const handleValidated = () => {
     if (!title || !titleEn || !pricing || !categoryId) {
-      this.setState({
-        validated: false
-      });
+      setValidated(false);
     } else {
-      this.props.onAdd(
+      onAdd(
         title,
         titleEn,
         sizeId,
@@ -220,275 +160,231 @@ class AddMenu extends Component<IProvidedProps & IProps, IState> {
     }
   };
 
-  render() {
-    const {
-      title,
-      titleEn,
-      sizeId,
-      pricing,
-      description,
-      descriptionEn,
-      categoryId,
-      allergyIds,
-      extraIds,
-      addPicture,
-      validated
-    } = this.state;
-    const {
-      categoryList,
-      allergyList,
-      menuSizeList,
-      extraList,
-      classes
-    } = this.props;
-    return (
-      <Dialog
-        open
-        onClose={this.props.onClose}
-        aria-labelledby="form-dialog-title"
-      >
-        <DialogTitle id="form-dialog-title">Ajouter un menu</DialogTitle>
-        <DialogContent>
-          <Grid container spacing={16}>
-            <Grid item xs>
-              <TextField
-                className={classes.margin}
-                value={title}
-                onChange={this.handleChangeTitle}
-                autoFocus
-                id="title"
-                label="Libellé FR"
-                type="text"
-                fullWidth
-                required
-                error={!validated && !title}
-              />
-            </Grid>
-            <Grid item xs>
-              <TextField
-                className={classes.margin}
-                value={titleEn}
-                onChange={this.handleChangeTitleEn}
-                id="titleEn"
-                label="Libellé EN"
-                type="text"
-                fullWidth
-                required
-                error={!validated && !titleEn}
-              />
-            </Grid>
+  return (
+    <Dialog
+      open
+      onClose={onClose}
+      aria-labelledby="form-dialog-title"
+    >
+      <DialogTitle id="form-dialog-title">Ajouter un menu</DialogTitle>
+      <DialogContent>
+        <Grid container spacing={2}>
+          <Grid item xs>
+            <StyledTextField
+              value={title}
+              onChange={handleChangeTitle}
+              autoFocus
+              id="title"
+              label="Libellé FR"
+              type="text"
+              fullWidth
+              required
+              error={!validated && !title}
+            />
           </Grid>
-          <Grid container spacing={16}>
-            <Grid item xs>
-              <FormControl className={classes.margin} fullWidth>
-                <InputLabel htmlFor="size">Taille</InputLabel>
-                <Select
-                  value={sizeId}
-                  onChange={this.handleChangeSizeId}
-                  inputProps={{
-                    name: "size",
-                    id: "size"
-                  }}
-                >
-                  <MenuItem key={0} value={0}>
-                    - Aucune -
+          <Grid item xs>
+            <StyledTextField
+              value={titleEn}
+              onChange={handleChangeTitleEn}
+              id="titleEn"
+              label="Libellé EN"
+              type="text"
+              fullWidth
+              required
+              error={!validated && !titleEn}
+            />
+          </Grid>
+        </Grid>
+        <Grid container spacing={2}>
+          <Grid item xs>
+            <StyledFormControl fullWidth>
+              <InputLabel id="size-label">Taille</InputLabel>
+              <Select
+                labelId="size-label"
+                value={sizeId}
+                onChange={handleChangeSizeId}
+                label="Taille"
+              >
+                <MenuItem value={0}>
+                  - Aucune -
+                </MenuItem>
+                {menuSizeList.map(menuSize => (
+                  <MenuItem key={menuSize.id} value={menuSize.id}>
+                    {menuSize.title}
                   </MenuItem>
-                  {menuSizeList.map(menuSize => (
-                    <MenuItem key={menuSize.id} value={menuSize.id}>
-                      {menuSize.title}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs>
-              <FormControl
-                className={classes.margin}
-                fullWidth
-                required
-                error={!validated && !pricing}
-              >
-                <InputLabel htmlFor="adornment-amount">Prix</InputLabel>
-                <Input
-                  value={pricing}
-                  onChange={this.handleChangePricing}
-                  id="pricing"
-                  type="number"
-                  fullWidth
-                  inputProps={{ min: "0" }}
-                  startAdornment={
-                    <InputAdornment position="start">€</InputAdornment>
-                  }
-                />
-              </FormControl>
-            </Grid>
+                ))}
+              </Select>
+            </StyledFormControl>
           </Grid>
-          <Grid container spacing={16}>
-            <Grid item xs>
-              <FormControl
-                className={classes.margin}
+          <Grid item xs>
+            <StyledFormControl
+              fullWidth
+              required
+              error={!validated && !pricing}
+            >
+              <InputLabel htmlFor="adornment-amount">Prix</InputLabel>
+              <Input
+                value={pricing}
+                onChange={handleChangePricing}
+                id="pricing"
+                type="number"
                 fullWidth
-                required
-                error={!validated && !categoryId}
+                inputProps={{ min: "0" }}
+                startAdornment={
+                  <InputAdornment position="start">€</InputAdornment>
+                }
+              />
+            </StyledFormControl>
+          </Grid>
+        </Grid>
+        <Grid container spacing={2}>
+          <Grid item xs>
+            <StyledFormControl
+              fullWidth
+              required
+              error={!validated && !categoryId}
+            >
+              <InputLabel id="category-label">Catégorie</InputLabel>
+              <Select
+                labelId="category-label"
+                value={categoryId}
+                onChange={handleChangeCategoryId}
+                label="Catégorie"
               >
-                <InputLabel htmlFor="category">Catégorie</InputLabel>
-                <Select
-                  value={categoryId}
-                  onChange={this.handleChangeCategoryId}
-                  inputProps={{
-                    name: "category",
-                    id: "category"
-                  }}
-                >
-                  {categoryList.map(category => (
-                    <MenuItem key={category.id} value={category.id}>
-                      {category.title}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs>
-              <FormControl className={classes.margin} fullWidth>
-                <InputLabel htmlFor="select-multiple-checkbox">
-                  Allergènes
-                </InputLabel>
-                <Select
-                  multiple
-                  value={allergyIds}
-                  onChange={this.handleChangeAllergyIds}
-                  input={<Input id="select-multiple-checkbox" />}
-                  renderValue={(selected: any) =>
-                    allergyList
-                      .filter(allergy => selected.includes(allergy.id))
-                      .map(allergy => allergy.description)
-                      .join(", ")
-                  }
-                  MenuProps={MenuProps}
-                >
-                  {allergyList.map(allergy => (
-                    <MenuItem key={allergy.id} value={allergy.id}>
+                {categoryList.map(category => (
+                  <MenuItem key={category.id} value={category.id}>
+                    {category.title}
+                  </MenuItem>
+                ))}
+              </Select>
+            </StyledFormControl>
+          </Grid>
+          <Grid item xs>
+            <StyledFormControl fullWidth>
+              <InputLabel id="allergy-label">Allergènes</InputLabel>
+              <Select
+                labelId="allergy-label"
+                multiple
+                value={allergyIds}
+                onChange={handleChangeAllergyIds}
+                input={<Input id="select-multiple-checkbox" />}
+                renderValue={(selected) =>
+                  allergyList
+                    .filter(allergy => selected.includes(allergy.id))
+                    .map(allergy => allergy.description)
+                    .join(", ")
+                }
+                MenuProps={MenuProps}
+              >
+                {allergyList.map(allergy => (
+                  <MenuItem key={allergy.id} value={allergy.id}>
+                    <Checkbox
+                      color="primary"
+                      checked={allergyIds.includes(allergy.id)}
+                    />
+                    <ListItemText primary={allergy.description} />
+                  </MenuItem>
+                ))}
+              </Select>
+            </StyledFormControl>
+          </Grid>
+        </Grid>
+        <Grid container spacing={2}>
+          <Grid item xs>
+            <StyledFormControl fullWidth>
+              <InputLabel id="extra-label">Suppléments</InputLabel>
+              <Select
+                labelId="extra-label"
+                multiple
+                value={extraIds}
+                onChange={handleChangeExtraIds}
+                input={<Input id="select-multiple-checkbox" />}
+                renderValue={(selected) =>
+                  extraList
+                    .filter(extra => selected.includes(extra.id))
+                    .map(extra => extra.title)
+                    .join(", ")
+                }
+                MenuProps={MenuProps}
+              >
+                {extraList
+                  .filter(x => x.menu_size_id ? x.menu_size_id === sizeId : true)
+                  .map(extra => (
+                    <MenuItem key={extra.id} value={extra.id}>
                       <Checkbox
                         color="primary"
-                        checked={
-                          allergyIds.filter((x: number) => x === allergy.id)
-                            .length > 0
-                        }
+                        checked={extraIds.includes(extra.id)}
                       />
-                      <ListItemText primary={allergy.description} />
+                      <ListItemText
+                        primary={`${extra.title} (+ ${parseFloat(
+                          extra.pricing
+                        ).toLocaleString("fr", {
+                          minimumFractionDigits: 2
+                        })} €)`}
+                      />
                     </MenuItem>
                   ))}
-                </Select>
-              </FormControl>
-            </Grid>
+              </Select>
+            </StyledFormControl>
           </Grid>
-          <Grid container spacing={16}>
-            <Grid item xs>
-              <FormControl className={classes.margin} fullWidth>
-                <InputLabel htmlFor="select-multiple-checkbox">
-                  Suppléments
-                </InputLabel>
-                <Select
-                  multiple
-                  value={extraIds}
-                  onChange={this.handleChangeExtraIds}
-                  input={<Input id="select-multiple-checkbox" />}
-                  renderValue={(selected: any) =>
-                    extraList
-                      .filter(extra => selected.includes(extra.id))
-                      .map(extra => extra.title)
-                      .join(", ")
-                  }
-                  MenuProps={MenuProps}
-                >
-                  {extraList
-                    .filter(x =>
-                      x.menu_size_id ? x.menu_size_id === sizeId : true
-                    )
-                    .map(extra => (
-                      <MenuItem key={extra.id} value={extra.id}>
-                        <Checkbox
-                          color="primary"
-                          checked={
-                            extraIds.filter((x: number) => x === extra.id)
-                              .length > 0
-                          }
-                        />
-                        <ListItemText
-                          primary={`${extra.title} (+ ${parseFloat(
-                            extra.pricing
-                          ).toLocaleString("fr", {
-                            minimumFractionDigits: 2
-                          })} €)`}
-                        />
-                      </MenuItem>
-                    ))}
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs>
-              <FormControl className={classes.margin} fullWidth>
-                <Grid container>
-                  <Grid item xs className={classes.gridItem}>
-                    <FormControlLabel
-                      control={
-                        <Checkbox
-                          checked={addPicture}
-                          onChange={this.handleChangeAddPicture}
-                          color="primary"
-                        />
-                      }
-                      label="Ajouter une photo"
-                    />
-                  </Grid>
-                  {addPicture && (
-                    <Grid item xs className="centered-text">
-                      <input
-                        accept="image/*"
-                        ref={ref => {
-                          this.pictureRef = ref;
-                        }}
-                        type="file"
-                        onChange={this.handleChangePicture}
+          <Grid item xs>
+            <StyledFormControl fullWidth>
+              <Grid container>
+                <StyledGridItem item xs>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={addPicture}
+                        onChange={handleChangeAddPicture}
+                        color="primary"
                       />
-                    </Grid>
-                  )}
-                </Grid>
-              </FormControl>
-            </Grid>
+                    }
+                    label="Ajouter une photo"
+                  />
+                </StyledGridItem>
+                {addPicture && (
+                  <StyledGridItem item xs>
+                    <input
+                      accept="image/*"
+                      ref={pictureRef}
+                      type="file"
+                      onChange={handleChangePicture}
+                    />
+                  </StyledGridItem>
+                )}
+              </Grid>
+            </StyledFormControl>
           </Grid>
-          <TextField
-            className={classes.margin}
-            id="standard-multiline-flexible"
-            label="Description FR"
-            multiline
-            rowsMax="4"
-            value={description}
-            onChange={this.handleChangeDescription}
-            fullWidth
-          />
-          <TextField
-            className={classes.margin}
-            id="standard-multiline-flexible"
-            label="Description EN"
-            multiline
-            rowsMax="4"
-            value={descriptionEn}
-            onChange={this.handleChangeDescriptionEn}
-            fullWidth
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={this.props.onClose} color="primary">
-            Annuler
-          </Button>
-          <Button onClick={this.handleValidated} color="primary">
-            Ajouter
-          </Button>
-        </DialogActions>
-      </Dialog>
-    );
-  }
-}
+        </Grid>
+        <StyledTextField
+          id="description"
+          label="Description FR"
+          multiline
+          maxRows={4}
+          value={description}
+          onChange={handleChangeDescription}
+          fullWidth
+        />
+        <StyledTextField
+          id="description-en"
+          label="Description EN"
+          multiline
+          maxRows={4}
+          value={descriptionEn}
+          onChange={handleChangeDescriptionEn}
+          fullWidth
+        />
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose} color="primary">
+          Annuler
+        </Button>
+        <Button onClick={handleValidated} color="primary">
+          Ajouter
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+};
 
-export default withStyles(styles)(AddMenu);
+export default AddMenu;

@@ -1,113 +1,99 @@
-import React, { Component } from "react";
-import { withStyles, Theme } from "@material-ui/core/styles";
-import Button from "@material-ui/core/Button";
-import TextField from "@material-ui/core/TextField";
-import Dialog from "@material-ui/core/Dialog";
-import DialogActions from "@material-ui/core/DialogActions";
-import DialogContent from "@material-ui/core/DialogContent";
-import DialogTitle from "@material-ui/core/DialogTitle";
+import React, { useState } from "react";
+import { styled } from "@mui/material/styles";
+import Button from "@mui/material/Button";
+import TextField from "@mui/material/TextField";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogTitle from "@mui/material/DialogTitle";
 
-const styles = (theme: Theme) => ({
-  margin: {
-    margin: theme.spacing.unit
+const StyledDialog = styled(Dialog)({
+  "& .MuiDialog-paper": {
+    minWidth: "400px"
   }
 });
 
-interface IProvidedProps {
-  classes: any;
-}
+const StyledTextField = styled(TextField)(({ theme }) => ({
+  margin: theme.spacing(1)
+}));
 
-interface IProps {
+const StyledButton = styled(Button)(({ theme }) => ({
+  margin: theme.spacing(1)
+}));
+
+interface EditAllergyProps {
   description: string;
   descriptionEn: string;
   onClose: () => void;
   onEdit: (description: string, descriptionEn: string) => void;
 }
 
-interface IState {
-  description: string;
-  descriptionEn: string;
-  validated: boolean;
-}
+const EditAllergy: React.FC<EditAllergyProps> = ({
+  description: initialDescription,
+  descriptionEn: initialDescriptionEn,
+  onClose,
+  onEdit
+}): JSX.Element => {
+  const [description, setDescription] = useState<string>(initialDescription);
+  const [descriptionEn, setDescriptionEn] = useState<string>(initialDescriptionEn);
+  const [validated, setValidated] = useState<boolean>(true);
 
-class EditAllergy extends Component<IProvidedProps & IProps, IState> {
-  state = {
-    description: this.props.description,
-    descriptionEn: this.props.descriptionEn,
-    validated: true
+  const handleChangeDescription = (event: React.ChangeEvent<HTMLInputElement>): void => {
+    setDescription(event.target.value);
   };
 
-  handleChangeDescription = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const { value } = event.currentTarget;
-    this.setState({
-      description: value
-    });
+  const handleChangeDescriptionEn = (event: React.ChangeEvent<HTMLInputElement>): void => {
+    setDescriptionEn(event.target.value);
   };
 
-  handleChangeDescriptionEn = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const { value } = event.currentTarget;
-    this.setState({
-      descriptionEn: value
-    });
-  };
-
-  handleValidated = () => {
-    const { description, descriptionEn } = this.state;
+  const handleValidated = (): void => {
     if (!description || !descriptionEn) {
-      this.setState({
-        validated: false
-      });
+      setValidated(false);
     } else {
-      this.props.onEdit(description, descriptionEn);
+      onEdit(description, descriptionEn);
     }
   };
 
-  render() {
-    const { description, descriptionEn, validated } = this.state;
-    const { classes } = this.props;
-    return (
-      <Dialog
-        open
-        onClose={this.props.onClose}
-        aria-labelledby="form-dialog-title"
-      >
-        <DialogTitle id="form-dialog-title">Éditer un allergène</DialogTitle>
-        <DialogContent>
-          <TextField
-            className={classes.margin}
-            value={description}
-            onChange={this.handleChangeDescription}
-            autoFocus
-            id="description"
-            label="Description FR"
-            type="text"
-            fullWidth
-            required
-            error={!validated && !description}
-          />
-          <TextField
-            className={classes.margin}
-            value={descriptionEn}
-            onChange={this.handleChangeDescriptionEn}
-            id="descriptionEn"
-            label="Description EN"
-            type="text"
-            fullWidth
-            required
-            error={!validated && !descriptionEn}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={this.props.onClose} color="primary">
-            Annuler
-          </Button>
-          <Button onClick={this.handleValidated} color="primary">
-            Éditer
-          </Button>
-        </DialogActions>
-      </Dialog>
-    );
-  }
-}
+  return (
+    <StyledDialog
+      open
+      onClose={onClose}
+      aria-labelledby="form-dialog-title"
+    >
+      <DialogTitle id="form-dialog-title">Éditer un allergène</DialogTitle>
+      <DialogContent>
+        <StyledTextField
+          value={description}
+          onChange={handleChangeDescription}
+          autoFocus
+          id="description"
+          label="Description FR"
+          type="text"
+          fullWidth
+          required
+          error={!validated && !description}
+        />
+        <StyledTextField
+          value={descriptionEn}
+          onChange={handleChangeDescriptionEn}
+          id="descriptionEn"
+          label="Description EN"
+          type="text"
+          fullWidth
+          required
+          error={!validated && !descriptionEn}
+        />
+      </DialogContent>
+      <DialogActions>
+        <StyledButton onClick={onClose} color="primary">
+          Annuler
+        </StyledButton>
+        <StyledButton onClick={handleValidated} color="primary">
+          Éditer
+        </StyledButton>
+      </DialogActions>
+    </StyledDialog>
+  );
+};
 
-export default withStyles(styles)(EditAllergy);
+export default EditAllergy;

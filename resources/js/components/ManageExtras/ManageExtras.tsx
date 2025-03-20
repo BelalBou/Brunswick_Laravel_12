@@ -1,14 +1,13 @@
-import React, { Component } from "react";
+import React from "react";
 import { Navigate } from "react-router-dom";
-import classNames from "classnames";
-import { withStyles, Theme } from "@material-ui/core/styles";
-import Tooltip from "@material-ui/core/Tooltip";
-import IconButton from "@material-ui/core/IconButton";
-import Tabs from "@material-ui/core/Tabs";
-import Tab from "@material-ui/core/Tab";
-import EditIcon from "@material-ui/icons/Edit";
-import DeleteIcon from "@material-ui/icons/Delete";
-import RestaurantIcon from "@material-ui/icons/Restaurant";
+import { styled } from "@mui/material/styles";
+import Tooltip from "@mui/material/Tooltip";
+import IconButton from "@mui/material/IconButton";
+import Tabs from "@mui/material/Tabs";
+import Tab from "@mui/material/Tab";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
+import RestaurantIcon from "@mui/icons-material/Restaurant";
 import MenuBar from "../MenuBar/MenuBar";
 import Footer from "../Footer/Footer";
 import Table from "../Table/Table";
@@ -22,29 +21,25 @@ import ISupplier from "../../interfaces/ISupplier";
 import IExtra from "../../interfaces/IExtra";
 import IMenuSize from "../../interfaces/IMenuSize";
 
-const styles = (theme: Theme) => ({
-  heroUnit: {
-    backgroundColor: theme.palette.background.paper,
-    borderRadius: ".625rem"
-  },
-  layout: {
-    width: "auto",
-    margin: "0 auto"
-  },
-  cardGrid: {
-    padding: theme.spacing(4)
-  },
-  main: {
-    flex: 1
-  }
+const StyledMain = styled("main")({
+  flex: 1
 });
 
-interface IProvidedProps {
-  classes: any;
-  theme: Theme;
-}
+const StyledLayout = styled("div")({
+  width: "auto",
+  margin: "0 auto"
+});
 
-interface IProps {
+const StyledCardGrid = styled("div")(({ theme }) => ({
+  padding: theme.spacing(4)
+}));
+
+const StyledHeroUnit = styled("div")(({ theme }) => ({
+  backgroundColor: theme.palette.background.paper,
+  borderRadius: ".625rem"
+}));
+
+interface ManageExtrasProps {
   isLoginSuccess: boolean;
   isAddSuccess: boolean;
   isEditSuccess: boolean;
@@ -61,7 +56,7 @@ interface IProps {
   actions: any;
 }
 
-interface IState {
+interface ManageExtrasState {
   openAdd: boolean;
   openEdit: boolean;
   openDelete: boolean;
@@ -78,8 +73,23 @@ interface IState {
   selectedSupplier: number;
 }
 
-class ManageExtras extends Component<IProvidedProps & IProps, IState> {
-  state = {
+const ManageExtras: React.FC<ManageExtrasProps> = ({
+  isLoginSuccess,
+  isAddSuccess,
+  isEditSuccess,
+  isDeleteSuccess,
+  isListPending,
+  dictionnaryList,
+  extraList,
+  supplierList,
+  menuSizeList,
+  userToken,
+  userType,
+  userLanguage,
+  selected,
+  actions
+}) => {
+  const [state, setState] = React.useState<ManageExtrasState>({
     openAdd: false,
     openEdit: false,
     openDelete: false,
@@ -94,77 +104,77 @@ class ManageExtras extends Component<IProvidedProps & IProps, IState> {
     editMenuSizeId: 0,
     deleteTitle: "",
     selectedSupplier: 1
-  };
+  });
 
-  componentDidMount() {
-    const { isLoginSuccess } = this.props;
+  React.useEffect(() => {
     if (isLoginSuccess) {
-      this.refresh();
+      refresh();
     }
-  }
+  }, [isLoginSuccess]);
 
-  componentDidUpdate(prevProps: IProps) {
-    const { userToken, supplierList } = this.props;
-    const { selectedSupplier } = this.state;
-    if (userToken !== prevProps.userToken) {
-      this.refresh();
-    }
-    if (supplierList !== prevProps.supplierList) {
-      if (supplierList && supplierList.length > 0) {
-        this.props.actions.getExtrasSupplier(selectedSupplier);
-        this.props.actions.getMenusSupplier(selectedSupplier);
-      }
-    }
-  }
+  React.useEffect(() => {
+    refresh();
+  }, [userToken]);
 
-  refresh = () => {
-    const { userType } = this.props;
+  React.useEffect(() => {
+    if (supplierList && supplierList.length > 0) {
+      actions.getExtrasSupplier(state.selectedSupplier);
+      actions.getMenusSupplier(state.selectedSupplier);
+    }
+  }, [supplierList]);
+
+  const refresh = () => {
     if (userType === "administrator") {
-      this.props.actions.getDictionnaries();
-      this.props.actions.getSuppliers();
-      this.props.actions.getMenuSizes();
+      actions.getDictionnaries();
+      actions.getSuppliers();
+      actions.getMenuSizes();
     }
   };
 
-  handleLogout = () => {
-    this.props.actions.logout();
+  const handleLogout = () => {
+    actions.logout();
   };
 
-  handleChangeSelected = (selected: number) => {
-    this.props.actions.setSelected(selected);
+  const handleChangeSelected = (selected: number) => {
+    actions.setSelected(selected);
     localStorage.setItem("selected", selected.toString());
   };
 
-  handleChangeSupplier = (event: React.FormEvent<{}>, value: number) => {
-    this.setState({ selectedSupplier: value });
-    this.props.actions.getExtrasSupplier(value);
-    this.props.actions.getMenusSupplier(value);
+  const handleChangeSupplier = (event: React.SyntheticEvent, value: number) => {
+    setState(prev => ({
+      ...prev,
+      selectedSupplier: value
+    }));
+    actions.getExtrasSupplier(value);
+    actions.getMenusSupplier(value);
   };
 
-  handleCloseSnackbarAdded = () => {
-    this.setState({
+  const handleCloseSnackbarAdded = () => {
+    setState(prev => ({
+      ...prev,
       added: false
-    });
+    }));
   };
 
-  handleCloseSnackbarEdited = () => {
-    this.setState({
+  const handleCloseSnackbarEdited = () => {
+    setState(prev => ({
+      ...prev,
       edited: false
-    });
+    }));
   };
 
-  handleCloseSnackbarDeleted = () => {
-    this.setState({
+  const handleCloseSnackbarDeleted = () => {
+    setState(prev => ({
+      ...prev,
       deleted: false
-    });
+    }));
   };
 
-  checkDictionnary = (tag: string) => {
-    const { dictionnaryList, userLanguage } = this.props;
+  const getDictionaryValue = (tag: string) => {
     return checkDictionnary(tag, dictionnaryList, userLanguage);
   };
 
-  handleTableColumns = () => {
+  const handleTableColumns = () => {
     return [
       {
         name: "title",
@@ -189,8 +199,7 @@ class ManageExtras extends Component<IProvidedProps & IProps, IState> {
     ];
   };
 
-  handleTableRows = () => {
-    const { extraList } = this.props;
+  const handleTableRows = () => {
     if (extraList && extraList.length > 0) {
       return extraList.map(extra => {
         const obj = {
@@ -206,7 +215,7 @@ class ManageExtras extends Component<IProvidedProps & IProps, IState> {
                 <IconButton
                   color="primary"
                   onClick={() =>
-                    this.handleOpenEdit(
+                    handleOpenEdit(
                       extra.id,
                       extra.title,
                       extra.title_en,
@@ -221,7 +230,7 @@ class ManageExtras extends Component<IProvidedProps & IProps, IState> {
               <Tooltip title="Supprimer ce supplément">
                 <IconButton
                   color="secondary"
-                  onClick={() => this.handleOpenDelete(extra.id, extra.title)}
+                  onClick={() => handleOpenDelete(extra.id, extra.title)}
                 >
                   <DeleteIcon />
                 </IconButton>
@@ -236,83 +245,90 @@ class ManageExtras extends Component<IProvidedProps & IProps, IState> {
     }
   };
 
-  handleOpenAdd = () => {
-    this.setState({
+  const handleOpenAdd = () => {
+    setState(prev => ({
+      ...prev,
       openAdd: true
-    });
+    }));
   };
 
-  handleOpenEdit = (
+  const handleOpenEdit = (
     id: number,
     title: string,
     titleEn: string,
     pricing: number,
     menuSizeId: number
   ) => {
-    this.setState({
+    setState(prev => ({
+      ...prev,
       editId: id,
       editTitle: title,
       editTitleEn: titleEn,
       editPricing: pricing,
       editMenuSizeId: menuSizeId,
       openEdit: true
-    });
+    }));
   };
 
-  handleOpenDelete = (id: number, title: string) => {
-    this.setState({
+  const handleOpenDelete = (id: number, title: string) => {
+    setState(prev => ({
+      ...prev,
       deleteId: id,
       deleteTitle: title,
       openDelete: true
-    });
+    }));
   };
 
-  handleCloseAdd = () => {
-    this.setState({
+  const handleCloseAdd = () => {
+    setState(prev => ({
+      ...prev,
       openAdd: false
-    });
+    }));
   };
 
-  handleCloseEdit = () => {
-    this.setState({
+  const handleCloseEdit = () => {
+    setState(prev => ({
+      ...prev,
       openEdit: false
-    });
+    }));
   };
 
-  handleCloseDelete = () => {
-    this.setState({
+  const handleCloseDelete = () => {
+    setState(prev => ({
+      ...prev,
       openDelete: false
-    });
+    }));
   };
 
-  handleAdd = (
+  const handleAdd = (
     title: string,
     titleEn: string,
     pricing: number,
     menuSizeId: number
   ) => {
-    const { selectedSupplier } = this.state;
-    this.props.actions.addExtra(
+    const { selectedSupplier } = state;
+    actions.addExtra(
       title,
       titleEn,
       pricing,
       selectedSupplier,
       menuSizeId
     );
-    this.setState({
+    setState(prev => ({
+      ...prev,
       openAdd: false,
       added: true
-    });
+    }));
   };
 
-  handleEdit = (
+  const handleEdit = (
     title: string,
     titleEn: string,
     pricing: number,
     menuSizeId: number
   ) => {
-    const { editId, selectedSupplier } = this.state;
-    this.props.actions.editExtra(
+    const { editId, selectedSupplier } = state;
+    actions.editExtra(
       editId,
       title,
       titleEn,
@@ -320,119 +336,110 @@ class ManageExtras extends Component<IProvidedProps & IProps, IState> {
       selectedSupplier,
       menuSizeId
     );
-    this.setState({
+    setState(prev => ({
+      ...prev,
       openEdit: false,
       edited: true
-    });
+    }));
   };
 
-  handleDelete = () => {
-    const { deleteId, selectedSupplier } = this.state;
+  const handleDelete = () => {
+    const { deleteId, selectedSupplier } = state;
     if (deleteId > 0) {
-      this.props.actions.deleteExtra(deleteId, selectedSupplier);
-      this.setState({
+      actions.deleteExtra(deleteId, selectedSupplier);
+      setState(prev => ({
+        ...prev,
         openDelete: false,
         deleted: true
-      });
+      }));
     }
   };
 
-  render() {
-    const {
-      openAdd,
-      openEdit,
-      openDelete,
-      added,
-      edited,
-      deleted,
-      editTitle,
-      editTitleEn,
-      editPricing,
-      editMenuSizeId,
-      deleteTitle,
-      selectedSupplier
-    } = this.state;
-    const {
-      isLoginSuccess,
-      isListPending,
-      isAddSuccess,
-      isEditSuccess,
-      isDeleteSuccess,
-      userType,
-      selected,
-      supplierList,
-      menuSizeList,
-      classes,
-      theme
-    } = this.props;
-    if (!isLoginSuccess) {
-      return <Navigate to="/login" replace />;
-    }
-    return (
-      <MenuBar
-        isLoginSuccess={isLoginSuccess}
-        isListPending={isListPending}
-        userType={userType}
-        selected={selected}
-        title="Suppléments"
-        onLogout={this.handleLogout}
-        onChangeSelected={this.handleChangeSelected}
-        checkDictionnary={this.checkDictionnary}
-      >
-        {isAddSuccess && added && (
-          <SnackbarAction
-            success
-            message="Le supplément a bien été ajouté !"
-            onClose={this.handleCloseSnackbarAdded}
-          />
-        )}
-        {isEditSuccess && edited && (
-          <SnackbarAction
-            success
-            message="Le supplément a bien été modifié !"
-            onClose={this.handleCloseSnackbarEdited}
-          />
-        )}
-        {isDeleteSuccess && deleted && (
-          <SnackbarAction
-            success
-            message="Le supplément a bien été supprimé !"
-            onClose={this.handleCloseSnackbarDeleted}
-          />
-        )}
-        {openAdd && (
-          <AddExtra
-            menuSizeList={menuSizeList}
-            onClose={this.handleCloseAdd}
-            onAdd={this.handleAdd}
-          />
-        )}
-        {openEdit && (
-          <EditExtra
-            title={editTitle}
-            titleEn={editTitleEn}
-            pricing={editPricing}
-            menuSizeId={editMenuSizeId}
-            menuSizeList={menuSizeList}
-            onClose={this.handleCloseEdit}
-            onEdit={this.handleEdit}
-          />
-        )}
-        {openDelete && (
-          <DeleteStuff
-            title="Supprimer un supplément"
-            description={`Le supplément « ${deleteTitle} » sera définitivement perdu !`}
-            onClose={this.handleCloseDelete}
-            onDelete={this.handleDelete}
-            checkDictionnary={this.checkDictionnary}
-          />
-        )}
-        <main className={classes.main}>
-          <div className={classNames(classes.layout, classes.cardGrid)}>
-            <div className={classes.heroUnit}>
+  if (!isLoginSuccess) {
+    return <Navigate to="/login" replace />;
+  }
+
+  const {
+    openAdd,
+    openEdit,
+    openDelete,
+    added,
+    edited,
+    deleted,
+    editTitle,
+    editTitleEn,
+    editPricing,
+    editMenuSizeId,
+    deleteTitle,
+    selectedSupplier
+  } = state;
+
+  return (
+    <MenuBar
+      isLoginSuccess={isLoginSuccess}
+      isListPending={isListPending}
+      userType={userType}
+      selected={selected}
+      title="Suppléments"
+      onLogout={handleLogout}
+      onChangeSelected={handleChangeSelected}
+      checkDictionnary={getDictionaryValue}
+    >
+      {isAddSuccess && added && (
+        <SnackbarAction
+          success
+          message="Le supplément a bien été ajouté !"
+          onClose={handleCloseSnackbarAdded}
+        />
+      )}
+      {isEditSuccess && edited && (
+        <SnackbarAction
+          success
+          message="Le supplément a bien été modifié !"
+          onClose={handleCloseSnackbarEdited}
+        />
+      )}
+      {isDeleteSuccess && deleted && (
+        <SnackbarAction
+          success
+          message="Le supplément a bien été supprimé !"
+          onClose={handleCloseSnackbarDeleted}
+        />
+      )}
+      {openAdd && (
+        <AddExtra
+          menuSizeList={menuSizeList}
+          onClose={handleCloseAdd}
+          onAdd={handleAdd}
+        />
+      )}
+      {openEdit && (
+        <EditExtra
+          title={editTitle}
+          titleEn={editTitleEn}
+          pricing={editPricing}
+          menuSizeId={editMenuSizeId}
+          menuSizeList={menuSizeList}
+          onClose={handleCloseEdit}
+          onEdit={handleEdit}
+        />
+      )}
+      {openDelete && (
+        <DeleteStuff
+          title="Supprimer un supplément"
+          description={`Le supplément « ${deleteTitle} » sera définitivement perdu !`}
+          onClose={handleCloseDelete}
+          onDelete={handleDelete}
+          checkDictionnary={getDictionaryValue}
+        />
+      )}
+      <StyledMain>
+        <StyledLayout>
+          <StyledCardGrid>
+            <StyledHeroUnit>
               <Tabs
                 value={selectedSupplier}
-                onChange={this.handleChangeSupplier}
+                onChange={handleChangeSupplier}
                 indicatorColor="primary"
                 textColor="primary"
                 variant="fullWidth"
@@ -449,27 +456,27 @@ class ManageExtras extends Component<IProvidedProps & IProps, IState> {
               {supplierList.map(supplier => (
                 <React.Fragment key={supplier.id}>
                   {selectedSupplier === supplier.id && (
-                    <TabContainer dir={theme.direction}>
+                    <TabContainer>
                       <Table
                         add
-                        rows={this.handleTableRows()}
-                        columns={this.handleTableColumns()}
+                        rows={handleTableRows()}
+                        columns={handleTableColumns()}
                         defaultSorting={[
                           { columnName: "title", direction: "asc" }
                         ]}
-                        onAddedRowsChange={this.handleOpenAdd}
+                        onAddedRowsChange={handleOpenAdd}
                       />
                     </TabContainer>
                   )}
                 </React.Fragment>
               ))}
-            </div>
-          </div>
-        </main>
-        <Footer />
-      </MenuBar>
-    );
-  }
-}
+            </StyledHeroUnit>
+          </StyledCardGrid>
+        </StyledLayout>
+      </StyledMain>
+      <Footer />
+    </MenuBar>
+  );
+};
 
-export default withStyles(styles, { withTheme: true })(ManageExtras);
+export default ManageExtras;

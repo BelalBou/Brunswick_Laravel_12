@@ -268,4 +268,27 @@ export const editOrder = (
   }
 };
 
+// Action thunk pour supprimer une commande
+export const deleteOrder = (
+  id: number,
+  forCustomer: boolean = false,
+  limit: number = 0,
+  offset: number = 0,
+  selectedFilter: string = "",
+  selectedDate: moment.Moment = moment(),
+  selectedSupplierIds: number[] = [],
+  selectedCustomerIds: number[] = []
+) => {
+  return deleteOrders(
+    id,
+    forCustomer,
+    limit,
+    offset,
+    selectedFilter,
+    selectedDate,
+    selectedSupplierIds,
+    selectedCustomerIds
+  );
+};
+
 export default orderSlice.reducer;

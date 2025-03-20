@@ -17,50 +17,38 @@ import ManageAllergies from "./components/ManageAllergies/ManageAllergies";
 import ManageExtras from "./components/ManageExtras/ManageExtras";
 import MenusCarriedAway from "./components/MenusCarriedAway/MenusCarriedAway";
 import { logout } from "./actions/login";
-import { getDictionnaries } from "./actions/dictionnary";
-import { getSettings } from "./actions/setting";
-import { getSuppliers } from "./actions/supplier";
+import { getDictionaries } from "./actions/dictionnary";
+import { getSettingList } from "./actions/setting";
+import { getSupplierList } from "./actions/supplier";
 import { getCustomers } from "./actions/user";
 import { setSelected } from "./actions/page";
 import {
-  getOrders,
   getOrdersForCustomer,
-  getOrdersForSupplier,
-  getOrdersExtra,
-  getOrdersForDate,
-  getOrdersForSuppliers,
-  getOrdersForCustomers,
-  getOrdersForCustomerSpread,
+  filterOrdersDispatch,
+  addOrder,
   deleteOrders,
-  deleteOrder,
   editOrder
 } from "./actions/order";
 
 // Types pour les props communes
 interface CommonProps {
   isLoginSuccess: boolean;
+  isPending: boolean;
   isListPending: boolean;
   userLanguage: string;
   userType: string;
   userToken: string;
   selected: number;
-  dictionnaryList: any[];
+  dictionnaryList: Array<{ tag: string; value: string; value_en: string }>;
   actions: {
     logout: typeof logout;
-    getDictionnaries: typeof getDictionnaries;
-    getSettings: typeof getSettings;
-    getOrders: typeof getOrders;
+    getDictionaries: typeof getDictionaries;
+    getSettingList: typeof getSettingList;
     getOrdersForCustomer: typeof getOrdersForCustomer;
-    getOrdersForSupplier: typeof getOrdersForSupplier;
-    getOrdersExtra: typeof getOrdersExtra;
-    getSuppliers: typeof getSuppliers;
+    filterOrdersDispatch: typeof filterOrdersDispatch;
+    getSupplierList: typeof getSupplierList;
     getCustomers: typeof getCustomers;
-    getOrdersForDate: typeof getOrdersForDate;
-    getOrdersForSuppliers: typeof getOrdersForSuppliers;
-    getOrdersForCustomers: typeof getOrdersForCustomers;
-    getOrdersForCustomerSpread: typeof getOrdersForCustomerSpread;
     deleteOrders: typeof deleteOrders;
-    deleteOrder: typeof deleteOrder;
     editOrder: typeof editOrder;
     setSelected: typeof setSelected;
   };
@@ -77,92 +65,55 @@ const AppRoutes: React.FC = () => {
 
   const actions = {
     logout,
-    getDictionnaries,
-    getSettings,
-    getOrders,
+    getDictionaries,
+    getSettingList,
     getOrdersForCustomer,
-    getOrdersForSupplier,
-    getOrdersExtra,
-    getSuppliers,
+    filterOrdersDispatch,
+    getSupplierList,
     getCustomers,
-    getOrdersForDate,
-    getOrdersForSuppliers,
-    getOrdersForCustomers,
-    getOrdersForCustomerSpread,
     deleteOrders,
-    deleteOrder,
     editOrder,
     setSelected
   };
 
   const {
-    isLoginSuccess,
-    isListPending,
-    userLanguage,
-    userType,
-    userSupplierId,
-    selected,
-    cartList,
-    orderListTotalCount,
-    dictionnaryList,
-    supplierList,
-    menuList,
-    categoryList,
-    allergyList,
-    menuSizeList,
-    extraList,
-    userToken,
-    userId,
-    isEditSuccess,
-    isDeleteSuccess,
-    isAddSuccess,
-    settingList,
-    dailyMailList,
-    userList,
-    orderList,
-    orderExtraList,
-    serverTime,
-    is_away,
-    userValidity
-  } = useSelector((state: RootState) => ({
-    isLoginSuccess: state.login.isLoginSuccess,
-    isListPending: state.list.isListPending,
-    userLanguage: state.user.language,
-    userType: state.user.type,
-    userSupplierId: state.user.supplierId,
-    selected: state.page.selected,
-    cartList: state.cart.list,
-    orderListTotalCount: state.list.totalCount,
-    dictionnaryList: state.dictionnary.list,
-    supplierList: state.list.suppliers,
-    menuList: state.list.menus,
-    categoryList: state.list.categories,
-    allergyList: state.list.allergies,
-    menuSizeList: state.list.menuSizes,
-    extraList: state.list.extras,
-    userToken: state.user.token,
-    userId: state.user.id,
-    isEditSuccess: state.edit.isEditSuccess,
-    isDeleteSuccess: state.edit.isDeleteSuccess,
-    isAddSuccess: state.edit.isAddSuccess,
-    settingList: state.list.settings,
-    dailyMailList: state.list.dailyMails,
-    userList: state.list.users,
-    orderList: state.list.orders,
-    orderExtraList: state.list.orderExtras,
-    serverTime: state.list.serverTime,
-    is_away: state.list.is_away,
-    userValidity: state.user.validity || "valid"
+    login: { isLoginSuccess },
+    user: { currentUser },
+    list: { isPending },
+    page: { selected },
+    add: { isSuccess: isAddSuccess },
+    edit: { isSuccess: isEditSuccess },
+    delete: { isSuccess: isDeleteSuccess },
+    dictionary: { list: dictionnaryList },
+    supplier: { list: suppliers },
+    menu: { list: menus },
+    category: { list: categories },
+    allergy: { list: allergies }
+  } = useSelector((state: RootState) => state);
+
+  const userLanguage = currentUser?.language || "";
+  const userType = currentUser?.type || "";
+  const userToken = currentUser?.token || "";
+  const userValidity = currentUser?.validity || "";
+  const userSupplierId = currentUser?.supplier_id || 0;
+  const userId = currentUser?.id || 0;
+
+  // Convertir le dictionnaire au format attendu
+  const formattedDictionnaryList = dictionnaryList.map(dict => ({
+    tag: dict.name,
+    value: dict.value,
+    value_en: dict.language === "en" ? dict.value : ""
   }));
 
   const commonProps = {
     isLoginSuccess,
-    isListPending,
+    isPending,
+    isListPending: isPending,
     userLanguage,
     userType,
     userToken,
     selected,
-    dictionnaryList,
+    dictionnaryList: formattedDictionnaryList,
     actions,
     isEditSuccess,
     isDeleteSuccess,
@@ -172,18 +123,24 @@ const AppRoutes: React.FC = () => {
 
   return (
     <Routes>
-      <Route path="/" element={<App />} />
-      <Route path="/login" element={<Login />} />
+      <Route
+        path="/"
+        element={<App />}
+      />
+      <Route
+        path="/login"
+        element={<Login />}
+      />
       <Route
         path="/menus"
         element={
           <Menus
             {...commonProps}
-            supplierList={supplierList}
-            categoryList={categoryList}
-            menuList={menuList}
-            cartList={cartList}
-            orderListTotalCount={orderListTotalCount}
+            supplierList={suppliers}
+            categoryList={categories}
+            menuList={menus}
+            cartList={[]}
+            orderListTotalCount={0}
             match={{ params }}
           />
         }
@@ -193,13 +150,12 @@ const AppRoutes: React.FC = () => {
         element={
           <Cart
             {...commonProps}
-            cartList={cartList}
-            orderListTotalCount={orderListTotalCount}
-            settingList={settingList}
+            cartList={[]}
+            orderListTotalCount={0}
+            settingList={[]}
             userId={userId}
-            serverTime={serverTime}
-            is_away={is_away}
-            match={{ params }}
+            serverTime="0"
+            is_away={false}
           />
         }
       />
@@ -208,15 +164,14 @@ const AppRoutes: React.FC = () => {
         element={
           <Orders
             {...commonProps}
-            cartList={cartList}
-            orderListTotalCount={orderListTotalCount}
+            cartList={[]}
+            orderListTotalCount={0}
             userSupplierId={userSupplierId}
-            supplierList={supplierList}
-            settingList={settingList}
-            userList={userList}
-            orderList={orderList}
-            orderExtraList={orderExtraList}
-            match={{ params }}
+            supplierList={suppliers}
+            settingList={[]}
+            userList={[]}
+            orderList={[]}
+            orderExtraList={[]}
           />
         }
       />
@@ -225,86 +180,85 @@ const AppRoutes: React.FC = () => {
         element={
           <Orders
             {...commonProps}
-            cartList={cartList}
-            orderListTotalCount={orderListTotalCount}
+            cartList={[]}
+            orderListTotalCount={0}
             userSupplierId={userSupplierId}
-            supplierList={supplierList}
-            settingList={settingList}
-            userList={userList}
-            orderList={orderList}
-            orderExtraList={orderExtraList}
-            match={{ params }}
+            supplierList={suppliers}
+            settingList={[]}
+            userList={[]}
+            orderList={[]}
+            orderExtraList={[]}
           />
         }
       />
       <Route
-        path="/settings"
+        path="/manage-settings"
         element={
           <ManageSettings
             {...commonProps}
-            settingList={settingList}
-            dailyMailList={dailyMailList}
+            settingList={[]}
+            dailyMailList={[]}
           />
         }
       />
       <Route
-        path="/users"
+        path="/manage-users"
         element={
           <ManageUsers
             {...commonProps}
             userId={userId}
-            supplierList={supplierList}
-            userList={userList}
+            supplierList={suppliers}
+            userList={[]}
           />
         }
       />
       <Route
-        path="/suppliers"
+        path="/manage-suppliers"
         element={
           <ManageSuppliers
             {...commonProps}
-            supplierList={supplierList}
+            supplierList={suppliers}
           />
         }
       />
       <Route
-        path="/menu-sizes"
+        path="/manage-menu-sizes"
         element={
           <ManageMenuSizes
             {...commonProps}
-            menuList={menuList}
-            menuSizeList={menuSizeList}
+            menuList={menus}
+            menuSizeList={[]}
           />
         }
       />
       <Route
-        path="/categories"
+        path="/manage-categories"
         element={
           <ManageCategories
             {...commonProps}
-            supplierList={supplierList}
-            categoryList={categoryList}
-            menuList={menuList}
+            supplierList={suppliers}
+            categoryList={categories}
+            menuList={menus}
           />
         }
       />
       <Route
-        path="/allergies"
+        path="/manage-allergies"
         element={
           <ManageAllergies
             {...commonProps}
-            allergyList={allergyList}
+            allergyList={allergies}
           />
         }
       />
       <Route
-        path="/extras"
+        path="/manage-extras"
         element={
           <ManageExtras
             {...commonProps}
-            extraList={extraList}
-            supplierList={supplierList}
-            menuSizeList={menuSizeList}
+            extraList={[]}
+            supplierList={suppliers}
+            menuSizeList={[]}
           />
         }
       />
@@ -313,7 +267,7 @@ const AppRoutes: React.FC = () => {
         element={
           <MenusCarriedAway
             {...commonProps}
-            orderList={orderList}
+            orderList={[]}
           />
         }
       />

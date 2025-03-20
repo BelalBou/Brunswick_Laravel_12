@@ -40,6 +40,51 @@ const userSlice = createSlice({
     },
     resetUserState: (state) => {
       Object.assign(state, initialState);
+    },
+    setUserId: (state, action: PayloadAction<number>) => {
+      if (state.currentUser) {
+        state.currentUser.id = action.payload;
+      }
+    },
+    setUserFirstName: (state, action: PayloadAction<string>) => {
+      if (state.currentUser) {
+        state.currentUser.first_name = action.payload;
+      }
+    },
+    setUserLastName: (state, action: PayloadAction<string>) => {
+      if (state.currentUser) {
+        state.currentUser.last_name = action.payload;
+      }
+    },
+    setUserLanguage: (state, action: PayloadAction<string>) => {
+      if (state.currentUser) {
+        state.currentUser.language = action.payload;
+      }
+    },
+    setUserType: (state, action: PayloadAction<string>) => {
+      if (state.currentUser) {
+        state.currentUser.type = action.payload;
+      }
+    },
+    setUserSupplierId: (state, action: PayloadAction<number | null>) => {
+      if (state.currentUser) {
+        state.currentUser.supplier_id = action.payload;
+      }
+    },
+    setUserEmailAddress: (state, action: PayloadAction<string>) => {
+      if (state.currentUser) {
+        state.currentUser.email_address = action.payload;
+      }
+    },
+    setUserPassword: (state, action: PayloadAction<string>) => {
+      if (state.currentUser) {
+        state.currentUser.password = action.payload;
+      }
+    },
+    setUserToken: (state, action: PayloadAction<string>) => {
+      if (state.currentUser) {
+        state.currentUser.token = action.payload;
+      }
     }
   }
 });
@@ -49,7 +94,16 @@ export const {
   setUserLoading,
   setUserError,
   setUserSuccess,
-  resetUserState
+  resetUserState,
+  setUserId,
+  setUserFirstName,
+  setUserLastName,
+  setUserLanguage,
+  setUserType,
+  setUserSupplierId,
+  setUserEmailAddress,
+  setUserPassword,
+  setUserToken
 } = userSlice.actions;
 
 // Action thunk pour récupérer l'utilisateur courant
@@ -131,5 +185,23 @@ export const checkUserValidity = () => {
   const userData = JSON.parse(user);
   return userData.validity === 'valid';
 };
+
+// Action thunk pour récupérer les clients
+export const getCustomers = createAsyncThunk(
+  'user/getCustomers',
+  async (_, { dispatch }) => {
+    try {
+      dispatch(setUserLoading(true));
+      const response = await axios.get('/api/customers');
+      return response.data;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'An error occurred while getting customers';
+      dispatch(setUserError(errorMessage));
+      return null;
+    } finally {
+      dispatch(setUserLoading(false));
+    }
+  }
+);
 
 export default userSlice.reducer;

@@ -1,37 +1,34 @@
 import React, { Fragment } from "react";
-import classNames from "classnames";
-import { withStyles, Theme } from "@material-ui/core/styles";
-import List from "@material-ui/core/List";
-import ListItem from "@material-ui/core/ListItem";
-import ListItemText from "@material-ui/core/ListItemText";
-import Divider from "@material-ui/core/Divider";
-import ListItemIcon from "@material-ui/core/ListItemIcon";
-import Typography from "@material-ui/core/Typography";
+import { styled } from "@mui/material/styles";
+import List from "@mui/material/List";
+import ListItem from "@mui/material/ListItem";
+import ListItemText from "@mui/material/ListItemText";
+import Divider from "@mui/material/Divider";
+import ListItemIcon from "@mui/material/ListItemIcon";
+import Typography from "@mui/material/Typography";
 import MenusListItem from "../MenusListItem/MenusListItem";
 import placeHolderIcon from "../../images/placeholder.svg";
 import IMenu from "../../interfaces/IMenu";
 import S3_BASE_URL from "../../utils/S3Utils/S3Utils";
 
-const styles = (theme: Theme) => ({
-  list: {
-    width: "100%"
-  },
-  margin: {
-    marginTop: theme.spacing.unit
-  },
-  img: {
-    width: "96px",
-    height: "96px",
-    borderRadius: "3px"
-  },
-  subtitle1: {
-    fontWeight: 550
-  }
+const StyledList = styled(List)({
+  width: "100%"
 });
 
-interface IProvidedProps {
-  classes: any;
-}
+const StyledTypography = styled(Typography)(({ theme }) => ({
+  marginTop: theme.spacing(1)
+}));
+
+const StyledPriceTypography = styled(Typography)(({ theme }) => ({
+  marginTop: theme.spacing(1),
+  fontWeight: 550
+}));
+
+const StyledImg = styled('img')({
+  width: "96px",
+  height: "96px",
+  borderRadius: "3px"
+});
 
 interface IProps {
   userLanguage: string;
@@ -39,13 +36,12 @@ interface IProps {
   onOpenAdd: (menu: IMenu) => void;
 }
 
-const MenusList = ({
+const MenusList: React.FC<IProps> = ({
   userLanguage,
   menuList,
-  classes,
   onOpenAdd
-}: IProvidedProps & IProps) => (
-  <List className={classes.list}>
+}) => (
+  <StyledList>
     {menuList
       .filter(menu =>
         menu.menu_size_id
@@ -73,21 +69,14 @@ const MenusList = ({
                   }
                   secondary={
                     <>
-                      {menu.MenuSize && (
-                        <Typography
-                          color="textSecondary"
-                          className={classes.margin}
-                        >
+                      {menu.menu_size && (
+                        <StyledTypography color="textSecondary">
                           {userLanguage === "en"
-                            ? menu.MenuSize.title_en
-                            : menu.MenuSize.title}
-                        </Typography>
+                            ? menu.menu_size.title_en
+                            : menu.menu_size.title}
+                        </StyledTypography>
                       )}
-                      <Typography
-                        color="textSecondary"
-                        className={classes.margin}
-                        noWrap
-                      >
+                      <StyledTypography color="textSecondary" noWrap>
                         {menu.description ? (
                           <>
                             {menu.description}
@@ -96,31 +85,24 @@ const MenusList = ({
                         ) : (
                           ""
                         )}
-                      </Typography>
-                      <Typography
-                        variant="subtitle1"
-                        color="primary"
-                        className={classNames(
-                          classes.subtitle1,
-                          classes.margin
-                        )}
-                      >
-                        {parseFloat(menu.pricing).toLocaleString("fr", {
+                      </StyledTypography>
+                      <StyledPriceTypography variant="subtitle1" color="primary">
+                        {menu.pricing.toLocaleString("fr", {
                           minimumFractionDigits: 2
                         })}{" "}
                         €
-                      </Typography>
+                      </StyledPriceTypography>
                     </>
                   }
                 />
                 <ListItemIcon>
-                  <img
+                  <StyledImg
                     src={
                       menu.picture
                         ? `${S3_BASE_URL}/${menu.picture}`
                         : placeHolderIcon
                     }
-                    className={classes.img}
+                    alt={menu.title}
                   />
                 </ListItemIcon>
               </ListItem>
@@ -129,7 +111,7 @@ const MenusList = ({
           )}
         </Fragment>
       ))}
-  </List>
+  </StyledList>
 );
 
-export default withStyles(styles, { withTheme: true })(MenusList);
+export default MenusList;

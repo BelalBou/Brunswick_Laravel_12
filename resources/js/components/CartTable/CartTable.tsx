@@ -1,15 +1,20 @@
 import React from "react";
-import Table from "@material-ui/core/Table";
-import TableBody from "@material-ui/core/TableBody";
-import TableCell from "@material-ui/core/TableCell";
-import TableHead from "@material-ui/core/TableHead";
-import TableRow from "@material-ui/core/TableRow";
+import { styled } from "@mui/material/styles";
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableHead from "@mui/material/TableHead";
+import TableRow from "@mui/material/TableRow";
 import CartTableItem from "../CartTableItem/CartTableItem";
 import CartEmpty from "../CartEmpty/CartEmpty";
 import ICart from "../../interfaces/ICart";
 import IExtra from "../../interfaces/IExtra";
 
-interface IProps {
+const StyledTable = styled(Table)({
+  width: "100%"
+});
+
+interface CartTableProps {
   cartList: ICart[];
   readOnly: boolean;
   userType: string;
@@ -24,7 +29,7 @@ interface IProps {
   checkDictionnary: (tag: string) => string;
 }
 
-const CartTable = ({
+const CartTable: React.FC<CartTableProps> = ({
   cartList,
   readOnly,
   userType,
@@ -32,10 +37,10 @@ const CartTable = ({
   onEditShoppingCart,
   onDeleteShoppingCart,
   checkDictionnary
-}: IProps) => (
+}): JSX.Element => (
   <>
     {cartList && cartList.length > 0 && (
-      <Table>
+      <StyledTable>
         <TableHead>
           <TableRow>
             <TableCell>Menu</TableCell>
@@ -61,7 +66,7 @@ const CartTable = ({
             />
           ))}
         </TableBody>
-      </Table>
+      </StyledTable>
     )}
     {(!cartList || cartList.length === 0) && (
       <CartEmpty checkDictionnary={checkDictionnary} />

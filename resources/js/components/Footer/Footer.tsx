@@ -1,29 +1,23 @@
 import React from "react";
-import { withStyles, Theme } from "@material-ui/core/styles";
-import Typography from "@material-ui/core/Typography";
-import Link from "@material-ui/core/Link";
+import { styled } from "@mui/material/styles";
+import Typography from "@mui/material/Typography";
+import Link from "@mui/material/Link";
 
-const styles = (theme: Theme) => ({
-  footer: {
-    backgroundColor: theme.palette.background.paper,
-    padding: theme.spacing.unit * 2
-  }
-});
+const StyledFooter = styled("footer")(({ theme }) => ({
+  backgroundColor: theme.palette.background.paper,
+  padding: theme.spacing(2)
+}));
 
-interface IProvidedProps {
-  classes: any;
-}
-
-const Footer = ({ classes }: IProvidedProps) => (
-  <footer className={classes.footer}>
-    <Typography variant="subtitle1" align="center" color="textSecondary">
+const Footer: React.FC = (): JSX.Element => (
+  <StyledFooter>
+    <Typography variant="subtitle1" align="center" color="text.secondary">
       Copyright © 2019{" "}
       <Link href="https://brunswick.com/" target="_blank">
         Brunswick
       </Link>
       . All Rights Reserved.
     </Typography>
-  </footer>
+  </StyledFooter>
 );
 
-export default withStyles(styles)(Footer);
+export default Footer;

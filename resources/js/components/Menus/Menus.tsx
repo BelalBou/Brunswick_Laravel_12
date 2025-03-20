@@ -1,13 +1,11 @@
-import React, { Component, Fragment } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Navigate } from "react-router-dom";
-import { throttle } from "throttle-debounce";
-import classNames from "classnames";
-import { withStyles, Theme, createStyles } from "@material-ui/core/styles";
-import Typography from "@material-ui/core/Typography";
-import Tabs from "@material-ui/core/Tabs";
-import Tab from "@material-ui/core/Tab";
-import ListSubheader from "@material-ui/core/ListSubheader";
-import RestaurantIcon from "@material-ui/icons/Restaurant";
+import { styled } from "@mui/material/styles";
+import Typography from "@mui/material/Typography";
+import Tabs from "@mui/material/Tabs";
+import Tab from "@mui/material/Tab";
+import ListSubheader from "@mui/material/ListSubheader";
+import RestaurantIcon from "@mui/icons-material/Restaurant";
 import MenuBar from "../MenuBar/MenuBar";
 import Footer from "../Footer/Footer";
 import MenuCard from "../MenuCard/MenuCard";
@@ -24,50 +22,49 @@ import ISupplier from "../../interfaces/ISupplier";
 import emptyMenu from "../../images/menu.svg";
 import axios from "axios";
 
-const styles = (theme: Theme) =>
-  createStyles({
-    heroUnit: {
-      backgroundColor: theme.palette.background.paper,
-      borderRadius: ".625rem"
-    },
-    layout: {
-      width: "auto",
-      margin: "0 auto"
-    },
-    cardGrid: {
-      padding: 0,
-      [theme.breakpoints.up("md")]: {
-        padding: theme.spacing(4)
-      }
-    },
-    listSubHeader: {
-      marginTop: theme.spacing(6),
-      marginBottom: theme.spacing(2)
-    },
-    h5: {
-      fontWeight: 600
-    },
-    sectionDesktop: {
-      display: "none",
-      [theme.breakpoints.up("md")]: {
-        display: "flex"
-      }
-    },
-    sectionMobile: {
-      display: "flex",
-      [theme.breakpoints.up("md")]: {
-        display: "none"
-      }
-    },
-    main: {
-      flex: 1
-    }
-  });
+const StyledMain = styled('main')({
+  flex: 1
+});
 
-interface IProvidedProps {
-  classes: any;
-  theme: Theme;
-}
+const StyledLayout = styled('div')({
+  width: "auto",
+  margin: "0 auto"
+});
+
+const StyledCardGrid = styled('div')(({ theme }) => ({
+  padding: 0,
+  [theme.breakpoints.up("md")]: {
+    padding: theme.spacing(4)
+  }
+}));
+
+const StyledHeroUnit = styled('div')(({ theme }) => ({
+  backgroundColor: theme.palette.background.paper,
+  borderRadius: ".625rem"
+}));
+
+const StyledListSubHeader = styled(ListSubheader)(({ theme }) => ({
+  marginTop: theme.spacing(6),
+  marginBottom: theme.spacing(2)
+}));
+
+const StyledH5 = styled(Typography)({
+  fontWeight: 600
+});
+
+const StyledSectionDesktop = styled('div')(({ theme }) => ({
+  display: "none",
+  [theme.breakpoints.up("md")]: {
+    display: "flex"
+  }
+}));
+
+const StyledSectionMobile = styled('div')(({ theme }) => ({
+  display: "flex",
+  [theme.breakpoints.up("md")]: {
+    display: "none"
+  }
+}));
 
 interface IProps {
   isLoginSuccess: boolean;
@@ -87,74 +84,66 @@ interface IProps {
   match: any;
 }
 
-interface IState {
-  selectedSupplier: number;
-  shoppingCartOrdered: boolean;
-  openDetails: boolean;
-  detailsTitle: string;
-  detailsSize: string;
-  detailsDescription: string;
-  detailsAllergies: string[];
-  openAdd: boolean;
-  addMenu: any;
-  collapsed: boolean;
-  redirectTo: string;
-  searchTerm: string;
-}
+const Menus: React.FC<IProps> = ({
+  isLoginSuccess,
+  isListPending,
+  userToken,
+  userLanguage,
+  userType,
+  userValidity,
+  selected,
+  dictionnaryList,
+  supplierList,
+  categoryList,
+  menuList,
+  cartList,
+  orderListTotalCount,
+  actions,
+  match
+}) => {
+  const [selectedSupplier, setSelectedSupplier] = useState(1);
+  const [shoppingCartOrdered, setShoppingCartOrdered] = useState(true);
+  const [openDetails, setOpenDetails] = useState(false);
+  const [detailsTitle, setDetailsTitle] = useState("");
+  const [detailsSize, setDetailsSize] = useState("");
+  const [detailsDescription, setDetailsDescription] = useState("");
+  const [detailsAllergies, setDetailsAllergies] = useState<string[]>([]);
+  const [openAdd, setOpenAdd] = useState(false);
+  const [addMenu, setAddMenu] = useState<IMenu | null>(null);
+  const [collapsed, setCollapsed] = useState(false);
+  const [redirectTo, setRedirectTo] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const timerRef = useRef<NodeJS.Timeout>();
 
-class Menus extends Component<IProvidedProps & IProps, IState> {
-  private timer: any;
-
-  constructor(props: IProvidedProps & IProps) {
-    super(props);
-
-    this.timer = null;
-    this.state = {
-      selectedSupplier: 1,
-      shoppingCartOrdered: true,
-      openDetails: false,
-      detailsTitle: "",
-      detailsSize: "",
-      detailsDescription: "",
-      detailsAllergies: [],
-      openAdd: false,
-      addMenu: null,
-      collapsed: false,
-      redirectTo: "",
-      searchTerm: ""
-    };
-  }
-
-  componentDidMount() {
-    const { isLoginSuccess, userToken } = this.props;
-    this.timer = setInterval(this.tick, 60000);
+  useEffect(() => {
+    timerRef.current = setInterval(tick, 60000);
     if (isLoginSuccess && userToken !== "") {
-      this.refresh();
+      refresh();
     }
-    this.handleChangeSelected(1);
-  }
+    handleChangeSelected(1);
 
-  componentWillUnmount() {
-    clearInterval(this.timer);
-  }
-
-  componentDidUpdate(prevProps: IProps, prevState: IState) {
-    const { userToken, supplierList } = this.props;
-    if (userToken !== prevProps.userToken) {
-      this.refresh();
-    }
-    if (supplierList !== prevProps.supplierList) {
-      if (supplierList && supplierList.length > 0) {
-        this.props.actions.getCategoriesSupplier(supplierList[0].id);
-        this.props.actions.getMenusSupplier(supplierList[0].id);
-        this.setState({
-          selectedSupplier: supplierList[0].id
-        });
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
       }
-    }
-  }
+    };
+  }, []);
 
-  tick = async () => {
+  useEffect(() => {
+    if (userToken) {
+      refresh();
+    }
+  }, [userToken]);
+
+  useEffect(() => {
+    if (supplierList && supplierList.length > 0) {
+      actions.getCategoriesSupplier(supplierList[0].id);
+      actions.getMenusSupplier(supplierList[0].id);
+      setSelectedSupplier(supplierList[0].id);
+    }
+  }, [supplierList]);
+
+  const tick = async () => {
     let res = await axios({
       method: "get",
       url: "/api/users/check_validity",
@@ -163,52 +152,41 @@ class Menus extends Component<IProvidedProps & IProps, IState> {
     let { data } = await res;
     let userValidity = data;
     if (userValidity === "not valid") {
-      this.props.actions.logout();
+      actions.logout();
     }
   };
 
-/*   tick = async () => {
-    await this.props.actions.checkUserValidity();
-    const { userValidity } = this.props;
-    if (userValidity === "not valid") {
-      this.props.actions.logout();
-    }
-  };
- */
-
-  refresh = () => {
-    this.tick();
-
+  const refresh = () => {
+    tick();
     const {
       getDictionnaries,
       getSuppliers,
       getOrdersTotalCountForCustomer
-    } = this.props.actions;
+    } = actions;
     getDictionnaries();
     getSuppliers();
     getOrdersTotalCountForCustomer();
   };
 
-  handleChangeSelectedSupplier = (
-    event: React.ChangeEvent<{}>,
+  const handleChangeSelectedSupplier = (
+    event: React.SyntheticEvent,
     value: number
   ) => {
-    this.setState({ selectedSupplier: value });
-    this.props.actions.getCategoriesSupplier(value);
-    this.props.actions.getMenusSupplier(value);
+    setSelectedSupplier(value);
+    actions.getCategoriesSupplier(value);
+    actions.getMenusSupplier(value);
   };
 
-  handleChangeSelected = (selected: number) => {
-    this.props.actions.setSelected(selected);
+  const handleChangeSelected = (selected: number) => {
+    actions.setSelected(selected);
     localStorage.setItem("selected", selected.toString());
   };
 
-  handleLogout = () => {
-    this.props.actions.logout();
+  const handleLogout = () => {
+    actions.logout();
   };
 
-  handleAddShoppingCart = (item: ICart) => {
-    const { cartList } = this.props;
+  const handleAddShoppingCart = (item: ICart) => {
     let shoppingCartCopy = [...cartList];
     let exist = shoppingCartCopy.filter(x => x.menu.id === item.menu.id);
     if (exist && exist.length > 0) {
@@ -220,168 +198,124 @@ class Menus extends Component<IProvidedProps & IProps, IState> {
     } else {
       shoppingCartCopy.push(item);
     }
-    this.props.actions.setCartList(shoppingCartCopy);
+    actions.setCartList(shoppingCartCopy);
     localStorage.setItem("cartList", JSON.stringify(shoppingCartCopy));
-    this.setState({
-      redirectTo: "/cart/success"
-    });
+    setRedirectTo("/cart/success");
   };
 
-  handleCloseSnackbarOrdered = () => {
-    this.setState({
-      shoppingCartOrdered: false
-    });
+  const handleCloseSnackbarOrdered = () => {
+    setShoppingCartOrdered(false);
   };
 
-  handleOpenDetails = (
+  const handleOpenDetails = (
     title: string,
     size: string,
     description: string,
     allergies: string[]
   ) => {
-    this.setState({
-      openDetails: true,
-      detailsTitle: title,
-      detailsSize: size,
-      detailsDescription: description,
-      detailsAllergies: allergies
-    });
+    setOpenDetails(true);
+    setDetailsTitle(title);
+    setDetailsSize(size);
+    setDetailsDescription(description);
+    setDetailsAllergies(allergies);
   };
 
-  handleCloseDetails = () => {
-    this.setState({
-      openDetails: false
-    });
+  const handleCloseDetails = () => {
+    setOpenDetails(false);
   };
 
-  handleOpenAdd = (menu: IMenu) => {
-    this.setState({
-      openAdd: true,
-      addMenu: menu
-    });
+  const handleOpenAdd = (menu: IMenu) => {
+    setOpenAdd(true);
+    setAddMenu(menu);
   };
 
-  handleCloseAdd = () => {
-    this.setState({
-      openAdd: false
-    });
+  const handleCloseAdd = () => {
+    setOpenAdd(false);
   };
 
-  handleSearch = (search: string) => {
-    const { selectedSupplier } = this.state;
-    this.setState({
-      searchTerm: search
-    });
+  const handleSearch = (search: string) => {
+    setSearchTerm(search);
   };
 
-  checkDictionnary = (tag: string) => {
-    const { dictionnaryList, userLanguage } = this.props;
+  const getDictionaryValue = (tag: string) => {
     return checkDictionnary(tag, dictionnaryList, userLanguage);
   };
 
-  render() {
-    const {
-      selectedSupplier,
-      shoppingCartOrdered,
-      openDetails,
-      detailsTitle,
-      detailsSize,
-      detailsDescription,
-      detailsAllergies,
-      openAdd,
-      addMenu,
-      redirectTo,
-      searchTerm
-    } = this.state;
-    const {
-      isLoginSuccess,
-      isListPending,
-      supplierList,
-      categoryList,
-      menuList,
-      cartList,
-      orderListTotalCount,
-      userType,
-      selected,
-      userLanguage,
-      classes,
-      theme,
-      match
-    } = this.props;
+  const searchResults = menuList.filter(
+    x =>
+      x.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      x.title_en.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (x.menu_size
+        ? x.menu_size.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          x.menu_size.title_en.toLowerCase().includes(searchTerm.toLowerCase())
+        : false) ||
+      x.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      x.description_en.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      x.category.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      x.category.title_en.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
-    const searchResults = menuList.filter(
-      x =>
-        x.title.toLowerCase().includes(this.state.searchTerm.toLowerCase()) ||
-        x.title_en.toLowerCase().includes(this.state.searchTerm.toLowerCase()) ||
-        (x.MenuSize
-          ? x.MenuSize.title.toLowerCase().includes(this.state.searchTerm.toLowerCase()) ||
-            x.MenuSize.title_en.toLowerCase().includes(this.state.searchTerm.toLowerCase())
-          : false) ||
-        x.description.toLowerCase().includes(this.state.searchTerm.toLowerCase()) ||
-        x.description_en.toLowerCase().includes(this.state.searchTerm.toLowerCase()) ||
-        x.Category.title.toLowerCase().includes(this.state.searchTerm.toLowerCase()) ||
-        x.Category.title_en.toLowerCase().includes(this.state.searchTerm.toLowerCase())
-    );
+  if (!isLoginSuccess) {
+    return <Navigate to="/login" replace />;
+  }
+  if (userType === "supplier") {
+    return <Navigate to="/orders" replace />;
+  }
+  if (redirectTo) {
+    return <Navigate to={redirectTo} replace />;
+  }
 
-    if (!isLoginSuccess) {
-      return <Navigate to="/login" replace />;
-    }
-    if (userType === "supplier") {
-      return <Navigate to="/orders" replace />;
-    }
-    if (redirectTo) {
-      return <Navigate to={redirectTo} replace />;
-    }
-    return (
-      <MenuBar
-        isLoginSuccess={isLoginSuccess}
-        isListPending={isListPending}
-        userType={userType}
-        cartItems={cartList ? cartList.length : 0}
-        orderItems={orderListTotalCount || 0}
-        selected={selected}
-        search
-        title="Menus"
-        onLogout={this.handleLogout}
-        onSearch={this.handleSearch}
-        onChangeSelected={this.handleChangeSelected}
-        checkDictionnary={this.checkDictionnary}
-      >
-        {shoppingCartOrdered && match.params.id === "success" && (
-          <SnackbarAction
-            success
-            message={this.checkDictionnary("_COMMANDE_SUCCES")}
-            onClose={this.handleCloseSnackbarOrdered}
-          />
-        )}
-        {openDetails && (
-          <DetailsMenu
-            title={detailsTitle}
-            size={detailsSize}
-            description={detailsDescription}
-            allergies={detailsAllergies}
-            onClose={this.handleCloseDetails}
-          />
-        )}
-        {openAdd && (
-          <AddCart
-            menu={addMenu}
-            menus={menuList.filter(x => x.title === addMenu.title)}
-            userLanguage={userLanguage}
-            onAdd={this.handleAddShoppingCart}
-            onClose={this.handleCloseAdd}
-            checkDictionnary={this.checkDictionnary}
-          />
-        )}
-        <main className={classes.main}>
-          <div className={classNames(classes.layout, classes.cardGrid)}>
-            <div className={classes.heroUnit}>
+  return (
+    <MenuBar
+      isLoginSuccess={isLoginSuccess}
+      isListPending={isListPending}
+      userType={userType}
+      cartItems={cartList ? cartList.length : 0}
+      orderItems={orderListTotalCount || 0}
+      selected={selected}
+      search
+      title="Menus"
+      onLogout={handleLogout}
+      onSearch={handleSearch}
+      onChangeSelected={handleChangeSelected}
+      checkDictionnary={getDictionaryValue}
+    >
+      {shoppingCartOrdered && match.params.id === "success" && (
+        <SnackbarAction
+          success
+          message={getDictionaryValue("_COMMANDE_SUCCES")}
+          onClose={handleCloseSnackbarOrdered}
+        />
+      )}
+      {openDetails && (
+        <DetailsMenu
+          title={detailsTitle}
+          size={detailsSize}
+          description={detailsDescription}
+          allergies={detailsAllergies}
+          onClose={handleCloseDetails}
+        />
+      )}
+      {openAdd && addMenu && (
+        <AddCart
+          menu={addMenu}
+          menus={menuList.filter(x => x.title === addMenu.title)}
+          userLanguage={userLanguage}
+          onAdd={handleAddShoppingCart}
+          onClose={handleCloseAdd}
+          checkDictionnary={getDictionaryValue}
+        />
+      )}
+      <StyledMain>
+        <StyledLayout>
+          <StyledCardGrid>
+            <StyledHeroUnit>
               <Tabs
                 value={selectedSupplier}
                 indicatorColor="primary"
                 textColor="primary"
                 variant="fullWidth"
-                onChange={this.handleChangeSelectedSupplier}
+                onChange={handleChangeSelectedSupplier}
               >
                 {supplierList
                   .filter(supplier =>
@@ -399,113 +333,87 @@ class Menus extends Component<IProvidedProps & IProps, IState> {
                   ))}
               </Tabs>
               {supplierList.map(supplier => (
-                <Fragment key={supplier.id}>
+                <React.Fragment key={supplier.id}>
                   {selectedSupplier === supplier.id && (
-                    <TabContainer dir={theme.direction}>
-                    {searchTerm && searchTerm != '' && searchResults
-                          .length == 0 && (
-                            <div className={classes.div}><br /><br />
-    <Typography
-      variant="h6"
-      align="left"
-      color="textPrimary"
-      gutterBottom
-      className={classes.h5}
-    >
-      {this.checkDictionnary("_NO_RESULTS_FOR_YOUR_SEARCH")} :
-    </Typography>
-    <Typography
-      variant="subtitle1"
-      align="left"
-      color="textSecondary"
-      gutterBottom
-      className={classes.h5}
-    ><i>{searchTerm}</i></Typography>
-</div>
-                          )}
+                    <TabContainer>
+                      {searchTerm && searchTerm !== '' && searchResults.length === 0 && (
+                        <div>
+                          <br /><br />
+                          <Typography
+                            variant="h6"
+                            align="left"
+                            color="textPrimary"
+                            gutterBottom
+                            sx={{ fontWeight: 600 }}
+                          >
+                            {getDictionaryValue("_NO_RESULTS_FOR_YOUR_SEARCH")} :
+                          </Typography>
+                          <Typography
+                            variant="subtitle1"
+                            align="left"
+                            color="textSecondary"
+                            gutterBottom
+                            sx={{ fontWeight: 600 }}
+                          >
+                            <i>{searchTerm}</i>
+                          </Typography>
+                        </div>
+                      )}
 
                       {categoryList.map(category => (
-                        <Fragment key={category.id}>
-                          {searchResults
-                          .filter(
+                        <React.Fragment key={category.id}>
+                          {searchResults.filter(
                             menu => menu.category_id === category.id
                           ).length > 0 && (
                             <>
-                              <ListSubheader
-                                className={classes.listSubHeader}
-                                disableSticky
-                              >
-                                <Typography variant="h5" className={classes.h5}>
+                              <StyledListSubHeader disableSticky>
+                                <StyledH5 variant="h5">
                                   {userLanguage === "en"
                                     ? category.title_en
                                     : category.title}
-                                </Typography>
-                              </ListSubheader>
-                              <div className={classes.sectionDesktop}>
+                                </StyledH5>
+                              </StyledListSubHeader>
+                              <StyledSectionDesktop>
                                 <MenuCard
                                   userLanguage={userLanguage}
-                                  menuList={menuList.filter(
-                                      x =>
-                                        x.title.toLowerCase().includes(this.state.searchTerm.toLowerCase()) ||
-                                        x.title_en.toLowerCase().includes(this.state.searchTerm.toLowerCase()) ||
-                                        (x.MenuSize
-                                          ? x.MenuSize.title.toLowerCase().includes(this.state.searchTerm.toLowerCase()) ||
-                                            x.MenuSize.title_en.toLowerCase().includes(this.state.searchTerm.toLowerCase())
-                                          : false) ||
-                                        x.description.toLowerCase().includes(this.state.searchTerm.toLowerCase()) ||
-                                        x.description_en.toLowerCase().includes(this.state.searchTerm.toLowerCase()) ||
-                                        x.Category.title.toLowerCase().includes(this.state.searchTerm.toLowerCase()) ||
-                                        x.Category.title_en.toLowerCase().includes(this.state.searchTerm.toLowerCase())
-                                    )
+                                  menuList={searchResults
                                     .filter(
                                       menu => menu.category_id === category.id
                                     )
                                     .sort((a, b) =>
                                       a.title.localeCompare(b.title)
                                     )}
-                                  onOpenAdd={this.handleOpenAdd}
+                                  onOpenAdd={handleOpenAdd}
                                 />
-                              </div>
-                              <div className={classes.sectionMobile}>
+                              </StyledSectionDesktop>
+                              <StyledSectionMobile>
                                 <MenusList
                                   userLanguage={userLanguage}
-                                  menuList={menuList.filter(
-                                    x =>
-                                      x.title.toLowerCase().includes(this.state.searchTerm.toLowerCase()) ||
-                                      x.title_en.toLowerCase().includes(this.state.searchTerm.toLowerCase()) ||
-                                      (x.MenuSize
-                                        ? x.MenuSize.title.toLowerCase().includes(this.state.searchTerm.toLowerCase()) ||
-                                          x.MenuSize.title_en.toLowerCase().includes(this.state.searchTerm.toLowerCase())
-                                        : false) ||
-                                      x.description.toLowerCase().includes(this.state.searchTerm.toLowerCase()) ||
-                                      x.description_en.toLowerCase().includes(this.state.searchTerm.toLowerCase()) ||
-                                      x.Category.title.toLowerCase().includes(this.state.searchTerm.toLowerCase()) ||
-                                      x.Category.title_en.toLowerCase().includes(this.state.searchTerm.toLowerCase())
-                                  )
+                                  menuList={searchResults
                                     .filter(
                                       menu => menu.category_id === category.id
                                     )
                                     .sort((a, b) =>
                                       a.title.localeCompare(b.title)
                                     )}
-                                  onOpenAdd={this.handleOpenAdd}
+                                  onOpenAdd={handleOpenAdd}
                                 />
-                              </div>
+                              </StyledSectionMobile>
                             </>
                           )}
-                        </Fragment>
+                        </React.Fragment>
                       ))}
                     </TabContainer>
                   )}
-                </Fragment>
+                </React.Fragment>
               ))}
-            </div>
-          </div>
-        </main>
-        <Footer />
-      </MenuBar>
-    );
-  }
-}
+            </StyledHeroUnit>
+          </StyledCardGrid>
+        </StyledLayout>
+      </StyledMain>
+      <Footer />
+    </MenuBar>
+  );
+};
 
-export default withStyles(styles, { withTheme: true })(Menus);
+export default Menus;

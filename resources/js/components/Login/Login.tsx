@@ -2,67 +2,60 @@ import React from "react";
 import { Navigate, useParams } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import emailValidator from "email-validator";
-import { Theme, createStyles } from "@material-ui/core";
-import Avatar from "@material-ui/core/Avatar";
-import Button from "@material-ui/core/Button";
-import FormControl from "@material-ui/core/FormControl";
-import Input from "@material-ui/core/Input";
-import InputLabel from "@material-ui/core/InputLabel";
-import Paper from "@material-ui/core/Paper";
-import Typography from "@material-ui/core/Typography";
-import withStyles from "@material-ui/core/styles/withStyles";
-import LinearProgress from "@material-ui/core/LinearProgress";
-import FormControlLabel from "@material-ui/core/FormControlLabel";
-import Checkbox from "@material-ui/core/Checkbox";
-import FormHelperText from "@material-ui/core/FormHelperText";
-import LockOutlinedIcon from "@material-ui/icons/LockOutlined";
+import { styled } from "@mui/material/styles";
+import Avatar from "@mui/material/Avatar";
+import Button from "@mui/material/Button";
+import FormControl from "@mui/material/FormControl";
+import Input from "@mui/material/Input";
+import InputLabel from "@mui/material/InputLabel";
+import Paper from "@mui/material/Paper";
+import Typography from "@mui/material/Typography";
+import LinearProgress from "@mui/material/LinearProgress";
+import FormControlLabel from "@mui/material/FormControlLabel";
+import Checkbox from "@mui/material/Checkbox";
+import FormHelperText from "@mui/material/FormHelperText";
+import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import Snackbar from "../Snackbar/Snackbar";
 import checkDictionnary from "../../utils/CheckDictionnary/CheckDictionnary";
-import { RootState, AppDispatch } from "../../types/redux";
-import { login, register, resetPassword, editToken } from "../../actions/login";
-import { getDictionnaries } from "../../actions/dictionnary";
+import { RootState, AppDispatch } from "../../types/redux.d";
+import { login } from "../../actions/login";
+import { getDictionaries } from "../../actions/dictionnary";
 
-const styles = (theme: Theme) =>
-  createStyles({
-    main: {
-      width: "auto",
-      display: "block",
-      marginLeft: theme.spacing(3),
-      marginRight: theme.spacing(3),
-      [theme.breakpoints.up(400 + theme.spacing(3) * 2)]: {
-        width: 400,
-        marginLeft: "auto",
-        marginRight: "auto"
-      }
-    },
-    paper: {
-      marginTop: theme.spacing(8),
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center",
-      padding: `${theme.spacing(2)}px ${theme.spacing(3)}px ${theme.spacing(3)}px`
-    },
-    avatar: {
-      margin: theme.spacing(1),
-      backgroundColor: theme.palette.primary.main
-    },
-    form: {
-      width: "100%",
-      marginTop: theme.spacing(1)
-    },
-    submit: {
-      marginTop: theme.spacing(3)
-    },
-    margin: {
-      margin: theme.spacing(1)
-    }
-  });
+const StyledMain = styled("main")(({ theme }) => ({
+  width: "auto",
+  display: "block",
+  marginLeft: theme.spacing(3),
+  marginRight: theme.spacing(3),
+  [theme.breakpoints.up(400 + theme.spacing(3) * 2)]: {
+    width: 400,
+    marginLeft: "auto",
+    marginRight: "auto"
+  }
+}));
 
-interface IProvidedProps {
-  classes: any;
-}
+const StyledPaper = styled(Paper)(({ theme }) => ({
+  marginTop: theme.spacing(8),
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  padding: `${theme.spacing(2)}px ${theme.spacing(3)}px ${theme.spacing(3)}px`
+}));
 
-interface IState {
+const StyledAvatar = styled(Avatar)(({ theme }) => ({
+  margin: theme.spacing(1),
+  backgroundColor: theme.palette.primary.main
+}));
+
+const StyledForm = styled("form")(({ theme }) => ({
+  width: "100%",
+  marginTop: theme.spacing(1)
+}));
+
+const StyledSubmitButton = styled(Button)(({ theme }) => ({
+  marginTop: theme.spacing(3)
+}));
+
+interface LoginState {
   emailAddress: string;
   password: string;
   confirmPassword: string;
@@ -74,32 +67,37 @@ interface IState {
   resetPassword: boolean;
 }
 
-const Login = ({ classes }: IProvidedProps) => {
+interface LoginCredentials {
+  email: string;
+  password: string;
+}
+
+const Login: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { id: token } = useParams();
   const {
     isLoginPending,
     isLoginSuccess,
     loginError,
-    isListPending,
-    isEditPending,
+    listPending,
+    editPending,
     isEditSuccess,
     editError,
     userLanguage,
-    dictionnaryList
+    dictionaryList
   } = useSelector((state: RootState) => ({
     isLoginPending: state.login.isLoginPending,
     isLoginSuccess: state.login.isLoginSuccess,
     loginError: state.login.loginError,
-    isListPending: state.list.isListPending,
-    isEditPending: state.edit.isEditPending,
-    isEditSuccess: state.edit.isEditSuccess,
-    editError: state.edit.editError,
-    userLanguage: state.user.language,
-    dictionnaryList: state.dictionnary.list
+    listPending: state.list.isPending,
+    editPending: state.edit.isPending,
+    isEditSuccess: state.edit.isSuccess,
+    editError: state.edit.error,
+    userLanguage: state.user.userLanguage,
+    dictionaryList: state.dictionary.list
   }));
 
-  const [state, setState] = React.useState<IState>({
+  const [state, setState] = React.useState<LoginState>({
     emailAddress: "",
     password: "",
     confirmPassword: "",
@@ -113,13 +111,13 @@ const Login = ({ classes }: IProvidedProps) => {
 
   React.useEffect(() => {
     if (token) {
-      logout_and_edit(token);
+      handleEditToken(token);
     }
-    dispatch(getDictionnaries());
+    dispatch(getDictionaries());
   }, [token, dispatch]);
 
-  const logout_and_edit = async (token: string) => {
-    dispatch(editToken(token));
+  const handleEditToken = async (token: string) => {
+    dispatch({ type: "EDIT_TOKEN", payload: token });
     setState(prev => ({
       ...prev,
       register: true
@@ -181,7 +179,11 @@ const Login = ({ classes }: IProvidedProps) => {
   const handleLogin = () => {
     const { emailAddress, password } = state;
     if (emailValidator.validate(emailAddress) && password) {
-      dispatch(login(emailAddress, password));
+      const credentials: LoginCredentials = {
+        email: emailAddress,
+        password: password
+      };
+      dispatch(login(credentials));
       setState(prev => ({
         ...prev,
         openLogin: true
@@ -210,7 +212,7 @@ const Login = ({ classes }: IProvidedProps) => {
       /^((?=\S*?[A-Z])(?=\S*?[a-z])(?=\S*?[0-9]).{6,})\S$/.test(password) &&
       /^((?=\S*?[A-Z])(?=\S*?[a-z])(?=\S*?[0-9]).{6,})\S$/.test(confirmPassword)
     ) {
-      dispatch(register(password, confirmPassword));
+      dispatch({ type: "REGISTER", payload: { password, confirmPassword } });
       setState(prev => ({
         ...prev,
         openEdit: true,
@@ -237,7 +239,7 @@ const Login = ({ classes }: IProvidedProps) => {
   const handleResetPassword = () => {
     const { emailAddress } = state;
     if (emailValidator.validate(emailAddress)) {
-      dispatch(resetPassword(emailAddress));
+      dispatch({ type: "RESET_PASSWORD", payload: emailAddress });
       setState(prev => ({
         ...prev,
         openReset: true
@@ -250,8 +252,8 @@ const Login = ({ classes }: IProvidedProps) => {
     }
   };
 
-  const checkDictionnary = (tag: string) => {
-    return checkDictionnary(tag, dictionnaryList, userLanguage);
+  const getDictionaryValue = (tag: string) => {
+    return checkDictionnary(tag, dictionaryList, userLanguage);
   };
 
   if (isLoginSuccess) {
@@ -272,18 +274,18 @@ const Login = ({ classes }: IProvidedProps) => {
 
   return (
     <>
-      <main className={classes.main}>
-        <Paper className={classes.paper}>
-          <Avatar className={classes.avatar}>
+      <StyledMain>
+        <StyledPaper>
+          <StyledAvatar>
             <LockOutlinedIcon />
-          </Avatar>
+          </StyledAvatar>
           <Typography component="h1" variant="h5">
-            {checkDictionnary("login")}
+            {getDictionaryValue("login")}
           </Typography>
-          <form className={classes.form} noValidate>
+          <StyledForm noValidate>
             <FormControl margin="normal" required>
               <InputLabel htmlFor="email">
-                {checkDictionnary("email")}
+                {getDictionaryValue("email")}
               </InputLabel>
               <Input
                 id="email"
@@ -297,7 +299,7 @@ const Login = ({ classes }: IProvidedProps) => {
             </FormControl>
             <FormControl margin="normal" required>
               <InputLabel htmlFor="password">
-                {checkDictionnary("password")}
+                {getDictionaryValue("password")}
               </InputLabel>
               <Input
                 name="password"
@@ -318,30 +320,29 @@ const Login = ({ classes }: IProvidedProps) => {
                   onChange={handleChangeResetPassword}
                 />
               }
-              label={checkDictionnary("show_password")}
+              label={getDictionaryValue("show_password")}
             />
             {!validated && (
               <FormHelperText error>
-                {checkDictionnary("invalid_email_password")}
+                {getDictionaryValue("invalid_email_password")}
               </FormHelperText>
             )}
-            <Button
+            <StyledSubmitButton
               fullWidth
               variant="contained"
               color="primary"
-              className={classes.submit}
               onClick={handleLogin}
               disabled={isLoginPending}
             >
               {isLoginPending ? (
                 <LinearProgress />
               ) : (
-                checkDictionnary("login")
+                getDictionaryValue("login")
               )}
-            </Button>
-          </form>
-        </Paper>
-      </main>
+            </StyledSubmitButton>
+          </StyledForm>
+        </StyledPaper>
+      </StyledMain>
       <Snackbar
         open={openLogin}
         onClose={handleCloseLogin}
@@ -355,10 +356,10 @@ const Login = ({ classes }: IProvidedProps) => {
       <Snackbar
         open={openReset}
         onClose={handleCloseReset}
-        message={checkDictionnary("reset_password_sent")}
+        message={getDictionaryValue("reset_password_sent")}
       />
     </>
   );
 };
 
-export default withStyles(styles)(Login);
+export default Login;

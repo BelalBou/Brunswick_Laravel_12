@@ -1,67 +1,54 @@
 import React from "react";
-import { withStyles, Theme } from "@material-ui/core/styles";
-import ListItem from "@material-ui/core/ListItem";
-import ListItemText from "@material-ui/core/ListItemText";
-import ListItemAvatar from "@material-ui/core/ListItemAvatar";
-import ListItemSecondaryAction from "@material-ui/core/ListItemSecondaryAction";
-import Typography from "@material-ui/core/Typography";
-import Divider from "@material-ui/core/Divider";
+import { styled } from "@mui/material/styles";
+import ListItemButton from "@mui/material/ListItemButton";
+import ListItemText from "@mui/material/ListItemText";
+import ListItemAvatar from "@mui/material/ListItemAvatar";
+import ListItemSecondaryAction from "@mui/material/ListItemSecondaryAction";
+import Typography from "@mui/material/Typography";
+import Divider from "@mui/material/Divider";
 import ICart from "../../interfaces/ICart";
 import IExtra from "../../interfaces/IExtra";
 
-const styles = (theme: Theme) => ({
-  listItemSecondaryAction: {
-    marginRight: theme.spacing.unit * 2
-  }
-});
+const StyledListItemSecondaryAction = styled(ListItemSecondaryAction)(({ theme }) => ({
+  marginRight: theme.spacing(2)
+}));
 
-interface IProvidedProps {
-  classes: any;
-}
-
-interface IProps {
+interface CartListItemProps {
   cart: ICart;
   userLanguage: string;
   onOpenEdit: (cart: ICart) => void;
 }
 
-function calculateTotalExtras(extras: IExtra[]) {
-  let totalPricingArray = [];
-  let totalPricing = 0;
-  if (extras && extras.length > 0) {
-    totalPricingArray = extras.map(extra => {
-      return parseFloat(extra.pricing);
-    });
-    totalPricing = totalPricingArray.reduce((a: number, b: number) => a + b, 0);
-  }
-  return totalPricing;
-}
+const calculateTotalExtras = (extras: IExtra[]): number => {
+  if (!extras || extras.length === 0) return 0;
+  return extras.reduce((total: number, extra: IExtra) => total + parseFloat(extra.pricing), 0);
+};
 
-function CartListItem({
+const CartListItem: React.FC<CartListItemProps> = ({
   cart,
   userLanguage,
-  classes,
   onOpenEdit
-}: IProvidedProps & IProps) {
-  const totalPricing =
-    cart.quantity * parseFloat(cart.menu.pricing) +
-    cart.quantity * calculateTotalExtras(cart.extras);
+}): JSX.Element => {
+  const menuPrice = cart.menu.pricing;
+  const extrasPrice = calculateTotalExtras(cart.extras);
+  const totalPricing = (cart.quantity * menuPrice + cart.quantity * extrasPrice).toFixed(2);
+
   return (
     <>
-      <ListItem button onClick={() => onOpenEdit(cart)}>
+      <ListItemButton onClick={() => onOpenEdit(cart)}>
         <ListItemAvatar>
           <Typography variant="subtitle2" gutterBottom color="primary">
             {cart.quantity}x
           </Typography>
         </ListItemAvatar>
         <ListItemText
-          primary={userLanguage === "en" ? cart.menu.title_en : cart.menu.title}
+          primary={userLanguage === "en" ? cart.menu.title : cart.menu.title}
           secondary={
             <>
-              {cart.menu.MenuSize
+              {cart.menu.menu_size
                 ? userLanguage === "en"
-                  ? cart.menu.MenuSize.title_en
-                  : cart.menu.MenuSize.title
+                  ? cart.menu.menu_size.title_en
+                  : cart.menu.menu_size.title
                 : "/"}
               {cart.remark && (
                 <>
@@ -72,18 +59,18 @@ function CartListItem({
             </>
           }
         />
-        <ListItemSecondaryAction className={classes.listItemSecondaryAction}>
+        <StyledListItemSecondaryAction>
           <Typography variant="subtitle1" color="textSecondary" gutterBottom>
-            {totalPricing.toLocaleString("fr", {
+            {parseFloat(totalPricing).toLocaleString("fr", {
               minimumFractionDigits: 2
             })}{" "}
             €
           </Typography>
-        </ListItemSecondaryAction>
-      </ListItem>
+        </StyledListItemSecondaryAction>
+      </ListItemButton>
       <Divider />
     </>
   );
-}
+};
 
-export default withStyles(styles, { withTheme: true })(CartListItem);
+export default CartListItem;

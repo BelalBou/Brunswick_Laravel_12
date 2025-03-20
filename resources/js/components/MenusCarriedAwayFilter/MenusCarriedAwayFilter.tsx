@@ -1,55 +1,49 @@
+import React from "react";
 import moment from "moment";
 import "moment/locale/fr";
-import { MuiPickersUtilsProvider, DatePicker } from '@material-ui/pickers';
-import MomentUtils from "@date-io/moment";
-import { withStyles, Theme, createStyles } from "@material-ui/core/styles";
-import Grid from "@material-ui/core/Grid";
+import { styled } from "@mui/material/styles";
+import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
+import { AdapterMoment } from "@mui/x-date-pickers/AdapterMoment";
+import Grid from "@mui/material/Grid";
 
 moment.locale("fr");
 
-const styles = (theme: Theme) =>
-  createStyles({
-    div: {
-      padding: theme.spacing(2)
-    },
-    gridItem: {
-      textAlign: "center"
-    }
-  });
+const StyledDiv = styled('div')(({ theme }) => ({
+  padding: theme.spacing(2)
+}));
 
-interface IProvidedProps {
-  classes: any;
-}
+const StyledGridItem = styled(Grid)({
+  textAlign: "center"
+});
 
 interface IProps {
   selectedDate: moment.Moment;
-  onChangeSelectedDate: (date: moment.Moment) => void;
+  onChangeSelectedDate: (date: moment.Moment | null) => void;
 }
 
-const MenusCarriedAwayFilter = ({
+const MenusCarriedAwayFilter: React.FC<IProps> = ({
   selectedDate,
-  classes,
   onChangeSelectedDate
-}: IProvidedProps & IProps) => (
-  <div className={classes.div}>
+}) => (
+  <StyledDiv>
     <Grid container spacing={2} alignItems="center">
-      <Grid item xs className={classes.gridItem}>
-        <MuiPickersUtilsProvider
-          utils={MomentUtils}
-          locale={"fr"}
-        >
+      <StyledGridItem item xs>
+        <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale="fr">
           <DatePicker
             label="Date de la commande :"
             format="Do MMMM YYYY"
             value={selectedDate}
-            cancelLabel="Annuler"
-            okLabel="Valider"
-            onChange={onChangeSelectedDate}
+            slotProps={{
+              actionBar: {
+                actions: ['cancel', 'accept'],
+              },
+            }}
+            onChange={(date) => date && onChangeSelectedDate(date)}
           />
-        </MuiPickersUtilsProvider>
-      </Grid>
+        </LocalizationProvider>
+      </StyledGridItem>
     </Grid>
-  </div>
+  </StyledDiv>
 );
 
-export default withStyles(styles, { withTheme: true })(MenusCarriedAwayFilter);
+export default MenusCarriedAwayFilter;

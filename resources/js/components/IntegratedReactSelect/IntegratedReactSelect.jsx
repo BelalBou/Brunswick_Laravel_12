@@ -4,14 +4,14 @@ import React from "react";
 import PropTypes from "prop-types";
 import classNames from "classnames";
 import Select from "react-select";
-import { withStyles } from "@material-ui/core/styles";
-import Typography from "@material-ui/core/Typography";
-import TextField from "@material-ui/core/TextField";
-import Paper from "@material-ui/core/Paper";
-import Chip from "@material-ui/core/Chip";
-import MenuItem from "@material-ui/core/MenuItem";
-import { emphasize } from "@material-ui/core/styles/colorManipulator";
-import CancelIcon from "@material-ui/icons/Cancel";
+import { styled } from "@mui/material/styles";
+import Typography from "@mui/material/Typography";
+import TextField from "@mui/material/TextField";
+import Paper from "@mui/material/Paper";
+import Chip from "@mui/material/Chip";
+import MenuItem from "@mui/material/MenuItem";
+import { alpha } from "@mui/material/styles";
+import CancelIcon from "@mui/icons-material/Cancel";
 
 const styles = theme => ({
   input: {
@@ -26,18 +26,18 @@ const styles = theme => ({
     overflow: "hidden"
   },
   chip: {
-    margin: `${theme.spacing.unit / 2}px ${theme.spacing.unit / 4}px`
+    margin: `${theme.spacing(0.5)} ${theme.spacing(0.25)}`
   },
   chipFocused: {
-    backgroundColor: emphasize(
-      theme.palette.type === "light"
+    backgroundColor: alpha(
+      theme.palette.mode === "light"
         ? theme.palette.grey[300]
         : theme.palette.grey[700],
       0.08
     )
   },
   noOptionsMessage: {
-    padding: `${theme.spacing.unit}px ${theme.spacing.unit * 2}px`
+    padding: `${theme.spacing(1)} ${theme.spacing(2)}`
   },
   singleValue: {
     fontSize: 16
@@ -50,7 +50,7 @@ const styles = theme => ({
   paper: {
     position: "absolute",
     zIndex: 1,
-    marginTop: theme.spacing.unit,
+    marginTop: theme.spacing(1),
     left: 0,
     right: 0
   }
@@ -93,7 +93,7 @@ function Control(props) {
 function Option(props) {
   return (
     <MenuItem
-      buttonRef={props.innerRef}
+      ref={props.innerRef}
       selected={props.isFocused}
       component="div"
       style={{
@@ -159,7 +159,6 @@ const components = {
   NoOptionsMessage,
   Option,
   Placeholder,
-
   ValueContainer
 };
 
@@ -201,4 +200,4 @@ IntegratedReactSelect.propTypes = {
   theme: PropTypes.object.isRequired
 };
 
-export default withStyles(styles, { withTheme: true })(IntegratedReactSelect);
+export default styled(styles, { withTheme: true })(IntegratedReactSelect);

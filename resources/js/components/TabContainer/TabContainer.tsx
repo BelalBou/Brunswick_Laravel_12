@@ -1,31 +1,25 @@
 import React from "react";
-import Typography from "@material-ui/core/Typography";
-import { withStyles, Theme } from "@material-ui/core/styles";
+import { styled } from "@mui/material/styles";
+import Typography from "@mui/material/Typography";
 
-const styles = (theme: Theme) => ({
-  padding: {
-    [theme.breakpoints.up("md")]: {
-      paddingLeft: theme.spacing.unit * 2,
-      paddingRight: theme.spacing.unit * 2
-    },
-    paddingTop: 0,
-    paddingBottom: theme.spacing.unit * 2
-  }
-});
-
-interface IProvidedProps {
-  classes: any;
-}
+const StyledTypography = styled(Typography)(({ theme }) => ({
+  [theme.breakpoints.up("md")]: {
+    paddingLeft: theme.spacing(2),
+    paddingRight: theme.spacing(2)
+  },
+  paddingTop: 0,
+  paddingBottom: theme.spacing(2)
+}));
 
 interface IProps {
   children: React.ReactNode;
   dir: string | undefined;
 }
 
-const TabContainer = ({ children, dir, classes }: IProvidedProps & IProps) => (
-  <Typography component="div" dir={dir} className={classes.padding}>
+const TabContainer: React.FC<IProps> = ({ children, dir }) => (
+  <StyledTypography as="div" dir={dir}>
     {children}
-  </Typography>
+  </StyledTypography>
 );
 
-export default withStyles(styles)(TabContainer);
+export default TabContainer;

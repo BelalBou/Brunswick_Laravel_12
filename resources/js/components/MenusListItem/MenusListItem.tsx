@@ -1,28 +1,23 @@
 import React from "react";
-import { withStyles, Theme } from "@material-ui/core/styles";
-import ListItem from "@material-ui/core/ListItem";
-import ListItemText from "@material-ui/core/ListItemText";
-import Divider from "@material-ui/core/Divider";
-import ListItemIcon from "@material-ui/core/ListItemIcon";
-import Typography from "@material-ui/core/Typography";
+import { styled } from "@mui/material/styles";
+import ListItem from "@mui/material/ListItem";
+import ListItemText from "@mui/material/ListItemText";
+import Divider from "@mui/material/Divider";
+import ListItemIcon from "@mui/material/ListItemIcon";
+import Typography from "@mui/material/Typography";
 import placeHolderIcon from "../../images/placeholder.svg";
 import IMenu from "../../interfaces/IMenu";
 import S3_BASE_URL from "../../utils/S3Utils/S3Utils";
 
-const styles = (theme: Theme) => ({
-  img: {
-    width: "96px",
-    height: "96px",
-    borderRadius: "3px"
-  },
-  typography: {
-    marginTop: theme.spacing.unit
-  }
-});
+const StyledTypography = styled(Typography)(({ theme }) => ({
+  marginTop: theme.spacing(1)
+}));
 
-interface IProvidedProps {
-  classes: any;
-}
+const StyledImg = styled('img')({
+  width: "96px",
+  height: "96px",
+  borderRadius: "3px"
+});
 
 interface IProps {
   menu: IMenu;
@@ -31,12 +26,11 @@ interface IProps {
   onOpenAdd: (menu: IMenu) => void;
 }
 
-const MenusListItem = ({
+const MenusListItem: React.FC<IProps> = ({
   menu,
   userLanguage,
-  classes,
   onOpenAdd
-}: IProvidedProps & IProps) => (
+}) => (
   <>
     <ListItem button onClick={() => onOpenAdd(menu)}>
       <ListItemText
@@ -46,21 +40,17 @@ const MenusListItem = ({
           </Typography>
         }
         secondary={
-          <Typography
-            color="textSecondary"
-            noWrap
-            className={classes.typography}
-          >
+          <StyledTypography color="textSecondary" noWrap>
             {userLanguage === "en" ? menu.description_en : menu.description}
-          </Typography>
+          </StyledTypography>
         }
       />
       <ListItemIcon>
-        <img
+        <StyledImg
           src={
             menu.picture ? `${S3_BASE_URL}/${menu.picture}` : placeHolderIcon
           }
-          className={classes.img}
+          alt={userLanguage === "en" ? menu.title_en : menu.title}
         />
       </ListItemIcon>
     </ListItem>
@@ -68,4 +58,4 @@ const MenusListItem = ({
   </>
 );
 
-export default withStyles(styles, { withTheme: true })(MenusListItem);
+export default MenusListItem;

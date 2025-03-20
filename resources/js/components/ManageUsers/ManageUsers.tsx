@@ -1,11 +1,10 @@
-import React, { Component } from "react";
+import React, { useState, useEffect } from "react";
 import { Navigate } from "react-router-dom";
-import classNames from "classnames";
-import { withStyles, Theme } from "@material-ui/core/styles";
-import Tooltip from "@material-ui/core/Tooltip";
-import IconButton from "@material-ui/core/IconButton";
-import EditIcon from "@material-ui/icons/Edit";
-import DeleteIcon from "@material-ui/icons/Delete";
+import { styled } from "@mui/material/styles";
+import Tooltip from "@mui/material/Tooltip";
+import IconButton from "@mui/material/IconButton";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
 import MenuBar from "../MenuBar/MenuBar";
 import Footer from "../Footer/Footer";
 import Table from "../Table/Table";
@@ -18,26 +17,23 @@ import userTypes from "../../utils/UserTypes/UserTypes";
 import ISupplier from "../../interfaces/ISupplier";
 import IUser from "../../interfaces/IUser";
 
-const styles = (theme: Theme) => ({
-  heroUnit: {
-    backgroundColor: theme.palette.background.paper,
-    borderRadius: ".625rem"
-  },
-  layout: {
-    width: "auto",
-    margin: "0 auto"
-  },
-  cardGrid: {
-    padding: theme.spacing.unit * 4
-  },
-  main: {
-    flex: 1
-  }
-});
+const StyledMain = styled('main')(({ theme }) => ({
+  flex: 1
+}));
 
-interface IProvidedProps {
-  classes: any;
-}
+const StyledLayout = styled('div')(({ theme }) => ({
+  width: "auto",
+  margin: "0 auto"
+}));
+
+const StyledCardGrid = styled('div')(({ theme }) => ({
+  padding: theme.spacing(4)
+}));
+
+const StyledHeroUnit = styled('div')(({ theme }) => ({
+  backgroundColor: theme.palette.background.paper,
+  borderRadius: ".625rem"
+}));
 
 interface IProps {
   isLoginSuccess: boolean;
@@ -56,101 +52,83 @@ interface IProps {
   actions: any;
 }
 
-interface IState {
-  openAdd: boolean;
-  openEdit: boolean;
-  openDelete: boolean;
-  added: boolean;
-  edited: boolean;
-  deleted: boolean;
-  editId: number;
-  deleteId: number;
-  editLastName: string;
-  editFirstName: string;
-  editEmailAddress: string;
-  editType: string;
-  editSupplierId: number;
-  editLanguage: string;
-  deleteLastName: string;
-  deleteFirstName: string;
-}
+const ManageUsers: React.FC<IProps> = ({
+  isLoginSuccess,
+  isAddSuccess,
+  isEditSuccess,
+  isDeleteSuccess,
+  isListPending,
+  dictionnaryList,
+  userList,
+  supplierList,
+  userToken,
+  userType,
+  userLanguage,
+  userId,
+  selected,
+  actions
+}) => {
+  const [openAdd, setOpenAdd] = useState(false);
+  const [openEdit, setOpenEdit] = useState(false);
+  const [openDelete, setOpenDelete] = useState(false);
+  const [added, setAdded] = useState(false);
+  const [edited, setEdited] = useState(false);
+  const [deleted, setDeleted] = useState(false);
+  const [editId, setEditId] = useState(-1);
+  const [deleteId, setDeleteId] = useState(-1);
+  const [editLastName, setEditLastName] = useState("");
+  const [editFirstName, setEditFirstName] = useState("");
+  const [editEmailAddress, setEditEmailAddress] = useState("");
+  const [editType, setEditType] = useState("");
+  const [editSupplierId, setEditSupplierId] = useState(1);
+  const [editLanguage, setEditLanguage] = useState("fr");
+  const [deleteLastName, setDeleteLastName] = useState("");
+  const [deleteFirstName, setDeleteFirstName] = useState("");
 
-class ManageUsers extends Component<IProvidedProps & IProps, IState> {
-  state = {
-    openAdd: false,
-    openEdit: false,
-    openDelete: false,
-    added: false,
-    edited: false,
-    deleted: false,
-    editId: -1,
-    deleteId: -1,
-    editLastName: "",
-    editFirstName: "",
-    editEmailAddress: "",
-    editType: "",
-    editSupplierId: 1,
-    editLanguage: "fr",
-    deleteLastName: "",
-    deleteFirstName: ""
-  };
-
-  componentDidMount() {
-    const { isLoginSuccess } = this.props;
+  useEffect(() => {
     if (isLoginSuccess) {
-      this.refresh();
+      refresh();
     }
-  }
+  }, [isLoginSuccess]);
 
-  componentDidUpdate(prevProps: IProps) {
-    const { userToken } = this.props;
-    if (userToken !== prevProps.userToken) {
-      this.refresh();
-    }
-  }
+  useEffect(() => {
+    refresh();
+  }, [userToken]);
 
-  refresh = () => {
-    const { userType } = this.props;
-    this.props.actions.getDictionnaries();
+  const refresh = () => {
+    actions.getDictionnaries();
     if (userType === "administrator") {
-      this.props.actions.getUsers();
-      this.props.actions.getSuppliers();
+      actions.getUsers();
+      actions.getSuppliers();
     }
   };
 
-  handleLogout = () => {
-    this.props.actions.logout();
+  const handleLogout = () => {
+    actions.logout();
   };
 
-  handleChangeSelected = (selected: number) => {
-    this.props.actions.setSelected(selected);
+  const handleChangeSelected = (selected: number) => {
+    actions.setSelected(selected);
     localStorage.setItem("selected", selected.toString());
   };
 
-  handleCloseSnackbarAdded = () => {
-    this.setState({
-      added: false
-    });
+  const handleCloseSnackbarAdded = () => {
+    setAdded(false);
   };
 
-  handleCloseSnackbarEdited = () => {
-    this.setState({
-      edited: false
-    });
+  const handleCloseSnackbarEdited = () => {
+    setEdited(false);
   };
 
-  handleCloseSnackbarDeleted = () => {
-    this.setState({
-      deleted: false
-    });
+  const handleCloseSnackbarDeleted = () => {
+    setDeleted(false);
   };
 
-  checkDictionnary = (tag: string) => {
-    const { dictionnaryList, userLanguage } = this.props;
+  const getDictionaryValue = (tag: string) => {
     return checkDictionnary(tag, dictionnaryList, userLanguage);
   };
 
-  handleTableColumns = () => {
+  const handleTableColumns = () => {
     return [
       {
         name: "lastName",
@@ -175,8 +153,7 @@ class ManageUsers extends Component<IProvidedProps & IProps, IState> {
     ];
   };
 
-  handleTableRows = () => {
-    const { userList, userId } = this.props;
+  const handleTableRows = () => {
     if (userList && userList.length > 0) {
       return userList.map(user => {
         const obj = {
@@ -190,7 +167,7 @@ class ManageUsers extends Component<IProvidedProps & IProps, IState> {
                 <IconButton
                   color="primary"
                   onClick={() =>
-                    this.handleOpenEdit(
+                    handleOpenEdit(
                       user.id,
                       user.last_name,
                       user.first_name,
@@ -208,7 +185,7 @@ class ManageUsers extends Component<IProvidedProps & IProps, IState> {
                 <IconButton
                   color="secondary"
                   onClick={() =>
-                    this.handleOpenDelete(
+                    handleOpenDelete(
                       user.id,
                       user.last_name,
                       user.first_name
@@ -229,13 +206,11 @@ class ManageUsers extends Component<IProvidedProps & IProps, IState> {
     }
   };
 
-  handleOpenAdd = () => {
-    this.setState({
-      openAdd: true
-    });
+  const handleOpenAdd = () => {
+    setOpenAdd(true);
   };
 
-  handleOpenEdit = (
+  const handleOpenEdit = (
     id: number,
     lastName: string,
     firstName: string,
@@ -244,46 +219,36 @@ class ManageUsers extends Component<IProvidedProps & IProps, IState> {
     supplierId: number,
     language: string
   ) => {
-    this.setState({
-      editId: id,
-      editLastName: lastName,
-      editFirstName: firstName,
-      editEmailAddress: emailAddress,
-      editType: type,
-      editSupplierId: supplierId,
-      editLanguage: language,
-      openEdit: true
-    });
+    setEditId(id);
+    setEditLastName(lastName);
+    setEditFirstName(firstName);
+    setEditEmailAddress(emailAddress);
+    setEditType(type);
+    setEditSupplierId(supplierId);
+    setEditLanguage(language);
+    setOpenEdit(true);
   };
 
-  handleOpenDelete = (id: number, lastName: string, firstName: string) => {
-    this.setState({
-      deleteId: id,
-      deleteLastName: lastName,
-      deleteFirstName: firstName,
-      openDelete: true
-    });
+  const handleOpenDelete = (id: number, lastName: string, firstName: string) => {
+    setDeleteId(id);
+    setDeleteLastName(lastName);
+    setDeleteFirstName(firstName);
+    setOpenDelete(true);
   };
 
-  handleCloseAdd = () => {
-    this.setState({
-      openAdd: false
-    });
+  const handleCloseAdd = () => {
+    setOpenAdd(false);
   };
 
-  handleCloseEdit = () => {
-    this.setState({
-      openEdit: false
-    });
+  const handleCloseEdit = () => {
+    setOpenEdit(false);
   };
 
-  handleCloseDelete = () => {
-    this.setState({
-      openDelete: false
-    });
+  const handleCloseDelete = () => {
+    setOpenDelete(false);
   };
 
-  handleAdd = (
+  const handleAdd = (
     firstName: string,
     lastName: string,
     emailAddress: string,
@@ -291,7 +256,7 @@ class ManageUsers extends Component<IProvidedProps & IProps, IState> {
     supplierId: number,
     language: string
   ) => {
-    this.props.actions.addUser(
+    actions.addUser(
       firstName,
       lastName,
       emailAddress,
@@ -299,13 +264,11 @@ class ManageUsers extends Component<IProvidedProps & IProps, IState> {
       supplierId,
       language
     );
-    this.setState({
-      openAdd: false,
-      added: true
-    });
+    setOpenAdd(false);
+    setAdded(true);
   };
 
-  handleEdit = (
+  const handleEdit = (
     firstName: string,
     lastName: string,
     emailAddress: string,
@@ -314,9 +277,8 @@ class ManageUsers extends Component<IProvidedProps & IProps, IState> {
     language: string,
     resetPassword: boolean
   ) => {
-    const { editId } = this.state;
     if (editId > 0) {
-      this.props.actions.editUser(
+      actions.editUser(
         editId,
         firstName,
         lastName,
@@ -327,131 +289,100 @@ class ManageUsers extends Component<IProvidedProps & IProps, IState> {
         resetPassword
       );
     }
-    this.setState({
-      openEdit: false,
-      edited: true
-    });
+    setOpenEdit(false);
+    setEdited(true);
   };
 
-  handleDelete = () => {
-    const { deleteId } = this.state;
+  const handleDelete = () => {
     if (deleteId > 0) {
-      this.props.actions.deleteUser(deleteId);
-      this.setState({
-        openDelete: false,
-        deleted: true
-      });
+      actions.deleteUser(deleteId);
+      setOpenDelete(false);
+      setDeleted(true);
     }
   };
 
-  render() {
-    const {
-      openAdd,
-      openEdit,
-      openDelete,
-      added,
-      edited,
-      deleted,
-      editLastName,
-      editFirstName,
-      editEmailAddress,
-      editType,
-      editSupplierId,
-      editLanguage,
-      deleteLastName,
-      deleteFirstName
-    } = this.state;
-    const {
-      isLoginSuccess,
-      isListPending,
-      isAddSuccess,
-      isEditSuccess,
-      isDeleteSuccess,
-      userType,
-      selected,
-      supplierList,
-      classes
-    } = this.props;
-    if (!isLoginSuccess) {
-      return <Navigate to="/login" replace />;
-    }
-    return (
-      <MenuBar
-        isLoginSuccess={isLoginSuccess}
-        isListPending={isListPending}
-        userType={userType}
-        selected={selected}
-        title="Utilisateurs"
-        onLogout={this.handleLogout}
-        onChangeSelected={this.handleChangeSelected}
-        checkDictionnary={this.checkDictionnary}
-      >
-        {isAddSuccess && added && (
-          <SnackbarAction
-            success
-            message="L'utilisateur a bien été ajouté !"
-            onClose={this.handleCloseSnackbarAdded}
-          />
-        )}
-        {isEditSuccess && edited && (
-          <SnackbarAction
-            success
-            message="L'utilisateur a bien été modifié !"
-            onClose={this.handleCloseSnackbarEdited}
-          />
-        )}
-        {isDeleteSuccess && deleted && (
-          <SnackbarAction
-            success
-            message="L'utilisateur a bien été supprimé !"
-            onClose={this.handleCloseSnackbarDeleted}
-          />
-        )}
-        {openAdd && (
-          <AddUser
-            supplierList={supplierList}
-            onClose={this.handleCloseAdd}
-            onAdd={this.handleAdd}
-          />
-        )}
-        {openEdit && (
-          <EditUser
-            firstName={editFirstName}
-            lastName={editLastName}
-            emailAddress={editEmailAddress}
-            type={editType}
-            supplierId={editSupplierId}
-            language={editLanguage}
-            supplierList={supplierList}
-            onClose={this.handleCloseEdit}
-            onEdit={this.handleEdit}
-          />
-        )}
-        {openDelete && (
-          <DeleteStuff
-            title="Supprimer un utilisateur"
-            description={`L'utilisateur « ${deleteLastName.toUpperCase()} ${deleteFirstName} » sera définitivement perdu !`}
-            onClose={this.handleCloseDelete}
-            onDelete={this.handleDelete}
-            checkDictionnary={this.checkDictionnary}
-          />
-        )}
-        <main className={classes.main}>
-          <div className={classNames(classes.layout, classes.cardGrid)}>
-            <div className={classes.heroUnit}>
+  if (!isLoginSuccess) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return (
+    <MenuBar
+      isLoginSuccess={isLoginSuccess}
+      isListPending={isListPending}
+      userType={userType}
+      selected={selected}
+      title="Utilisateurs"
+      onLogout={handleLogout}
+      onChangeSelected={handleChangeSelected}
+      checkDictionnary={getDictionaryValue}
+    >
+      {isAddSuccess && added && (
+        <SnackbarAction
+          success
+          message="L'utilisateur a bien été ajouté !"
+          onClose={handleCloseSnackbarAdded}
+        />
+      )}
+      {isEditSuccess && edited && (
+        <SnackbarAction
+          success
+          message="L'utilisateur a bien été modifié !"
+          onClose={handleCloseSnackbarEdited}
+        />
+      )}
+      {isDeleteSuccess && deleted && (
+        <SnackbarAction
+          success
+          message="L'utilisateur a bien été supprimé !"
+          onClose={handleCloseSnackbarDeleted}
+        />
+      )}
+      {openAdd && (
+        <AddUser
+          supplierList={supplierList}
+          onClose={handleCloseAdd}
+          onAdd={handleAdd}
+        />
+      )}
+      {openEdit && (
+        <EditUser
+          firstName={editFirstName}
+          lastName={editLastName}
+          emailAddress={editEmailAddress}
+          type={editType}
+          supplierId={editSupplierId}
+          language={editLanguage}
+          supplierList={supplierList}
+          onClose={handleCloseEdit}
+          onEdit={handleEdit}
+        />
+      )}
+      {openDelete && (
+        <DeleteStuff
+          title="Supprimer un utilisateur"
+          description={`L'utilisateur « ${deleteLastName.toUpperCase()} ${deleteFirstName} » sera définitivement perdu !`}
+          onClose={handleCloseDelete}
+          onDelete={handleDelete}
+          checkDictionnary={getDictionaryValue}
+        />
+      )}
+      <StyledMain>
+        <StyledLayout>
+          <StyledCardGrid>
+            <StyledHeroUnit>
               <Table
                 add
-                rows={this.handleTableRows()}
-                columns={this.handleTableColumns()}
-                onAddedRowsChange={this.handleOpenAdd}
+                rows={handleTableRows()}
+                columns={handleTableColumns()}
+                onAddedRowsChange={handleOpenAdd}
               />
-            </div>
-          </div>
-        </main>
-        <Footer />
-      </MenuBar>
-    );
-  }
-}
+            </StyledHeroUnit>
+          </StyledCardGrid>
+        </StyledLayout>
+      </StyledMain>
+      <Footer />
+    </MenuBar>
+  );
+};
 
-export default withStyles(styles, { withTheme: true })(ManageUsers);
+export default ManageUsers;

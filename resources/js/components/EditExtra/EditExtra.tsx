@@ -1,31 +1,38 @@
-import React, { Component } from "react";
-import { withStyles, Theme } from "@material-ui/core/styles";
-import Button from "@material-ui/core/Button";
-import TextField from "@material-ui/core/TextField";
-import Dialog from "@material-ui/core/Dialog";
-import DialogActions from "@material-ui/core/DialogActions";
-import DialogContent from "@material-ui/core/DialogContent";
-import DialogTitle from "@material-ui/core/DialogTitle";
-import FormControl from "@material-ui/core/FormControl";
-import InputAdornment from "@material-ui/core/InputAdornment";
-import Input from "@material-ui/core/Input";
-import MenuItem from "@material-ui/core/MenuItem";
-import Select from "@material-ui/core/Select";
-import Grid from "@material-ui/core/Grid";
-import InputLabel from "@material-ui/core/InputLabel";
+import React, { useState } from "react";
+import { styled } from "@mui/material/styles";
+import Button from "@mui/material/Button";
+import TextField from "@mui/material/TextField";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogTitle from "@mui/material/DialogTitle";
+import FormControl from "@mui/material/FormControl";
+import InputAdornment from "@mui/material/InputAdornment";
+import Input from "@mui/material/Input";
+import MenuItem from "@mui/material/MenuItem";
+import Select, { SelectChangeEvent } from "@mui/material/Select";
+import Grid from "@mui/material/Grid";
+import InputLabel from "@mui/material/InputLabel";
 import IMenuSize from "../../interfaces/IMenuSize";
 
-const styles = (theme: Theme) => ({
-  margin: {
-    margin: theme.spacing.unit
+const StyledDialog = styled(Dialog)(({ theme }) => ({
+  "& .MuiDialog-paper": {
+    margin: `${theme.spacing(3)} !important`,
+    [theme.breakpoints.up("md")]: {
+      margin: `${theme.spacing(6)} auto !important`
+    }
   }
-});
+}));
 
-interface IProvidedProps {
-  classes: any;
-}
+const StyledTextField = styled(TextField)(({ theme }) => ({
+  margin: theme.spacing(1)
+}));
 
-interface IProps {
+const StyledFormControl = styled(FormControl)(({ theme }) => ({
+  margin: theme.spacing(1)
+}));
+
+interface EditExtraProps {
   title: string;
   titleEn: string;
   pricing: number;
@@ -40,159 +47,135 @@ interface IProps {
   ) => void;
 }
 
-interface IState {
-  title: string;
-  titleEn: string;
-  pricing: number;
-  menuSizeId: number;
-  validated: boolean;
-}
+const EditExtra: React.FC<EditExtraProps> = ({
+  title: initialTitle,
+  titleEn: initialTitleEn,
+  pricing: initialPricing,
+  menuSizeId: initialMenuSizeId,
+  menuSizeList,
+  onClose,
+  onEdit
+}): JSX.Element => {
+  const [title, setTitle] = useState<string>(initialTitle);
+  const [titleEn, setTitleEn] = useState<string>(initialTitleEn);
+  const [pricing, setPricing] = useState<number>(initialPricing);
+  const [menuSizeId, setMenuSizeId] = useState<number>(initialMenuSizeId);
+  const [validated, setValidated] = useState<boolean>(true);
 
-class EditExtra extends Component<IProvidedProps & IProps, IState> {
-  state = {
-    title: this.props.title,
-    titleEn: this.props.titleEn,
-    pricing: this.props.pricing,
-    menuSizeId: this.props.menuSizeId,
-    validated: true
+  const handleChangeTitle = (event: React.ChangeEvent<HTMLInputElement>): void => {
+    setTitle(event.target.value);
   };
 
-  handleChangeTitle = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const { value } = event.currentTarget;
-    this.setState({
-      title: value
-    });
+  const handleChangeTitleEn = (event: React.ChangeEvent<HTMLInputElement>): void => {
+    setTitleEn(event.target.value);
   };
 
-  handleChangeTitleEn = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const { value } = event.currentTarget;
-    this.setState({
-      titleEn: value
-    });
+  const handleChangePricing = (event: React.ChangeEvent<HTMLInputElement>): void => {
+    setPricing(parseFloat(event.target.value));
   };
 
-  handleChangePricing = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const { value } = event.target;
-    this.setState({
-      pricing: parseFloat(value)
-    });
+  const handleChangeMenuSizeId = (event: SelectChangeEvent<number>): void => {
+    setMenuSizeId(Number(event.target.value));
   };
 
-  handleChangeMenuSizeId = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const { value } = event.target;
-    this.setState({
-      menuSizeId: parseInt(value)
-    });
-  };
-
-  handleValidated = () => {
-    const { title, titleEn, pricing, menuSizeId } = this.state;
+  const handleValidated = (): void => {
     if (!title || !titleEn || !pricing) {
-      this.setState({
-        validated: false
-      });
+      setValidated(false);
     } else {
-      this.props.onEdit(title, titleEn, pricing, menuSizeId);
+      onEdit(title, titleEn, pricing, menuSizeId);
     }
   };
 
-  render() {
-    const { title, titleEn, pricing, menuSizeId, validated } = this.state;
-    const { menuSizeList, classes } = this.props;
-    return (
-      <Dialog
-        open
-        onClose={this.props.onClose}
-        aria-labelledby="form-dialog-title"
-      >
-        <DialogTitle id="form-dialog-title">Éditer un supplément</DialogTitle>
-        <DialogContent>
-          <Grid container spacing={16}>
-            <Grid item xs>
-              <TextField
-                className={classes.margin}
-                value={title}
-                onChange={this.handleChangeTitle}
-                autoFocus
-                id="title"
-                label="Libellé FR"
-                type="text"
-                fullWidth
-                required
-                error={!validated && !title}
-              />
-            </Grid>
-            <Grid item xs>
-              <TextField
-                className={classes.margin}
-                value={titleEn}
-                onChange={this.handleChangeTitleEn}
-                id="titleEn"
-                label="Libellé EN"
-                type="text"
-                fullWidth
-                required
-                error={!validated && !titleEn}
-              />
-            </Grid>
+  return (
+    <StyledDialog
+      open
+      onClose={onClose}
+      aria-labelledby="form-dialog-title"
+    >
+      <DialogTitle id="form-dialog-title">Éditer un supplément</DialogTitle>
+      <DialogContent>
+        <Grid container spacing={2}>
+          <Grid item xs>
+            <StyledTextField
+              value={title}
+              onChange={handleChangeTitle}
+              autoFocus
+              id="title"
+              label="Libellé FR"
+              type="text"
+              fullWidth
+              required
+              error={!validated && !title}
+            />
           </Grid>
-          <Grid container spacing={16}>
-            <Grid item xs>
-              <FormControl
-                className={classes.margin}
+          <Grid item xs>
+            <StyledTextField
+              value={titleEn}
+              onChange={handleChangeTitleEn}
+              id="titleEn"
+              label="Libellé EN"
+              type="text"
+              fullWidth
+              required
+              error={!validated && !titleEn}
+            />
+          </Grid>
+        </Grid>
+        <Grid container spacing={2}>
+          <Grid item xs>
+            <StyledFormControl
+              fullWidth
+              required
+              error={!validated && !pricing}
+            >
+              <InputLabel htmlFor="adornment-amount">Prix</InputLabel>
+              <Input
+                value={pricing}
+                onChange={handleChangePricing}
+                id="pricing"
+                type="number"
                 fullWidth
-                required
-                error={!validated && !pricing}
+                inputProps={{ min: "0" }}
+                startAdornment={
+                  <InputAdornment position="start">€</InputAdornment>
+                }
+              />
+            </StyledFormControl>
+          </Grid>
+          <Grid item xs>
+            <StyledFormControl fullWidth>
+              <InputLabel htmlFor="size">Taille de menus</InputLabel>
+              <Select
+                value={menuSizeId}
+                onChange={handleChangeMenuSizeId}
+                inputProps={{
+                  name: "size",
+                  id: "size"
+                }}
               >
-                <InputLabel htmlFor="adornment-amount">Prix</InputLabel>
-                <Input
-                  value={pricing}
-                  onChange={this.handleChangePricing}
-                  id="pricing"
-                  type="number"
-                  fullWidth
-                  inputProps={{ min: "0" }}
-                  startAdornment={
-                    <InputAdornment position="start">€</InputAdornment>
-                  }
-                />
-              </FormControl>
-            </Grid>
-            <Grid item xs>
-              <FormControl className={classes.margin} fullWidth>
-                <InputLabel htmlFor="size">Taille de menus</InputLabel>
-                <Select
-                  value={menuSizeId}
-                  onChange={this.handleChangeMenuSizeId}
-                  inputProps={{
-                    name: "size",
-                    id: "size"
-                  }}
-                >
-                  <MenuItem key={0} value={0}>
-                    - Aucune -
+                <MenuItem key={0} value={0}>
+                  - Aucune -
+                </MenuItem>
+                {menuSizeList.map(menuSize => (
+                  <MenuItem key={menuSize.id} value={menuSize.id}>
+                    {menuSize.title}
                   </MenuItem>
-                  {menuSizeList.map(menuSize => (
-                    <MenuItem key={menuSize.id} value={menuSize.id}>
-                      {menuSize.title}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
+                ))}
+              </Select>
+            </StyledFormControl>
           </Grid>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={this.props.onClose} color="primary">
-            Annuler
-          </Button>
-          <Button onClick={this.handleValidated} color="primary">
-            Éditer
-          </Button>
-        </DialogActions>
-      </Dialog>
-    );
-  }
-}
+        </Grid>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose} color="primary">
+          Annuler
+        </Button>
+        <Button onClick={handleValidated} color="primary">
+          Éditer
+        </Button>
+      </DialogActions>
+    </StyledDialog>
+  );
+};
 
-export default withStyles(styles)(EditExtra);
+export default EditExtra;

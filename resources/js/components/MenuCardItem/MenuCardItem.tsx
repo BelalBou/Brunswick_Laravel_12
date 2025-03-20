@@ -1,38 +1,34 @@
 import React from "react";
-import { withStyles, Theme, createStyles } from "@material-ui/core/styles";
-import Typography from "@material-ui/core/Typography";
-import Card from "@material-ui/core/Card";
-import CardActionArea from "@material-ui/core/CardActionArea";
-import CardHeader from "@material-ui/core/CardHeader";
+import { styled } from "@mui/material/styles";
+import Typography from "@mui/material/Typography";
+import Card from "@mui/material/Card";
+import CardActionArea from "@mui/material/CardActionArea";
+import CardHeader from "@mui/material/CardHeader";
 import placeHolderIcon from "../../images/placeholder.svg";
 import IMenu from "../../interfaces/IMenu";
 import S3_BASE_URL from "../../utils/S3Utils/S3Utils";
 
-const styles = (theme: Theme) =>
-  createStyles({
-    img: {
-      width: "96px",
-      height: "96px",
-      borderRadius: "3px"
-    },
-    card: {
-      margin: theme.spacing.unit
-    },
-    cardHeaderRoot: {
-      paddingBottom: theme.spacing.unit,
-      alignItems: "flex-start"
-    },
-    cardHeaderContent: {
-      marginTop: `-${theme.spacing.unit}px`
-    },
-    body1: {
-      wordWrap: "break-word"
-    }
-  });
+const StyledCard = styled(Card)(({ theme }) => ({
+  margin: theme.spacing(1)
+}));
 
-interface IProvidedProps {
-  classes: any;
-}
+const StyledCardHeader = styled(CardHeader)(({ theme }) => ({
+  paddingBottom: theme.spacing(1),
+  alignItems: "flex-start",
+  "& .MuiCardHeader-content": {
+    marginTop: `-${theme.spacing(1)}px`
+  }
+}));
+
+const StyledImg = styled('img')({
+  width: "96px",
+  height: "96px",
+  borderRadius: "3px"
+});
+
+const StyledBody1 = styled(Typography)({
+  wordWrap: "break-word"
+});
 
 interface IProps {
   menu: IMenu;
@@ -41,46 +37,38 @@ interface IProps {
   onOpenAdd: (menu: IMenu) => void;
 }
 
-const MenusCardItem = ({
+const MenuCardItem: React.FC<IProps> = ({
   menu,
   userLanguage,
-  classes,
   onOpenAdd
-}: IProvidedProps & IProps) => (
-  <Card className={classes.card} raised>
+}) => (
+  <StyledCard raised>
     <CardActionArea onClick={() => onOpenAdd(menu)}>
-      <CardHeader
-        classes={{
-          root: classes.cardHeaderRoot,
-          content: classes.cardHeaderContent
-        }}
+      <StyledCardHeader
         action={
-          <img
+          <StyledImg
             src={
               menu.picture ? `${S3_BASE_URL}/${menu.picture}` : placeHolderIcon
             }
-            className={classes.img}
+            alt={userLanguage === "en" ? menu.title_en : menu.title}
           />
         }
         title={
-          <>
-            <Typography variant="subtitle1" noWrap>
-              {userLanguage === "en" ? menu.title_en : menu.title}
-            </Typography>
-          </>
+          <Typography variant="subtitle1" noWrap>
+            {userLanguage === "en" ? menu.title_en : menu.title}
+          </Typography>
         }
         subheader={
-          <Typography
+          <StyledBody1
             variant="body1"
             color="textSecondary"
-            className={classes.body1}
           >
             {userLanguage === "en" ? menu.description_en : menu.description}
-          </Typography>
+          </StyledBody1>
         }
       />
     </CardActionArea>
-  </Card>
+  </StyledCard>
 );
 
-export default withStyles(styles, { withTheme: true })(MenusCardItem);
+export default MenuCardItem;

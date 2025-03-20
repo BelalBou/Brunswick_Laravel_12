@@ -1,18 +1,37 @@
 import React from "react";
-import Button from "@material-ui/core/Button";
-import Dialog from "@material-ui/core/Dialog";
-import DialogActions from "@material-ui/core/DialogActions";
-import DialogContent from "@material-ui/core/DialogContent";
-import DialogTitle from "@material-ui/core/DialogTitle";
-import List from "@material-ui/core/List";
-import ListItem from "@material-ui/core/ListItem";
-import ListItemText from "@material-ui/core/ListItemText";
-import ListItemAvatar from "@material-ui/core/ListItemAvatar";
-import Divider from "@material-ui/core/Divider";
-import BugReportIcon from "@material-ui/icons/BugReport";
-import InfoIcon from "@material-ui/icons/Info";
+import { styled } from "@mui/material/styles";
+import Button from "@mui/material/Button";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogTitle from "@mui/material/DialogTitle";
+import List from "@mui/material/List";
+import ListItem from "@mui/material/ListItem";
+import ListItemText from "@mui/material/ListItemText";
+import ListItemAvatar from "@mui/material/ListItemAvatar";
+import Divider from "@mui/material/Divider";
+import BugReportIcon from "@mui/icons-material/BugReport";
+import InfoIcon from "@mui/icons-material/Info";
 
-interface IProps {
+const StyledDialog = styled(Dialog)({
+  "& .MuiDialog-paper": {
+    minWidth: "500px"
+  }
+});
+
+const StyledButton = styled(Button)(({ theme }) => ({
+  margin: theme.spacing(1)
+}));
+
+const StyledListItem = styled(ListItem)(({ theme }) => ({
+  padding: theme.spacing(2)
+}));
+
+const StyledDivider = styled(Divider)(({ theme }) => ({
+  margin: theme.spacing(1, 0)
+}));
+
+interface DetailsMenuProps {
   title: string;
   size: string;
   description: string;
@@ -20,14 +39,14 @@ interface IProps {
   onClose: () => void;
 }
 
-const DetailsMenu = ({
+const DetailsMenu: React.FC<DetailsMenuProps> = ({
   title,
   size,
   description,
   allergies,
   onClose
-}: IProps) => (
-  <Dialog
+}): JSX.Element => (
+  <StyledDialog
     maxWidth="md"
     open
     onClose={onClose}
@@ -36,42 +55,40 @@ const DetailsMenu = ({
     <DialogTitle id="form-dialog-title">{title}</DialogTitle>
     <DialogContent>
       <List>
-        <ListItem>
+        <StyledListItem>
           <ListItemAvatar>
             <InfoIcon />
           </ListItemAvatar>
-          <ListItemText primary="Taille" secondary={size ? size : "/"} />
-        </ListItem>
-        <Divider variant="middle" />
-        <ListItem>
+          <ListItemText primary="Taille" secondary={size || "/"} />
+        </StyledListItem>
+        <StyledDivider variant="middle" />
+        <StyledListItem>
           <ListItemAvatar>
             <InfoIcon />
           </ListItemAvatar>
           <ListItemText
             primary="Description"
-            secondary={description ? description : "/"}
+            secondary={description || "/"}
           />
-        </ListItem>
-        <Divider variant="middle" />
-        <ListItem>
+        </StyledListItem>
+        <StyledDivider variant="middle" />
+        <StyledListItem>
           <ListItemAvatar>
             <BugReportIcon />
           </ListItemAvatar>
           <ListItemText
             primary="Allergènes"
-            secondary={
-              allergies && allergies.length > 0 ? allergies.join(", ") : "/"
-            }
+            secondary={allergies?.length > 0 ? allergies.join(", ") : "/"}
           />
-        </ListItem>
+        </StyledListItem>
       </List>
     </DialogContent>
     <DialogActions>
-      <Button onClick={onClose} color="primary">
+      <StyledButton onClick={onClose} color="primary">
         Fermer
-      </Button>
+      </StyledButton>
     </DialogActions>
-  </Dialog>
+  </StyledDialog>
 );
 
 export default DetailsMenu;

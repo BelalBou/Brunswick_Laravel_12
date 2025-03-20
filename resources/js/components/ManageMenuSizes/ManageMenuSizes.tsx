@@ -1,11 +1,10 @@
-import React, { Component } from "react";
+import React, { useState, useEffect } from "react";
 import { Navigate } from "react-router-dom";
-import classNames from "classnames";
-import { withStyles, Theme } from "@material-ui/core/styles";
-import Tooltip from "@material-ui/core/Tooltip";
-import IconButton from "@material-ui/core/IconButton";
-import EditIcon from "@material-ui/icons/Edit";
-import DeleteIcon from "@material-ui/icons/Delete";
+import { styled } from "@mui/material/styles";
+import Tooltip from "@mui/material/Tooltip";
+import IconButton from "@mui/material/IconButton";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
 import MenuBar from "../MenuBar/MenuBar";
 import Footer from "../Footer/Footer";
 import Table from "../Table/Table";
@@ -17,31 +16,23 @@ import checkDictionnary from "../../utils/CheckDictionnary/CheckDictionnary";
 import IMenuSize from "../../interfaces/IMenuSize";
 import IMenu from "../../interfaces/IMenu";
 
-const styles = (theme: Theme) => ({
-  heroUnit: {
-    backgroundColor: theme.palette.background.paper,
-    borderRadius: ".625rem"
-  },
-  heroContent: {
-    maxWidth: 600,
-    margin: "0 auto",
-    padding: `${theme.spacing(8)}px 0 ${theme.spacing(6)}px`
-  },
-  layout: {
-    width: "auto",
-    margin: "0 auto"
-  },
-  cardGrid: {
-    padding: theme.spacing(4)
-  },
-  main: {
-    flex: 1
-  }
-});
+const StyledMain = styled('main')(({ theme }) => ({
+  flex: 1
+}));
 
-interface IProvidedProps {
-  classes: any;
-}
+const StyledLayout = styled('div')(({ theme }) => ({
+  width: "auto",
+  margin: "0 auto"
+}));
+
+const StyledCardGrid = styled('div')(({ theme }) => ({
+  padding: theme.spacing(4)
+}));
+
+const StyledHeroUnit = styled('div')(({ theme }) => ({
+  backgroundColor: theme.palette.background.paper,
+  borderRadius: ".625rem"
+}));
 
 interface IProps {
   isLoginSuccess: boolean;
@@ -59,91 +50,77 @@ interface IProps {
   actions: any;
 }
 
-interface IState {
-  openAdd: boolean;
-  openEdit: boolean;
-  openDelete: boolean;
-  added: boolean;
-  edited: boolean;
-  deleted: boolean;
-  editId: number;
-  deleteId: number;
-  editTitle: string;
-  editTitleEn: string;
-  deleteTitle: string;
-}
+const ManageMenuSizes: React.FC<IProps> = ({
+  isLoginSuccess,
+  isAddSuccess,
+  isEditSuccess,
+  isDeleteSuccess,
+  isListPending,
+  dictionnaryList,
+  menuSizeList,
+  menuList,
+  userToken,
+  userType,
+  userLanguage,
+  selected,
+  actions
+}) => {
+  const [openAdd, setOpenAdd] = useState(false);
+  const [openEdit, setOpenEdit] = useState(false);
+  const [openDelete, setOpenDelete] = useState(false);
+  const [added, setAdded] = useState(false);
+  const [edited, setEdited] = useState(false);
+  const [deleted, setDeleted] = useState(false);
+  const [editId, setEditId] = useState(-1);
+  const [deleteId, setDeleteId] = useState(-1);
+  const [editTitle, setEditTitle] = useState("");
+  const [editTitleEn, setEditTitleEn] = useState("");
+  const [deleteTitle, setDeleteTitle] = useState("");
 
-class ManageMenuSizes extends Component<IProvidedProps & IProps, IState> {
-  state = {
-    openAdd: false,
-    openEdit: false,
-    openDelete: false,
-    added: false,
-    edited: false,
-    deleted: false,
-    editId: -1,
-    deleteId: -1,
-    editTitle: "",
-    editTitleEn: "",
-    deleteTitle: ""
-  };
-
-  componentDidMount() {
-    const { isLoginSuccess } = this.props;
+  useEffect(() => {
     if (isLoginSuccess) {
-      this.refresh();
+      refresh();
     }
-  }
+  }, [isLoginSuccess]);
 
-  componentDidUpdate(prevProps: IProps) {
-    const { userToken } = this.props;
-    if (userToken !== prevProps.userToken) {
-      this.refresh();
-    }
-  }
+  useEffect(() => {
+    refresh();
+  }, [userToken]);
 
-  refresh = () => {
-    const { userType } = this.props;
+  const refresh = () => {
     if (userType === "administrator") {
-      this.props.actions.getDictionnaries();
-      this.props.actions.getMenuSizes();
-      this.props.actions.getMenus();
+      actions.getDictionnaries();
+      actions.getMenuSizes();
+      actions.getMenus();
     }
   };
 
-  handleLogout = () => {
-    this.props.actions.logout();
+  const handleLogout = () => {
+    actions.logout();
   };
 
-  handleChangeSelected = (selected: number) => {
-    this.props.actions.setSelected(selected);
+  const handleChangeSelected = (selected: number) => {
+    actions.setSelected(selected);
     localStorage.setItem("selected", selected.toString());
   };
 
-  handleCloseSnackbarAdded = () => {
-    this.setState({
-      added: false
-    });
+  const handleCloseSnackbarAdded = () => {
+    setAdded(false);
   };
 
-  handleCloseSnackbarEdited = () => {
-    this.setState({
-      edited: false
-    });
+  const handleCloseSnackbarEdited = () => {
+    setEdited(false);
   };
 
-  handleCloseSnackbarDeleted = () => {
-    this.setState({
-      deleted: false
-    });
+  const handleCloseSnackbarDeleted = () => {
+    setDeleted(false);
   };
 
-  checkDictionnary = (tag: string) => {
-    const { dictionnaryList, userLanguage } = this.props;
+  const getDictionaryValue = (tag: string) => {
     return checkDictionnary(tag, dictionnaryList, userLanguage);
   };
 
-  handleTableColumns = () => {
+  const handleTableColumns = () => {
     return [
       {
         name: "title",
@@ -160,8 +137,7 @@ class ManageMenuSizes extends Component<IProvidedProps & IProps, IState> {
     ];
   };
 
-  handleTableRows = () => {
-    const { menuSizeList, menuList } = this.props;
+  const handleTableRows = () => {
     if (menuSizeList && menuSizeList.length > 0) {
       return menuSizeList.map(menuSize => {
         const obj = {
@@ -173,7 +149,7 @@ class ManageMenuSizes extends Component<IProvidedProps & IProps, IState> {
                 <IconButton
                   color="primary"
                   onClick={() =>
-                    this.handleOpenEdit(
+                    handleOpenEdit(
                       menuSize.id,
                       menuSize.title,
                       menuSize.title_en
@@ -187,7 +163,7 @@ class ManageMenuSizes extends Component<IProvidedProps & IProps, IState> {
                 <IconButton
                   color="secondary"
                   onClick={() =>
-                    this.handleOpenDelete(menuSize.id, menuSize.title)
+                    handleOpenDelete(menuSize.id, menuSize.title)
                   }
                   disabled={
                     menuList.filter(x => x.menu_size_id === menuSize.id)
@@ -207,171 +183,131 @@ class ManageMenuSizes extends Component<IProvidedProps & IProps, IState> {
     }
   };
 
-  handleOpenAdd = () => {
-    this.setState({
-      openAdd: true
-    });
+  const handleOpenAdd = () => {
+    setOpenAdd(true);
   };
 
-  handleOpenEdit = (id: number, title: string, titleEn: string) => {
-    this.setState({
-      editId: id,
-      editTitle: title,
-      editTitleEn: titleEn,
-      openEdit: true
-    });
+  const handleOpenEdit = (id: number, title: string, titleEn: string) => {
+    setEditId(id);
+    setEditTitle(title);
+    setEditTitleEn(titleEn);
+    setOpenEdit(true);
   };
 
-  handleOpenDelete = (id: number, title: string) => {
-    this.setState({
-      deleteId: id,
-      deleteTitle: title,
-      openDelete: true
-    });
+  const handleOpenDelete = (id: number, title: string) => {
+    setDeleteId(id);
+    setDeleteTitle(title);
+    setOpenDelete(true);
   };
 
-  handleCloseAdd = () => {
-    this.setState({
-      openAdd: false
-    });
+  const handleCloseAdd = () => {
+    setOpenAdd(false);
   };
 
-  handleCloseEdit = () => {
-    this.setState({
-      openEdit: false
-    });
+  const handleCloseEdit = () => {
+    setOpenEdit(false);
   };
 
-  handleCloseDelete = () => {
-    this.setState({
-      openDelete: false
-    });
+  const handleCloseDelete = () => {
+    setOpenDelete(false);
   };
 
-  handleAdd = (title: string, titleEn: string) => {
+  const handleAdd = (title: string, titleEn: string) => {
     if (title) {
-      this.props.actions.addMenuSize(title, titleEn);
+      actions.addMenuSize(title, titleEn);
     }
-    this.setState({
-      openAdd: false,
-      added: true
-    });
+    setOpenAdd(false);
+    setAdded(true);
   };
 
-  handleEdit = (title: string, titleEn: string) => {
-    const { editId } = this.state;
-    this.props.actions.editMenuSize(editId, title, titleEn);
-    this.setState({
-      openEdit: false,
-      edited: true
-    });
+  const handleEdit = (title: string, titleEn: string) => {
+    actions.editMenuSize(editId, title, titleEn);
+    setOpenEdit(false);
+    setEdited(true);
   };
 
-  handleDelete = () => {
-    const { deleteId } = this.state;
+  const handleDelete = () => {
     if (deleteId > 0) {
-      this.props.actions.deleteMenuSize(deleteId);
-      this.setState({
-        openDelete: false,
-        deleted: true
-      });
+      actions.deleteMenuSize(deleteId);
+      setOpenDelete(false);
+      setDeleted(true);
     }
   };
 
-  render() {
-    const {
-      openAdd,
-      openEdit,
-      openDelete,
-      added,
-      edited,
-      deleted,
-      editTitle,
-      editTitleEn,
-      deleteTitle
-    } = this.state;
-    const {
-      isLoginSuccess,
-      isListPending,
-      isAddSuccess,
-      isEditSuccess,
-      isDeleteSuccess,
-      userType,
-      selected,
-      classes
-    } = this.props;
-    if (!isLoginSuccess) {
-      return <Navigate to="/login" replace />;
-    }
-    return (
-      <MenuBar
-        isLoginSuccess={isLoginSuccess}
-        isListPending={isListPending}
-        userType={userType}
-        selected={selected}
-        title="Tailles"
-        onLogout={this.handleLogout}
-        onChangeSelected={this.handleChangeSelected}
-        checkDictionnary={this.checkDictionnary}
-      >
-        {isAddSuccess && added && (
-          <SnackbarAction
-            success
-            message="La taille a bien été ajoutée !"
-            onClose={this.handleCloseSnackbarAdded}
-          />
-        )}
-        {isEditSuccess && edited && (
-          <SnackbarAction
-            success
-            message="La taille a bien été modifiée !"
-            onClose={this.handleCloseSnackbarEdited}
-          />
-        )}
-        {isDeleteSuccess && deleted && (
-          <SnackbarAction
-            success
-            message="La taille a bien été supprimée !"
-            onClose={this.handleCloseSnackbarDeleted}
-          />
-        )}
-        {openAdd && (
-          <AddMenuSize onClose={this.handleCloseAdd} onAdd={this.handleAdd} />
-        )}
-        {openEdit && (
-          <EditMenuSize
-            title={editTitle}
-            titleEn={editTitleEn}
-            onClose={this.handleCloseEdit}
-            onEdit={this.handleEdit}
-          />
-        )}
-        {openDelete && (
-          <DeleteStuff
-            title="Supprimer une taille"
-            description={`La taille « ${deleteTitle} » sera définitivement perdue !`}
-            onClose={this.handleCloseDelete}
-            onDelete={this.handleDelete}
-            checkDictionnary={this.checkDictionnary}
-          />
-        )}
-        <main className={classes.main}>
-          <div className={classNames(classes.layout, classes.cardGrid)}>
-            <div className={classes.heroUnit}>
+  if (!isLoginSuccess) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return (
+    <MenuBar
+      isLoginSuccess={isLoginSuccess}
+      isListPending={isListPending}
+      userType={userType}
+      selected={selected}
+      title="Tailles"
+      onLogout={handleLogout}
+      onChangeSelected={handleChangeSelected}
+      checkDictionnary={getDictionaryValue}
+    >
+      {isAddSuccess && added && (
+        <SnackbarAction
+          success
+          message="La taille a bien été ajoutée !"
+          onClose={handleCloseSnackbarAdded}
+        />
+      )}
+      {isEditSuccess && edited && (
+        <SnackbarAction
+          success
+          message="La taille a bien été modifiée !"
+          onClose={handleCloseSnackbarEdited}
+        />
+      )}
+      {isDeleteSuccess && deleted && (
+        <SnackbarAction
+          success
+          message="La taille a bien été supprimée !"
+          onClose={handleCloseSnackbarDeleted}
+        />
+      )}
+      {openAdd && (
+        <AddMenuSize onClose={handleCloseAdd} onAdd={handleAdd} />
+      )}
+      {openEdit && (
+        <EditMenuSize
+          title={editTitle}
+          titleEn={editTitleEn}
+          onClose={handleCloseEdit}
+          onEdit={handleEdit}
+        />
+      )}
+      {openDelete && (
+        <DeleteStuff
+          title="Supprimer une taille"
+          description={`La taille « ${deleteTitle} » sera définitivement perdue !`}
+          onClose={handleCloseDelete}
+          onDelete={handleDelete}
+          checkDictionnary={getDictionaryValue}
+        />
+      )}
+      <StyledMain>
+        <StyledLayout>
+          <StyledCardGrid>
+            <StyledHeroUnit>
               <Table
                 add
-                rows={this.handleTableRows()}
-                columns={this.handleTableColumns()}
+                rows={handleTableRows()}
+                columns={handleTableColumns()}
                 defaultSorting={[{ columnName: "title", direction: "asc" }]}
-                onAddedRowsChange={this.handleOpenAdd}
+                onAddedRowsChange={handleOpenAdd}
               />
-            </div>
-          </div>
-        </main>
-        <Footer />
-      </MenuBar>
-    );
-  }
-}
+            </StyledHeroUnit>
+          </StyledCardGrid>
+        </StyledLayout>
+      </StyledMain>
+      <Footer />
+    </MenuBar>
+  );
+};
 
-export default withStyles(styles, { withTheme: true })(ManageMenuSizes);
+export default ManageMenuSizes;

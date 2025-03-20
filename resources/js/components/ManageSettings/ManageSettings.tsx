@@ -1,13 +1,12 @@
-import React, { Component } from "react";
+import React, { useState, useEffect } from "react";
 import { Navigate } from "react-router-dom";
-import classNames from "classnames";
 import moment from "moment";
 import "moment/locale/fr";
-import Typography from "@material-ui/core/Typography";
-import { withStyles, Theme } from "@material-ui/core/styles";
-import Tooltip from "@material-ui/core/Tooltip";
-import IconButton from "@material-ui/core/IconButton";
-import EditIcon from "@material-ui/icons/Edit";
+import { styled } from "@mui/material/styles";
+import Typography from "@mui/material/Typography";
+import Tooltip from "@mui/material/Tooltip";
+import IconButton from "@mui/material/IconButton";
+import EditIcon from "@mui/icons-material/Edit";
 import MenuBar from "../MenuBar/MenuBar";
 import Footer from "../Footer/Footer";
 import Table from "../Table/Table";
@@ -19,34 +18,27 @@ import IDailyMail from "../../interfaces/IDailyMail";
 
 moment.locale("fr");
 
-const styles = (theme: Theme) => ({
-  heroUnit: {
-    backgroundColor: theme.palette.background.paper,
-    borderRadius: ".625rem"
-  },
-  heroContent: {
-    maxWidth: 600,
-    margin: "0 auto",
-    padding: `${theme.spacing(8)}px 0 ${theme.spacing(6)}px`
-  },
-  layout: {
-    width: "auto",
-    margin: "0 auto"
-  },
-  cardGrid: {
-    padding: theme.spacing(4)
-  },
-  h5: {
-    paddingTop: theme.spacing(5)
-  },
-  main: {
-    flex: 1
-  }
-});
+const StyledMain = styled('main')(({ theme }) => ({
+  flex: 1
+}));
 
-interface IProvidedProps {
-  classes: any;
-}
+const StyledLayout = styled('div')(({ theme }) => ({
+  width: "auto",
+  margin: "0 auto"
+}));
+
+const StyledCardGrid = styled('div')(({ theme }) => ({
+  padding: theme.spacing(4)
+}));
+
+const StyledHeroUnit = styled('div')(({ theme }) => ({
+  backgroundColor: theme.palette.background.paper,
+  borderRadius: ".625rem"
+}));
+
+const StyledTypography = styled(Typography)(({ theme }) => ({
+  paddingTop: theme.spacing(5)
+}));
 
 interface IProps {
   isLoginSuccess: boolean;
@@ -62,75 +54,65 @@ interface IProps {
   actions: any;
 }
 
-interface IState {
-  openEdit: boolean;
-  edited: boolean;
-  editId: number;
-  editTimeLimit: string;
-  editStartPeriod: number;
-  editEndPeriod: number;
-  editEmailOrderCc: string;
-  editEmailSupplierCc: string;
-  editEmailVendorCc: string;
-}
+const ManageSettings: React.FC<IProps> = ({
+  isLoginSuccess,
+  isEditSuccess,
+  isListPending,
+  userToken,
+  userType,
+  userLanguage,
+  selected,
+  dictionnaryList,
+  settingList,
+  dailyMailList,
+  actions
+}) => {
+  const [openEdit, setOpenEdit] = useState(false);
+  const [edited, setEdited] = useState(false);
+  const [editId, setEditId] = useState(-1);
+  const [editTimeLimit, setEditTimeLimit] = useState("11:00:00");
+  const [editStartPeriod, setEditStartPeriod] = useState(0);
+  const [editEndPeriod, setEditEndPeriod] = useState(0);
+  const [editEmailOrderCc, setEditEmailOrderCc] = useState("");
+  const [editEmailSupplierCc, setEditEmailSupplierCc] = useState("");
+  const [editEmailVendorCc, setEditEmailVendorCc] = useState("");
 
-class ManageSettings extends Component<IProvidedProps & IProps, IState> {
-  state = {
-    openEdit: false,
-    edited: false,
-    editId: -1,
-    editTimeLimit: "11:00:00",
-    editStartPeriod: 0,
-    editEndPeriod: 0,
-    editEmailOrderCc: "",
-    editEmailSupplierCc: "",
-    editEmailVendorCc: ""
-  };
-
-  componentDidMount() {
-    const { isLoginSuccess } = this.props;
+  useEffect(() => {
     if (isLoginSuccess) {
-      this.refresh();
+      refresh();
     }
-  }
+  }, [isLoginSuccess]);
 
-  componentDidUpdate(prevProps: IProps) {
-    const { userToken } = this.props;
-    if (userToken !== prevProps.userToken) {
-      this.refresh();
-    }
-  }
+  useEffect(() => {
+    refresh();
+  }, [userToken]);
 
-  refresh = () => {
-    const { userType } = this.props;
+  const refresh = () => {
     if (userType === "administrator") {
-      this.props.actions.getDictionnaries();
-      this.props.actions.getSettings();
-      this.props.actions.getDailyMails();
+      actions.getDictionnaries();
+      actions.getSettings();
+      actions.getDailyMails();
     }
   };
 
-  handleLogout = () => {
-    this.props.actions.logout();
+  const handleLogout = () => {
+    actions.logout();
   };
 
-  handleChangeSelected = (selected: number) => {
-    this.props.actions.setSelected(selected);
+  const handleChangeSelected = (selected: number) => {
+    actions.setSelected(selected);
     localStorage.setItem("selected", selected.toString());
   };
 
-  handleCloseSnackbarEdited = () => {
-    this.setState({
-      edited: false
-    });
+  const handleCloseSnackbarEdited = () => {
+    setEdited(false);
   };
 
-  checkDictionnary = (tag: string) => {
-    const { dictionnaryList, userLanguage } = this.props;
+  const getDictionaryValue = (tag: string) => {
     return checkDictionnary(tag, dictionnaryList, userLanguage);
   };
 
-  handleTableColumns = () => {
+  const handleTableColumns = () => {
     return [
       {
         name: "timeLimit",
@@ -163,8 +145,7 @@ class ManageSettings extends Component<IProvidedProps & IProps, IState> {
     ];
   };
 
-  handleTableRows = () => {
-    const { settingList } = this.props;
+  const handleTableRows = () => {
     if (settingList && settingList.length > 0) {
       return settingList.map(setting => {
         const obj = {
@@ -180,7 +161,7 @@ class ManageSettings extends Component<IProvidedProps & IProps, IState> {
                 <IconButton
                   color="primary"
                   onClick={() =>
-                    this.handleOpenEdit(
+                    handleOpenEdit(
                       setting.id,
                       setting.time_limit,
                       parseInt(setting.start_period),
@@ -204,7 +185,7 @@ class ManageSettings extends Component<IProvidedProps & IProps, IState> {
     }
   };
 
-  handleOpenEdit = (
+  const handleOpenEdit = (
     id: number,
     timeLimit: string,
     startPeriod: number,
@@ -213,25 +194,21 @@ class ManageSettings extends Component<IProvidedProps & IProps, IState> {
     emailSupplierCc: string,
     emailVendorCc: string
   ) => {
-    this.setState({
-      editId: id,
-      editTimeLimit: timeLimit,
-      editStartPeriod: startPeriod,
-      editEndPeriod: endPeriod,
-      editEmailOrderCc: emailOrderCc,
-      editEmailSupplierCc: emailSupplierCc,
-      editEmailVendorCc: emailVendorCc,
-      openEdit: true
-    });
+    setEditId(id);
+    setEditTimeLimit(timeLimit);
+    setEditStartPeriod(startPeriod);
+    setEditEndPeriod(endPeriod);
+    setEditEmailOrderCc(emailOrderCc);
+    setEditEmailSupplierCc(emailSupplierCc);
+    setEditEmailVendorCc(emailVendorCc);
+    setOpenEdit(true);
   };
 
-  handleCloseEdit = () => {
-    this.setState({
-      openEdit: false
-    });
+  const handleCloseEdit = () => {
+    setOpenEdit(false);
   };
 
-  handleEdit = (
+  const handleEdit = (
     timeLimit: string,
     startPeriod: number,
     endPeriod: number,
@@ -239,9 +216,8 @@ class ManageSettings extends Component<IProvidedProps & IProps, IState> {
     emailSupplierCc: string,
     emailVendorCc: string
   ) => {
-    const { editId } = this.state;
     if (editId > 0) {
-      this.props.actions.editSetting(
+      actions.editSetting(
         editId,
         timeLimit,
         startPeriod,
@@ -251,83 +227,63 @@ class ManageSettings extends Component<IProvidedProps & IProps, IState> {
         emailVendorCc
       );
     }
-    this.setState({
-      openEdit: false,
-      edited: true
-    });
+    setOpenEdit(false);
+    setEdited(true);
   };
 
-  render() {
-    const {
-      openEdit,
-      edited,
-      editTimeLimit,
-      editStartPeriod,
-      editEndPeriod,
-      editEmailOrderCc,
-      editEmailSupplierCc,
-      editEmailVendorCc
-    } = this.state;
-    const {
-      isLoginSuccess,
-      isListPending,
-      isEditSuccess,
-      userType,
-      selected,
-      dailyMailList,
-      classes
-    } = this.props;
-    if (!isLoginSuccess) {
-      return <Navigate to="/login" replace />;
-    }
-    let lastDailyMail = "N/A";
-    if (dailyMailList && dailyMailList.length > 0) {
-      lastDailyMail = moment(dailyMailList[0].date).format(
-        "dddd DD MMMM à HH:mm"
-      );
-    }
-    return (
-      <MenuBar
-        isLoginSuccess={isLoginSuccess}
-        isListPending={isListPending}
-        userType={userType}
-        selected={selected}
-        title="Paramètres"
-        onLogout={this.handleLogout}
-        onChangeSelected={this.handleChangeSelected}
-        checkDictionnary={this.checkDictionnary}
-      >
-        {isEditSuccess && edited && (
-          <SnackbarAction
-            success
-            message="Le paramètre a bien été modifié !"
-            onClose={this.handleCloseSnackbarEdited}
-          />
-        )}
-        {openEdit && (
-          <EditSetting
-            timeLimit={editTimeLimit}
-            startPeriod={editStartPeriod}
-            endPeriod={editEndPeriod}
-            emailOrderCc={editEmailOrderCc}
-            emailSupplierCc={editEmailSupplierCc}
-            emailVendorCc={editEmailVendorCc}
-            onClose={this.handleCloseEdit}
-            onEdit={this.handleEdit}
-          />
-        )}
-        <main className={classes.main}>
-          <div className={classNames(classes.layout, classes.cardGrid)}>
-            <div className={classes.heroUnit}>
-              <Typography
+  if (!isLoginSuccess) {
+    return <Navigate to="/login" replace />;
+  }
+
+  let lastDailyMail = "N/A";
+  if (dailyMailList && dailyMailList.length > 0) {
+    lastDailyMail = moment(dailyMailList[0].date).format(
+      "dddd DD MMMM à HH:mm"
+    );
+  }
+
+  return (
+    <MenuBar
+      isLoginSuccess={isLoginSuccess}
+      isListPending={isListPending}
+      userType={userType}
+      selected={selected}
+      title="Paramètres"
+      onLogout={handleLogout}
+      onChangeSelected={handleChangeSelected}
+      checkDictionnary={getDictionaryValue}
+    >
+      {isEditSuccess && edited && (
+        <SnackbarAction
+          success
+          message="Le paramètre a bien été modifié !"
+          onClose={handleCloseSnackbarEdited}
+        />
+      )}
+      {openEdit && (
+        <EditSetting
+          timeLimit={editTimeLimit}
+          startPeriod={editStartPeriod}
+          endPeriod={editEndPeriod}
+          emailOrderCc={editEmailOrderCc}
+          emailSupplierCc={editEmailSupplierCc}
+          emailVendorCc={editEmailVendorCc}
+          onClose={handleCloseEdit}
+          onEdit={handleEdit}
+        />
+      )}
+      <StyledMain>
+        <StyledLayout>
+          <StyledCardGrid>
+            <StyledHeroUnit>
+              <StyledTypography
                 color="textPrimary"
                 variant="h5"
                 gutterBottom
                 align="center"
-                className={classes.h5}
               >
                 Dernier envoi de l'e-mail de confirmation de commandes :
-              </Typography>
+              </StyledTypography>
               <Typography
                 color="primary"
                 variant="h6"
@@ -337,16 +293,16 @@ class ManageSettings extends Component<IProvidedProps & IProps, IState> {
                 {lastDailyMail}
               </Typography>
               <Table
-                rows={this.handleTableRows()}
-                columns={this.handleTableColumns()}
+                rows={handleTableRows()}
+                columns={handleTableColumns()}
               />
-            </div>
-          </div>
-        </main>
-        <Footer />
-      </MenuBar>
-    );
-  }
-}
+            </StyledHeroUnit>
+          </StyledCardGrid>
+        </StyledLayout>
+      </StyledMain>
+      <Footer />
+    </MenuBar>
+  );
+};
 
-export default withStyles(styles, { withTheme: true })(ManageSettings);
+export default ManageSettings;

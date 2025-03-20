@@ -32,12 +32,18 @@ export default defineConfig({
         },
     },
     server: {
-        cors: true,
+        cors: {
+            origin: ['http://localhost:8000', 'http://127.0.0.1:8000'],
+            methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+            allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+            credentials: true
+        },
         strictPort: true,
-        port: 5173,
+        port: 3000,
         hmr: {
             host: 'localhost',
-            protocol: 'ws'
+            protocol: 'ws',
+            clientPort: 3000
         },
         proxy: {
             '/api': {
@@ -59,9 +65,10 @@ export default defineConfig({
             'react-router-dom',
             '@mui/material',
             '@mui/icons-material',
-            '@material-ui/core',
-            '@material-ui/icons'
+            '@emotion/react',
+            '@emotion/styled'
         ],
+        exclude: ['@material-ui/core', '@material-ui/icons']
     },
     build: {
         rollupOptions: {
@@ -69,8 +76,7 @@ export default defineConfig({
                 manualChunks: {
                     'react-vendor': ['react', 'react-dom'],
                     'redux-vendor': ['redux', 'react-redux', 'redux-thunk', 'redux-promise'],
-                    'mui-vendor': ['@mui/material', '@mui/icons-material'],
-                    'material-ui-vendor': ['@material-ui/core', '@material-ui/icons']
+                    'mui-vendor': ['@mui/material', '@mui/icons-material', '@emotion/react', '@emotion/styled']
                 }
             }
         }

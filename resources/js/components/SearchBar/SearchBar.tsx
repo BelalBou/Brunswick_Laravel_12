@@ -1,100 +1,77 @@
-import React from "react";
-import classNames from "classnames";
-import { fade } from "@material-ui/core/styles/colorManipulator";
-import { withStyles, Theme, createStyles } from "@material-ui/core/styles";
-import TextField from "@material-ui/core/TextField";
-import InputAdornment from "@material-ui/core/InputAdornment";
-import IconButton from "@material-ui/core/IconButton";
-import SearchIcon from "@material-ui/icons/Search";
-import ClearIcon from "@material-ui/icons/Clear";
+import React, { useState } from "react";
+import { styled } from "@mui/material/styles";
+import TextField from "@mui/material/TextField";
+import InputAdornment from "@mui/material/InputAdornment";
+import IconButton from "@mui/material/IconButton";
+import SearchIcon from "@mui/icons-material/Search";
+import ClearIcon from "@mui/icons-material/Clear";
+import { alpha } from "@mui/material/styles";
 
-const styles = (theme: Theme) =>
-  createStyles({
-    textField: {
-      marginLeft: 0,
-      width: "100%",
-      [theme.breakpoints.up("sm")]: {
-        marginLeft: theme.spacing.unit * 4,
-        width: "auto"
-      }
+const StyledTextField = styled(TextField)(({ theme }) => ({
+  marginLeft: 0,
+  width: "100%",
+  [theme.breakpoints.up("sm")]: {
+    marginLeft: theme.spacing(4),
+    width: "auto"
+  },
+  "& .MuiInputBase-root": {
+    position: "relative",
+    borderRadius: theme.shape.borderRadius,
+    backgroundColor: alpha(theme.palette.common.white, 0.15),
+    "&:hover": {
+      backgroundColor: alpha(theme.palette.common.white, 0.25)
     },
-    input: {
-      position: "relative",
-      borderRadius: theme.shape.borderRadius,
-      backgroundColor: fade(theme.palette.common.white, 0.15),
-      "&:hover": {
-        backgroundColor: fade(theme.palette.common.white, 0.25)
-      },
-      color: "#fff"
-    },
-    icon: {
-      color: "#fff"
-    },
-    searchIcon: {
-      marginLeft: theme.spacing.unit * 2
-    }
-  });
+    color: "#fff"
+  }
+}));
 
-interface IProvidedProps {
-  classes: any;
-}
+const StyledIcon = styled('span')(({ theme }) => ({
+  color: "#fff",
+  marginLeft: theme.spacing(2)
+}));
 
 interface IProps {
   onSearch: (search: string) => void;
   checkDictionnary: (tag: string) => string;
 }
 
-class SearchBar extends React.Component<IProvidedProps & IProps> {
-  state = {
-    search: ""
-  };
+const SearchBar: React.FC<IProps> = ({ onSearch, checkDictionnary }) => {
+  const [search, setSearch] = useState("");
 
-  handleChangeSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChangeSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = event.target;
-    this.setState({
-      search: value
-    });
-    this.props.onSearch(value);
+    setSearch(value);
+    onSearch(value);
   };
 
-  handleClearSearch = () => {
-    this.setState({
-      search: ""
-    });
-    this.props.onSearch("");
+  const handleClearSearch = () => {
+    setSearch("");
+    onSearch("");
   };
 
-  render() {
-    const { classes } = this.props;
-    const { search } = this.state;
-    return (
-      <TextField
-        className={classes.textField}
-        id="input-with-icon-textfield"
-        value={search}
-        onChange={this.handleChangeSearch}
-        placeholder={this.props.checkDictionnary("_RECHERCHE")}
-        InputProps={{
-          disableUnderline: true,
-          className: classes.input,
-          startAdornment: (
-            <InputAdornment position="start">
-              <SearchIcon
-                className={classNames(classes.icon, classes.searchIcon)}
-              />
-            </InputAdornment>
-          ),
-          endAdornment: (
-            <InputAdornment position="end">
-              <IconButton onClick={this.handleClearSearch}>
-                <ClearIcon className={classes.icon} />
-              </IconButton>
-            </InputAdornment>
-          )
-        }}
-      />
-    );
-  }
-}
+  return (
+    <StyledTextField
+      id="input-with-icon-textfield"
+      value={search}
+      onChange={handleChangeSearch}
+      placeholder={checkDictionnary("_RECHERCHE")}
+      InputProps={{
+        disableUnderline: true,
+        startAdornment: (
+          <InputAdornment position="start">
+            <SearchIcon component={StyledIcon} />
+          </InputAdornment>
+        ),
+        endAdornment: (
+          <InputAdornment position="end">
+            <IconButton onClick={handleClearSearch}>
+              <ClearIcon sx={{ color: "#fff" }} />
+            </IconButton>
+          </InputAdornment>
+        )
+      }}
+    />
+  );
+};
 
-export default withStyles(styles)(SearchBar);
+export default SearchBar;

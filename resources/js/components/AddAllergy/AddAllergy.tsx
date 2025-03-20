@@ -1,111 +1,77 @@
-import React, { Component } from "react";
-import { withStyles, Theme } from "@material-ui/core/styles";
-import Button from "@material-ui/core/Button";
-import TextField from "@material-ui/core/TextField";
-import Dialog from "@material-ui/core/Dialog";
-import DialogActions from "@material-ui/core/DialogActions";
-import DialogContent from "@material-ui/core/DialogContent";
-import DialogTitle from "@material-ui/core/DialogTitle";
+import React, { useState } from "react";
+import { Button, TextField, Dialog, DialogActions, DialogContent, DialogTitle } from "@mui/material";
+import { styled } from "@mui/material/styles";
 
-const styles = (theme: Theme) => ({
-  margin: {
-    margin: theme.spacing.unit
-  }
-});
+const StyledTextField = styled(TextField)(({ theme }) => ({
+  margin: theme.spacing(1)
+}));
 
-interface IProvidedProps {
-  classes: any;
-}
-
-interface IProps {
+interface AddAllergyProps {
   onClose: () => void;
   onAdd: (description: string, descriptionEn: string) => void;
 }
 
-interface IState {
-  description: string;
-  descriptionEn: string;
-  validated: boolean;
-}
+const AddAllergy: React.FC<AddAllergyProps> = ({ onClose, onAdd }) => {
+  const [description, setDescription] = useState<string>("");
+  const [descriptionEn, setDescriptionEn] = useState<string>("");
+  const [validated, setValidated] = useState<boolean>(true);
 
-class AddAllergy extends Component<IProvidedProps & IProps, IState> {
-  state = {
-    description: "",
-    descriptionEn: "",
-    validated: true
+  const handleChangeDescription = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setDescription(event.target.value);
   };
 
-  handleChangeDescription = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const { value } = event.currentTarget;
-    this.setState({
-      description: value
-    });
+  const handleChangeDescriptionEn = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setDescriptionEn(event.target.value);
   };
 
-  handleChangeDescriptionEn = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const { value } = event.currentTarget;
-    this.setState({
-      descriptionEn: value
-    });
-  };
-
-  handleValidated = () => {
-    const { description, descriptionEn } = this.state;
+  const handleValidated = () => {
     if (!description && !descriptionEn) {
-      this.setState({
-        validated: false
-      });
+      setValidated(false);
     } else {
-      this.props.onAdd(description, descriptionEn);
+      onAdd(description, descriptionEn);
     }
   };
 
-  render() {
-    const { description, descriptionEn, validated } = this.state;
-    const { classes } = this.props;
-    return (
-      <Dialog
-        open
-        onClose={this.props.onClose}
-        aria-labelledby="form-dialog-title"
-      >
-        <DialogTitle id="form-dialog-title">Ajouter un allergène</DialogTitle>
-        <DialogContent>
-          <TextField
-            className={classes.margin}
-            value={description}
-            onChange={this.handleChangeDescription}
-            autoFocus
-            id="description"
-            label="Description FR"
-            type="text"
-            fullWidth
-            required
-            error={!validated && !description}
-          />
-          <TextField
-            className={classes.margin}
-            value={descriptionEn}
-            onChange={this.handleChangeDescriptionEn}
-            id="descriptionEn"
-            label="Description EN"
-            type="text"
-            fullWidth
-            required
-            error={!validated && !descriptionEn}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={this.props.onClose} color="primary">
-            Annuler
-          </Button>
-          <Button onClick={this.handleValidated} color="primary">
-            Ajouter
-          </Button>
-        </DialogActions>
-      </Dialog>
-    );
-  }
-}
+  return (
+    <Dialog
+      open
+      onClose={onClose}
+      aria-labelledby="form-dialog-title"
+    >
+      <DialogTitle id="form-dialog-title">Ajouter un allergène</DialogTitle>
+      <DialogContent>
+        <StyledTextField
+          value={description}
+          onChange={handleChangeDescription}
+          autoFocus
+          id="description"
+          label="Description FR"
+          type="text"
+          fullWidth
+          required
+          error={!validated && !description}
+        />
+        <StyledTextField
+          value={descriptionEn}
+          onChange={handleChangeDescriptionEn}
+          id="descriptionEn"
+          label="Description EN"
+          type="text"
+          fullWidth
+          required
+          error={!validated && !descriptionEn}
+        />
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose} color="primary">
+          Annuler
+        </Button>
+        <Button onClick={handleValidated} color="primary">
+          Ajouter
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+};
 
-export default withStyles(styles)(AddAllergy);
+export default AddAllergy;

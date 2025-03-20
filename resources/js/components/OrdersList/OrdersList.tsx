@@ -1,33 +1,26 @@
 import React from "react";
-import { Theme } from "@material-ui/core/styles";
-import withStyles from "@material-ui/core/styles/withStyles";
-import createStyles from "@material-ui/core/styles/createStyles";
-import List from "@material-ui/core/List";
-import CircularProgress from "@material-ui/core/CircularProgress";
-import Button from "@material-ui/core/Button";
+import { styled } from "@mui/material/styles";
+import List from "@mui/material/List";
+import CircularProgress from "@mui/material/CircularProgress";
+import Button from "@mui/material/Button";
 import OrdersListItem from "../OrdersListItem/OrdersListItem";
 import OrdersEmpty from "../OrdersEmpty/OrdersEmpty";
 import ICart from "../../interfaces/ICart";
 import IOrder from "../../interfaces/IOrder";
 import IOrderExtra from "../../interfaces/IOrderExtra";
 
-const styles = (theme: Theme) =>
-  createStyles({
-    list: {
-      width: "100%",
-      textAlign: "center"
-    },
-    circularProgress: {
-      marginTop: theme.spacing.unit * 2
-    },
-    button: {
-      marginTop: theme.spacing.unit * 2
-    }
-  });
+const StyledList = styled(List)({
+  width: "100%",
+  textAlign: "center"
+});
 
-interface IProvidedProps {
-  classes: any;
-}
+const StyledCircularProgress = styled(CircularProgress)(({ theme }) => ({
+  marginTop: theme.spacing(2)
+}));
+
+const StyledButton = styled(Button)(({ theme }) => ({
+  marginTop: theme.spacing(2)
+}));
 
 interface IProps {
   userLanguage: string;
@@ -42,50 +35,55 @@ interface IProps {
   isOrderEditable: (date: string) => boolean;
 }
 
-function OrdersList(props: IProvidedProps & IProps) {
-  function renderLoaders() {
-    const { isListPending, classes } = props;
+const OrdersList: React.FC<IProps> = ({
+  userLanguage,
+  orderList,
+  orderExtraList,
+  hasMore,
+  isListPending,
+  onOpenDelete,
+  onOpenEdit,
+  onFetchNextData,
+  checkDictionnary,
+  isOrderEditable
+}) => {
+  const renderLoaders = () => {
     if (isListPending) {
-      return (
-        <CircularProgress disableShrink className={classes.circularProgress} />
-      );
+      return <StyledCircularProgress disableShrink />;
     }
-  }
+  };
 
-  function renderMoreOrdersButton() {
-    if (props.hasMore && !props.isListPending) {
+  const renderMoreOrdersButton = () => {
+    if (hasMore && !isListPending) {
       return (
-        <Button
-          variant="text"
-          onClick={props.onFetchNextData}
-          className={props.classes.button}
-        >
+        <StyledButton variant="text" onClick={onFetchNextData}>
           Charger plus de commandes...
-        </Button>
+        </StyledButton>
       );
     }
-  }
+  };
 
-  if (props.orderList && props.orderList.length > 0) {
+  if (orderList && orderList.length > 0) {
     return (
-      <List className={props.classes.list}>
-        {props.orderList.map(order => (
+      <StyledList>
+        {orderList.map(order => (
           <OrdersListItem
             key={order.id}
             order={order}
-            userLanguage={props.userLanguage}
-            orderExtraList={props.orderExtraList}
-            onOpenDelete={props.onOpenDelete}
-            onOpenEdit={props.onOpenEdit}
-            isOrderEditable={props.isOrderEditable}
+            userLanguage={userLanguage}
+            orderExtraList={orderExtraList}
+            onOpenDelete={onOpenDelete}
+            onOpenEdit={onOpenEdit}
+            isOrderEditable={isOrderEditable}
           />
         ))}
         {renderMoreOrdersButton()}
         {renderLoaders()}
-      </List>
+      </StyledList>
     );
   }
-  return <OrdersEmpty checkDictionnary={props.checkDictionnary} />;
-}
 
-export default withStyles(styles)(OrdersList);
+  return <OrdersEmpty checkDictionnary={checkDictionnary} />;
+};
+
+export default OrdersList;

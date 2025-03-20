@@ -1,37 +1,30 @@
 import React from "react";
-import { withStyles } from "@material-ui/core/styles";
-import List from "@material-ui/core/List";
+import { styled } from "@mui/material/styles";
+import List from "@mui/material/List";
 import CartListItem from "../CartListItem/CartListItem";
 import CartEmpty from "../CartEmpty/CartEmpty";
 import ICart from "../../interfaces/ICart";
 
-const styles = () => ({
-  list: {
-    width: "100%"
-  }
+const StyledList = styled(List)({
+  width: "100%"
 });
 
-interface IProvidedProps {
-  classes: any;
-}
-
-interface IProps {
+interface CartListProps {
   cartList: ICart[];
   userLanguage: string;
   onOpenEdit: (cart: ICart) => void;
   checkDictionnary: (tag: string) => string;
 }
 
-const CartList = ({
+const CartList: React.FC<CartListProps> = ({
   userLanguage,
   cartList,
-  classes,
   onOpenEdit,
   checkDictionnary
-}: IProvidedProps & IProps) => (
+}): JSX.Element => (
   <>
     {cartList && cartList.length > 0 && (
-      <List className={classes.list}>
+      <StyledList>
         {cartList.map(cart => (
           <CartListItem
             key={cart.menu.id}
@@ -40,7 +33,7 @@ const CartList = ({
             onOpenEdit={onOpenEdit}
           />
         ))}
-      </List>
+      </StyledList>
     )}
     {(!cartList || cartList.length === 0) && (
       <CartEmpty checkDictionnary={checkDictionnary} />
@@ -48,4 +41,4 @@ const CartList = ({
   </>
 );
 
-export default withStyles(styles, { withTheme: true })(CartList);
+export default CartList;

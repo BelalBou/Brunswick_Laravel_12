@@ -1,34 +1,30 @@
 import React, { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
-import Typography from "@mui/material/Typography";
+import { Typography, List, ListItem, ListItemText, Select, MenuItem, Grid, Divider, SelectChangeEvent } from "@mui/material";
 import { styled } from "@mui/material/styles";
-import List from "@mui/material/List";
-import ListItem from "@mui/material/ListItem";
-import ListItemText from "@mui/material/ListItemText";
-import Select, { SelectChangeEvent } from "@mui/material/Select";
-import MenuItem from "@mui/material/MenuItem";
-import Grid from "@mui/material/Grid";
-import Divider from "@mui/material/Divider";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import MenuBar from "../MenuBar/MenuBar";
 import Footer from "../Footer/Footer";
 import checkDictionnary from "../../utils/CheckDictionnary/CheckDictionnary";
 import userTypes from "../../utils/UserTypes/UserTypes";
 import { getDictionaries } from "../../actions/dictionnary";
 import { logout } from "../../actions/login";
-import { setUserLanguage } from "../../actions/user";
+import { updateUser } from "../../actions/user";
 import { setSelected } from "../../actions/page";
-import { AppDispatch } from "../../types/redux";
+import { AppDispatch, RootState } from "../../types/redux.d";
+import IUser from "../../interfaces/IUser";
 
 const HeroUnit = styled('div')(({ theme }) => ({
   backgroundColor: theme.palette.background.paper,
-  borderRadius: ".625rem"
+  borderRadius: theme.shape.borderRadius,
+  padding: theme.spacing(3),
+  marginBottom: theme.spacing(4)
 }));
 
 const Layout = styled('div')(({ theme }) => ({
   width: "auto",
   margin: "0 auto",
-  padding: 0,
+  padding: theme.spacing(2),
   [theme.breakpoints.up("md")]: {
     padding: theme.spacing(4)
   }
@@ -40,37 +36,40 @@ const ListContainer = styled(List)(({ theme }) => ({
   }
 }));
 
-interface IProps {
-  isLoginSuccess: boolean;
-  isListPending: boolean;
-  userId: number;
-  userFirstName: string;
-  userLastName: string;
-  userEmailAddress: string;
-  userType: string;
-  userToken: string;
-  userLanguage: string;
-  selected: number;
-  dictionnaryList: any[];
-}
+const StyledSelect = styled(Select)(({ theme }) => ({
+  width: '100%',
+  marginTop: theme.spacing(1)
+}));
 
-const Account: React.FC<IProps> = ({
-  isLoginSuccess,
-  isListPending,
-  userFirstName,
-  userLastName,
-  userEmailAddress,
-  userType,
-  userLanguage,
-  selected,
-  dictionnaryList
-}) => {
+const Account: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const [localUserLanguage, setLocalUserLanguage] = useState(userLanguage);
+  const [localUserLanguage, setLocalUserLanguage] = useState<string>('fr');
+
+  const {
+    currentUser,
+    isLoading: isUserLoading,
+    error: userError
+  } = useSelector((state: RootState) => state.user);
+
+  const {
+    isLoginSuccess
+  } = useSelector((state: RootState) => state.login);
+
+  const {
+    selected
+  } = useSelector((state: RootState) => state.page);
+
+  const {
+    list: dictionnaryList,
+    isLoading: isListPending
+  } = useSelector((state: RootState) => state.dictionary);
 
   useEffect(() => {
+    if (currentUser?.language) {
+      setLocalUserLanguage(currentUser.language);
+    }
     refresh();
-  }, []);
+  }, [currentUser]);
 
   const refresh = () => {
     dispatch(getDictionaries());
@@ -80,16 +79,18 @@ const Account: React.FC<IProps> = ({
     dispatch(logout());
   };
 
-  const handleChangeUserLanguage = (event: SelectChangeEvent<string>) => {
+  const handleChangeUserLanguage = (event: SelectChangeEvent<unknown>) => {
     const { value } = event.target;
-    dispatch(setUserLanguage(value));
-    const user = localStorage.getItem("user");
-    if (user) {
-      const userObj = JSON.parse(user);
-      userObj.language = value;
-      localStorage.setItem("user", JSON.stringify(userObj));
+    if (currentUser && typeof value === 'string') {
+      dispatch(updateUser({ ...currentUser, language: value }))
+        .unwrap()
+        .then(() => {
+          setLocalUserLanguage(value);
+        })
+        .catch((error) => {
+          console.error('Failed to update user language:', error);
+        });
     }
-    setLocalUserLanguage(value);
   };
 
   const handleChangeSelected = (selected: number) => {
@@ -98,10 +99,10 @@ const Account: React.FC<IProps> = ({
   };
 
   const checkDictionnaryValue = (define: string) => {
-    return checkDictionnary(define, dictionnaryList, userLanguage);
+    return checkDictionnary(define, dictionnaryList, localUserLanguage);
   };
 
-  if (!isLoginSuccess) {
+  if (!isLoginSuccess || !currentUser) {
     return <Navigate to="/login" replace />;
   }
 
@@ -109,7 +110,7 @@ const Account: React.FC<IProps> = ({
     <MenuBar
       isLoginSuccess={isLoginSuccess}
       isListPending={isListPending}
-      userType={userType}
+      userType={currentUser.type}
       selected={selected}
       title={checkDictionnaryValue("_MON_COMPTE")}
       onLogout={handleLogout}
@@ -124,7 +125,7 @@ const Account: React.FC<IProps> = ({
                 <Typography
                   variant="h4"
                   align="center"
-                  color="textSecondary"
+                  color="text.secondary"
                   gutterBottom
                 >
                   {checkDictionnaryValue("_DONNEES_PERSONNELLES")}
@@ -136,15 +137,13 @@ const Account: React.FC<IProps> = ({
                       secondary={
                         <Typography
                           variant="subtitle1"
-                          color="textSecondary"
-                          className="centered-text"
+                          color="text.secondary"
+                          align="center"
                         >
-                          {userLastName.toUpperCase()}
+                          {currentUser.last_name.toUpperCase()}
                         </Typography>
                       }
-                      classes={{
-                        primary: "centered-text"
-                      }}
+                      primaryTypographyProps={{ align: 'center' }}
                     />
                   </ListItem>
                   <Divider light />
@@ -154,15 +153,13 @@ const Account: React.FC<IProps> = ({
                       secondary={
                         <Typography
                           variant="subtitle1"
-                          color="textSecondary"
-                          className="centered-text"
+                          color="text.secondary"
+                          align="center"
                         >
-                          {userFirstName}
+                          {currentUser.first_name}
                         </Typography>
                       }
-                      classes={{
-                        primary: "centered-text"
-                      }}
+                      primaryTypographyProps={{ align: 'center' }}
                     />
                   </ListItem>
                   <Divider light />
@@ -172,15 +169,13 @@ const Account: React.FC<IProps> = ({
                       secondary={
                         <Typography
                           variant="subtitle1"
-                          color="textSecondary"
-                          className="centered-text"
+                          color="text.secondary"
+                          align="center"
                         >
-                          {userEmailAddress}
+                          {currentUser.email_address}
                         </Typography>
                       }
-                      classes={{
-                        primary: "centered-text"
-                      }}
+                      primaryTypographyProps={{ align: 'center' }}
                     />
                   </ListItem>
                   <Divider light />
@@ -190,15 +185,13 @@ const Account: React.FC<IProps> = ({
                       secondary={
                         <Typography
                           variant="subtitle1"
-                          color="textSecondary"
-                          className="centered-text"
+                          color="text.secondary"
+                          align="center"
                         >
-                          {userTypes.filter(x => x.value === userType)[0].label}
+                          {userTypes.find(x => x.value === currentUser.type)?.label}
                         </Typography>
                       }
-                      classes={{
-                        primary: "centered-text"
-                      }}
+                      primaryTypographyProps={{ align: 'center' }}
                     />
                   </ListItem>
                   <Divider light />
@@ -206,18 +199,16 @@ const Account: React.FC<IProps> = ({
                     <ListItemText
                       primary={checkDictionnaryValue("_LANGUE")}
                       secondary={
-                        <Select
+                        <StyledSelect
                           value={localUserLanguage}
                           onChange={handleChangeUserLanguage}
+                          disabled={isUserLoading}
                         >
                           <MenuItem value="en">🇺🇸 English</MenuItem>
                           <MenuItem value="fr">🇫🇷 Français</MenuItem>
-                        </Select>
+                        </StyledSelect>
                       }
-                      classes={{
-                        primary: "centered-text",
-                        secondary: "centered-text"
-                      }}
+                      primaryTypographyProps={{ align: 'center' }}
                     />
                   </ListItem>
                 </ListContainer>
