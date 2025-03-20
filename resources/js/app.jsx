@@ -5,6 +5,7 @@ import React from 'react';
 import { createRoot } from "react-dom/client";
 import { Provider } from "react-redux";
 import { BrowserRouter } from "react-router-dom";
+import axios from 'axios';
 import AppRoutes from "./routes";
 import { store } from "./store";
 import "./css/index.css";
@@ -18,6 +19,11 @@ const user = localStorage.getItem("user");
 if (user) {
   try {
     const userData = JSON.parse(user);
+    
+    // Configurer le token d'authentification pour toutes les requêtes futures
+    if (userData.token) {
+      axios.defaults.headers.common['Authorization'] = `Bearer ${userData.token}`;
+    }
     
     // Importation dynamique pour éviter le problème de préambule
     import('./actions/login').then(loginModule => {

@@ -213,4 +213,15 @@ final class UserController extends Controller
     {
         return response()->json($user->load('supplier'));
     }
+
+    public function logout(Request $request): JsonResponse
+    {
+        try {
+            // Révoque le token actuel
+            $request->user()->currentAccessToken()->delete();
+            return response()->json(['message' => 'Déconnexion réussie']);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
 } 

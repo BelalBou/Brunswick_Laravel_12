@@ -30,6 +30,9 @@ Route::get('/login-as/{id}', [UserController::class, 'loginAs']);
 
 // Routes protégées
 Route::middleware('auth:sanctum')->group(function () {
+    // Route de déconnexion
+    Route::post('/logout', [UserController::class, 'logout']);
+    
     // Routes principales
     Route::apiResource('menus', MenuController::class);
     Route::post('menus/upload-picture', [MenuController::class, 'uploadPicture']);

@@ -44,18 +44,56 @@ export const login = createAsyncThunk(
       dispatch(setLoginPending(true));
       dispatch(setLoginError(''));
 
-      const response = await axios.post('/api/auth/login', credentials);
+      // Adapter le format des données à celui attendu par l'API Laravel
+      const payload = {
+        emailAddress: credentials.email,
+        password: credentials.password
+      };
+
+      // Utiliser la route Laravel correcte pour l'authentification
+      const response = await axios.post('/api/login', payload);
       
       if (response.data) {
-        localStorage.setItem('user', JSON.stringify(response.data));
+        // Formater les données utilisateur pour le localStorage
+        const userData = {
+          id: response.data.user.id,
+          firstName: response.data.user.first_name,
+          lastName: response.data.user.last_name,
+          emailAddress: response.data.user.email_address,
+          language: response.data.user.language,
+          type: response.data.user.type,
+          token: response.data.token,
+          supplierId: response.data.user.supplier_id || 0
+        };
+
+        localStorage.setItem('user', JSON.stringify(userData));
+        
+        // Configurer le token pour les futures requêtes
+        axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
+        
         dispatch(setLoginSuccess(true));
-        return response.data;
+        return userData;
       } else {
-        dispatch(setLoginError('Login failed'));
+        dispatch(setLoginError('Échec de connexion'));
         return null;
       }
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'An error occurred during login';
+    } catch (error: any) {
+      // Gérer les erreurs d'authentification
+      let errorMessage = 'Une erreur est survenue lors de la connexion';
+      
+      if (error.response) {
+        // Le serveur a répondu avec un code d'erreur
+        if (error.response.status === 400 || error.response.status === 401) {
+          errorMessage = "Identifiants incorrects";
+        } else if (error.response.status === 422) {
+          errorMessage = "Veuillez remplir tous les champs correctement";
+        } else if (error.response.data && error.response.data.error) {
+          errorMessage = error.response.data.error;
+        }
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       dispatch(setLoginError(errorMessage));
       return null;
     } finally {
@@ -65,9 +103,25 @@ export const login = createAsyncThunk(
 );
 
 // Action thunk pour la déconnexion
-export const logout = () => (dispatch: AppDispatch) => {
-  localStorage.removeItem('user');
-  dispatch(setLoginSuccess(false));
+export const logout = () => async (dispatch: AppDispatch) => {
+  try {
+    // Appeler l'API pour révoquer le token si l'utilisateur est connecté
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    if (user.token) {
+      await axios.post('/api/logout', {}, {
+        headers: {
+          'Authorization': `Bearer ${user.token}`
+        }
+      });
+    }
+  } catch (error) {
+    console.error('Erreur lors de la déconnexion', error);
+  } finally {
+    // Toujours nettoyer le localStorage et l'état Redux même en cas d'erreur
+    localStorage.removeItem('user');
+    delete axios.defaults.headers.common['Authorization'];
+    dispatch(setLoginSuccess(false));
+  }
 };
 
 export default loginSlice.reducer;
