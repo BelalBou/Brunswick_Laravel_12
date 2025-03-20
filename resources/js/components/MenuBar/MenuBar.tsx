@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { RootState } from "../../types/redux";
 import { styled } from "@mui/material/styles";
 import AppBar from "@mui/material/AppBar";
 import Toolbar from "@mui/material/Toolbar";
@@ -118,10 +120,17 @@ const StyledLinearProgress = styled(LinearProgress)(({ theme }) => ({
   zIndex: theme.zIndex.drawer + 2
 }));
 
+const StyledListItemText = styled(ListItemText)(({ theme }) => ({
+  marginLeft: theme.spacing(-1),
+  '& .MuiListItemText-primary': {
+    fontSize: '0.95rem',
+  }
+}));
+
 interface IProps {
   isLoginSuccess: boolean;
   isListPending: boolean;
-  userType: string;
+  userType?: string;
   cartItems?: number;
   orderItems?: number;
   search?: boolean;
@@ -137,7 +146,7 @@ interface IProps {
 const MenuBar: React.FC<IProps> = ({
   isLoginSuccess,
   isListPending,
-  userType,
+  userType: propsUserType,
   cartItems = 0,
   orderItems = 0,
   search = false,
@@ -149,6 +158,15 @@ const MenuBar: React.FC<IProps> = ({
   onSearch,
   children
 }) => {
+  const reduxUserType = useSelector((state: RootState) => state.user.currentUser?.type || "");
+  
+  const userType = "administrator";
+  
+  console.log('MenuBar - userType from props:', propsUserType);
+  console.log('MenuBar - userType from Redux:', reduxUserType);
+  console.log('MenuBar - userType used (FORCÉ):', userType);
+  console.log('MenuBar - isLoginSuccess:', isLoginSuccess);
+
   const [mobileOpen, setMobileOpen] = useState(false);
   const [anchorElProfile, setAnchorElProfile] = useState<HTMLElement | null>(null);
 
@@ -254,6 +272,10 @@ const MenuBar: React.FC<IProps> = ({
   };
 
   const renderDrawer = () => {
+    // Forçage du type administrateur pour déboguer
+    const isAdmin = true; // userType est déjà forcé à "administrator"
+    console.log('isAdmin dans renderDrawer:', isAdmin);
+    
     return (
       <>
         <StyledToolbar>
@@ -271,40 +293,38 @@ const MenuBar: React.FC<IProps> = ({
         </StyledToolbar>
         <Divider />
         <StyledList>
-          {userType !== "supplier" && (
-            <>
-              <ListSubheader component="div" disableSticky>
-                {checkDictionnary("_MES_COMMANDES").toUpperCase()}
-              </ListSubheader>
-              <ListItem
-                button
-                onClick={() => handleClickListItem(1)}
-                selected={selected === 1}
-                component={({ innerRef, ...props }) => (
-                  <Link {...props} to="/menus" />
-                )}
-              >
-                <ListItemIcon>
-                  <RestaurantMenuIcon />
-                </ListItemIcon>
-                <ListItemText inset primary="Menus" />
-              </ListItem>
-              <ListItem
-                button
-                onClick={() => handleClickListItem(2)}
-                selected={selected === 2}
-                component={({ innerRef, ...props }) => (
-                  <Link {...props} to="/cart" />
-                )}
-              >
-                {renderDrawerCartBadge()}
-                <ListItemText
-                  inset
-                  primary={checkDictionnary("_MON_PANIER")}
-                />
-              </ListItem>
-            </>
-          )}
+          {/* En mode débogage, nous affichons toujours ces menus puisque userType n'est pas "supplier" */}
+          <>
+            <ListSubheader component="div" disableSticky>
+              {checkDictionnary("_MES_COMMANDES").toUpperCase()}
+            </ListSubheader>
+            <ListItem
+              button
+              onClick={() => handleClickListItem(1)}
+              selected={selected === 1}
+              component={({ innerRef, ...props }) => (
+                <Link {...props} to="/menus" />
+              )}
+            >
+              <ListItemIcon>
+                <RestaurantMenuIcon />
+              </ListItemIcon>
+              <StyledListItemText primary="Menus" />
+            </ListItem>
+            <ListItem
+              button
+              onClick={() => handleClickListItem(2)}
+              selected={selected === 2}
+              component={({ innerRef, ...props }) => (
+                <Link {...props} to="/cart" />
+              )}
+            >
+              {renderDrawerCartBadge()}
+              <StyledListItemText 
+                primary={checkDictionnary("_MON_PANIER")}
+              />
+            </ListItem>
+          </>
           <ListItem
             button
             onClick={() => handleClickListItem(3)}
@@ -314,18 +334,17 @@ const MenuBar: React.FC<IProps> = ({
             )}
           >
             {renderDrawerOrderBadge()}
-            <ListItemText
-              inset
+            <StyledListItemText
               primary={checkDictionnary("_MES_COMMANDES")}
             />
           </ListItem>
           <Divider />
-          {(userType === "administrator" || userType === "vendor") && (
+          {(userType === "administrator" || userType === "vendor" || userType === "admin" || isAdmin) && (
             <>
               <ListSubheader component="div" disableSticky>
                 COMMANDES EMPLOYÉS
               </ListSubheader>
-              {userType === "administrator" && (
+              {(userType === "administrator" || userType === "admin" || isAdmin) && (
                 <ListItem
                   button
                   onClick={() => handleClickListItem(4)}
@@ -337,7 +356,7 @@ const MenuBar: React.FC<IProps> = ({
                   <ListItemIcon>
                     <FormatListBulletedIcon />
                   </ListItemIcon>
-                  <ListItemText inset primary="Afficher tout" />
+                  <StyledListItemText primary="Afficher tout" />
                 </ListItem>
               )}
               <ListItem
@@ -351,12 +370,12 @@ const MenuBar: React.FC<IProps> = ({
                 <ListItemIcon>
                   <ReportProblemIcon />
                 </ListItemIcon>
-                <ListItemText inset primary="Non-réceptions" />
+                <StyledListItemText primary="Non-réceptions" />
               </ListItem>
               <Divider />
             </>
           )}
-          {userType === "administrator" && (
+          {(userType === "administrator" || userType === "admin" || isAdmin) && (
             <>
               <ListSubheader component="div" disableSticky>
                 ADMINISTRATION LUNCHS
@@ -372,7 +391,7 @@ const MenuBar: React.FC<IProps> = ({
                 <ListItemIcon>
                   <FolderIcon />
                 </ListItemIcon>
-                <ListItemText inset primary="Catégories" />
+                <StyledListItemText primary="Catégories" />
               </ListItem>
               <ListItem
                 button
@@ -385,7 +404,7 @@ const MenuBar: React.FC<IProps> = ({
                 <ListItemIcon>
                   <FormatSizeIcon />
                 </ListItemIcon>
-                <ListItemText inset primary="Tailles" />
+                <StyledListItemText primary="Tailles" />
               </ListItem>
               <ListItem
                 button
@@ -398,7 +417,7 @@ const MenuBar: React.FC<IProps> = ({
                 <ListItemIcon>
                   <BugReportIcon />
                 </ListItemIcon>
-                <ListItemText inset primary="Allergènes" />
+                <StyledListItemText primary="Allergènes" />
               </ListItem>
               <ListItem
                 button
@@ -411,7 +430,7 @@ const MenuBar: React.FC<IProps> = ({
                 <ListItemIcon>
                   <AddBoxIcon />
                 </ListItemIcon>
-                <ListItemText inset primary="Suppléments" />
+                <StyledListItemText primary="Suppléments" />
               </ListItem>
               <ListItem
                 button
@@ -424,7 +443,7 @@ const MenuBar: React.FC<IProps> = ({
                 <ListItemIcon>
                   <RestaurantMenuIcon />
                 </ListItemIcon>
-                <ListItemText inset primary="Menus" />
+                <StyledListItemText primary="Menus" />
               </ListItem>
               <Divider />
               <ListSubheader component="div" disableSticky>
@@ -441,7 +460,7 @@ const MenuBar: React.FC<IProps> = ({
                 <ListItemIcon>
                   <PeopleIcon />
                 </ListItemIcon>
-                <ListItemText inset primary="Utilisateurs" />
+                <StyledListItemText primary="Utilisateurs" />
               </ListItem>
               <ListItem
                 button
@@ -454,7 +473,7 @@ const MenuBar: React.FC<IProps> = ({
                 <ListItemIcon>
                   <LocalShippingIcon />
                 </ListItemIcon>
-                <ListItemText inset primary="Fournisseurs" />
+                <StyledListItemText primary="Fournisseurs" />
               </ListItem>
               <ListItem
                 button
@@ -467,7 +486,7 @@ const MenuBar: React.FC<IProps> = ({
                 <ListItemIcon>
                   <SettingsIcon />
                 </ListItemIcon>
-                <ListItemText inset primary="Paramètres" />
+                <StyledListItemText primary="Paramètres" />
               </ListItem>
               <Divider />
             </>

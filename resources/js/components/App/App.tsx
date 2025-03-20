@@ -14,9 +14,11 @@ const App = () => {
   // Redirection basée sur le type d'utilisateur
   const getDefaultRoute = () => {
     switch (userType) {
+      case "administrator":
       case "admin":
-        return "/settings";
+        return "/menus";
       case "supplier":
+        return "/orders";
       case "customer":
         return "/menus";
       default:

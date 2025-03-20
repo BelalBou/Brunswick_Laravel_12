@@ -19,6 +19,7 @@ const user = localStorage.getItem("user");
 if (user) {
   try {
     const userData = JSON.parse(user);
+    console.log('Données utilisateur du localStorage:', userData);
     
     // Configurer le token d'authentification pour toutes les requêtes futures
     if (userData.token) {
